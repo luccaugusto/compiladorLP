@@ -2,41 +2,115 @@
 #include <stdio.h>
 #include <unistd.h>
 
-//Simbolos simb[254];
-//char memoria[254][255];
-//int indice = 0;
+#define TAM_TBL 254
+
+enum Tokens
+{
+	Identificador,
+};
 
  /*parametros da linha de comando*/
-char *prog_fonte;
-char *prog_asm;
+char *progFonte;
+char *progAsm;
 
-struct simb_info
+/*registro do token na tabela*/
+struct Simbolo
 {
-	char nome[50];
-	char tipo[7];
+	enum Tokens token;
+	char *lexema;
+	char *tipo;
 	int mem; /*local na memória*/
 };
 
-struct celula
+struct Celula
 {
-	struct celula *prox;
-	struct simb_info simbolo;
+	struct Celula *prox;
+	struct Simbolo simbolo;
 };
 
-struct celula tabela_simbolos[200];
+struct Celula tabelaSimbolos[TAM_TBL];
 
-void adicionarRegistro(char *novoRegistro[])
+enum Tokens selecionarToken(char *str)
 {
-    //memoria[indice] = novoRegistro[];
+	return Identificador;
 }
 
-void pesquisarRegistro(char p[255])
+unsigned int hash(unsigned char *str)
 {
-    //if(strcmp ("", p) == 0)
+    unsigned int hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return (hash % TAM_TBL);
+}
+
+void adicionarRegistro(char *novoRegistro)
+{
+
+	int token = selecionarToken(novoRegistro);
+	
+	unsigned int pos = hash(novoRegistro);
+	struct Celula cel;
+	struct Simbolo simb;
+	simb.token = token;
+	simb.lexema = novoRegistro;
+	simb.tipo = "int";
+	simb.mem = 0;
+	cel.prox = NULL;
+	cel.simbolo = simb;
+
+	if (tabelaSimbolos[pos].simbolo.lexema == NULL) {
+		tabelaSimbolos[pos] = cel;
+	}else{
+		tabelaSimbolos[pos].prox = &cel;
+	}
+}
+
+void pesquisarRegistro(char *p)
+{
 }
 
 void adicionarReservados()
 {
+	adicionarRegistro("const");
+	adicionarRegistro("const");
+	adicionarRegistro("var");
+	adicionarRegistro("integer");
+	adicionarRegistro("char");
+	adicionarRegistro("for");
+	adicionarRegistro("if");
+	adicionarRegistro("else");
+	adicionarRegistro("and");
+	adicionarRegistro("or");
+	adicionarRegistro("not");
+	adicionarRegistro("=");
+	adicionarRegistro("to");
+	adicionarRegistro("(");
+	adicionarRegistro(")");
+	adicionarRegistro("<");
+	adicionarRegistro(">");
+	adicionarRegistro("<>");
+	adicionarRegistro(">=");
+	adicionarRegistro("<=");
+	adicionarRegistro(",");
+	adicionarRegistro("+");
+	adicionarRegistro("-");
+	adicionarRegistro("*");
+	adicionarRegistro("/");
+	adicionarRegistro(";");
+	adicionarRegistro("{");
+	adicionarRegistro("}");
+	adicionarRegistro("then");
+	adicionarRegistro("readln");
+	adicionarRegistro("step");
+	adicionarRegistro("write");
+	adicionarRegistro("writeln");
+	adicionarRegistro("%");
+	adicionarRegistro("[");
+	adicionarRegistro("]");
+	adicionarRegistro("do");
 }
 
 
@@ -47,10 +121,10 @@ int main(int argc, char *argv[])
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
 			case 'f':
-				prog_fonte = optarg;
+				progFonte = optarg;
 				break;
 			case 'o':
-				prog_asm = optarg;
+				progAsm = optarg;
 				break;
 			case '?':
 				if (optopt == 'f')
@@ -64,13 +138,21 @@ int main(int argc, char *argv[])
 					return 1;
 		}
 	}
-	if (prog_fonte == NULL || prog_asm == NULL) {
+	if (progFonte == NULL || progAsm == NULL) {
 		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 		return 1;
 	}
 
     adicionarReservados();
-	printf("fonte: %s; asm: %s\n",prog_fonte,prog_asm);
+	for (int i=0; i<TAM_TBL; ++i) {
+		printf("%d - %s", i, tabelaSimbolos[i].simbolo.lexema);
+		struct Celula *prox = tabelaSimbolos[i].prox;
+		while (prox != NULL){
+			printf(" -> %s",prox->simbolo.lexema);
+			prox = prox->prox;
+		}
+		printf("\n");
+	}
 
 	return 0;
 }
