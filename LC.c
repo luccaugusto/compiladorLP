@@ -28,7 +28,7 @@ struct Celula
 	struct Simbolo simbolo;
 };
 
-struct Celula tabelaSimbolos[TAM_TBL];
+struct Celula *tabelaSimbolos[TAM_TBL];
 
 enum Tokens selecionarToken(char *str)
 {
@@ -52,20 +52,21 @@ void adicionarRegistro(char *novoRegistro)
 	int token = selecionarToken(novoRegistro);
 	
 	unsigned int pos = hash(novoRegistro);
-	struct Celula cel;
-	struct Simbolo simb;
-	simb.token = token;
-	simb.lexema = novoRegistro;
-	simb.tipo = "int";
-	simb.mem = 0;
-	cel.prox = NULL;
-	cel.simbolo = simb;
-
-	if (tabelaSimbolos[pos].simbolo.lexema == NULL) {
+	struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
+	struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
+	simb->token = token;
+	simb->lexema = novoRegistro;
+	simb->tipo = "int";
+	simb->mem = 0;
+	cel->prox = NULL;
+	cel->simbolo = *simb;
+	
+	if (tabelaSimbolos[pos]->simbolo.lexema == NULL) {
 		tabelaSimbolos[pos] = cel;
 	}else{
-		tabelaSimbolos[pos].prox = &cel;
+		tabelaSimbolos[pos]->prox = cel;
 	}
+
 }
 
 void pesquisarRegistro(char *p)
@@ -113,6 +114,16 @@ void adicionarReservados()
 	adicionarRegistro("do");
 }
 
+void inicializarTabela()
+{
+	for(int i=0; i<TAM_TBL; ++i) {
+		struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
+		struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
+		cel->simbolo = *simb;
+		tabelaSimbolos[i] = cel;
+	}
+    adicionarReservados();
+}
 
 int main(int argc, char *argv[])
 {
@@ -143,10 +154,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    adicionarReservados();
+	inicializarTabela();
 	for (int i=0; i<TAM_TBL; ++i) {
-		printf("%d - %s", i, tabelaSimbolos[i].simbolo.lexema);
-		struct Celula *prox = tabelaSimbolos[i].prox;
+		printf("%d - %s", i, tabelaSimbolos[i]->simbolo.lexema);
+		struct Celula *prox = tabelaSimbolos[i]->prox;
 		while (prox != NULL){
 			printf(" -> %s",prox->simbolo.lexema);
 			prox = prox->prox;
