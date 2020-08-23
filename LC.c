@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
+//Simbolos simb[254];
+//char memoria[254][255];
+//int indice = 0;
+
  /*parametros da linha de comando*/
 char *prog_fonte;
 char *prog_asm;
@@ -20,6 +24,20 @@ struct celula
 };
 
 struct celula tabela_simbolos[200];
+
+void adicionarRegistro(char *novoRegistro[])
+{
+    //memoria[indice] = novoRegistro[];
+}
+
+void pesquisarRegistro(char p[255])
+{
+    //if(strcmp ("", p) == 0)
+}
+
+void adicionarReservados()
+{
+}
 
 
 int main(int argc, char *argv[])
@@ -51,7 +69,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	printf("%s; %s\n",prog_fonte,prog_asm);
+    adicionarReservados();
+	printf("fonte: %s; asm: %s\n",prog_fonte,prog_asm);
 
 	return 0;
 }
