@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define TAM_TBL 254
+#define SEPARADOR "-=-=-=-=-="
 
  /*parametros da linha de comando*/
 char *progFonte;
@@ -31,7 +32,7 @@ struct Celula
 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
-struct Celula *proc;
+
 
 unsigned int hash(unsigned char *str)
 {
@@ -91,9 +92,9 @@ struct Celula *pesquisarRegistro(char *lexema)
 	return retorno;
 }
 
-void adicionarReservados()
+void adicionarReservados(void)
 {
-	proc = adicionarRegistro("const",Identificador);
+	adicionarRegistro("const",Identificador);
 	adicionarRegistro("var",Identificador);
 	adicionarRegistro("integer",Identificador);
 	adicionarRegistro("char",Identificador);
@@ -131,17 +132,122 @@ void adicionarReservados()
 	adicionarRegistro("do",Identificador);
 }
 
-void inicializarTabela()
+/* printa a tabela de simbolos */
+void mostrarTabelaSimbolos(void)
 {
-	/*
-	for(int i=0; i<TAM_TBL; ++i) {
-		struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
-		struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
-		cel->simbolo = *simb;
-		tabelaSimbolos[i] = cel;
+	printf(SEPARADOR"TABELA DE SÍMBOLOS"SEPARADOR"\n");
+	for (int i=0; i<TAM_TBL; ++i) {
+		if (tabelaSimbolos[i] != NULL) {
+			printf("| %d\t|-> %s", i, tabelaSimbolos[i]->simbolo.lexema);
+			struct Celula *prox = tabelaSimbolos[i]->prox;
+			while (prox != NULL){
+				printf(" -> %s",prox->simbolo.lexema);
+				prox = prox->prox;
+			}
+			printf("\n");
+		}
 	}
-	*/
+}
+
+void inicializarTabela(void)
+{
     adicionarReservados();
+}
+
+/* testa a inserção de um registro na tabela */
+void testeInsercao(void)
+{
+	printf("Testando inserção simples......");
+	char *lex = "teste";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	if (inserido == NULL)
+		printf("ERRO: Inserção falhou\n");
+	else
+		printf("OK\n");
+}
+
+/* testa a inserção de um registro que cause uma colisão na tabela */
+void testeColisao(void)
+{
+	printf("Testando inserção com colisão..");
+	char *lex = "teste2";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	struct Celula *colisao = adicionarRegistro(lex, Identificador);
+	if (inserido->prox != colisao)
+		printf("ERRO: Colisão falhou\n");
+	else
+		printf("OK\n");
+}
+
+/* testa a busca por um registro que está no início da lista, ou seja,
+ * sem colisões.
+ */
+void testeBuscaSimples(void)
+{
+	printf("Testando busca simples.........");
+	char *lex = "teste3";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	struct Celula *encontrado = pesquisarRegistro(lex);
+	if (encontrado != inserido)
+		printf("ERRO: Busca simples falhou\n");
+	else
+		printf("OK\n");
+}
+
+/* testa a busca por um registro que está no meio da lista, ou seja,
+ * quando houveram colisões.
+ */
+void testeBuscaEmColisao(void)
+{
+	printf("Testando busca em colisão......");
+	/* strings que colidem e são diferentes */
+	char *lex = "not";
+	char *lex2 = "%";
+	/*guarda somente o registro que colidiu, que é o que buscamos*/
+	adicionarRegistro(lex, Identificador);
+	struct Celula *inserido = adicionarRegistro(lex2, Identificador);
+	struct Celula *encontrado = pesquisarRegistro(lex2);
+	if (encontrado != inserido)
+		printf("ERRO: Busca em colisão falhou.\n \
+					  ponteiro inserido: %p\n \
+				      ponteiro encontrado: %p\n", inserido, encontrado);
+	else
+		printf("OK\n");
+}
+
+/* limpa a lista encadeada recursivamente.
+ * Utilizado somente para fins de testes
+ */
+void limparLista(struct Celula *cel)
+{
+	if (cel != NULL) {
+		limparLista(cel->prox);
+		free(cel);
+	}
+}
+
+/* limpa a tabela de símbolos
+ * usado para fins de testes
+ */
+void limparTabela(void)
+{
+	for (int i=0; i<TAM_TBL; ++i) {
+		if (tabelaSimbolos[i] != NULL) {
+			limparLista(tabelaSimbolos[i]->prox);
+			free(tabelaSimbolos[i]);
+			tabelaSimbolos[i] = NULL;
+		}
+	}
+}
+
+void testesTabelaSimbolos(void)
+{
+	testeInsercao();
+	testeColisao();
+	testeBuscaSimples();
+	testeBuscaEmColisao();
+	mostrarTabelaSimbolos();
+	limparTabela();
 }
 
 int main(int argc, char *argv[])
@@ -168,26 +274,15 @@ int main(int argc, char *argv[])
 					return 1;
 		}
 	}
+
 	if (progFonte == NULL || progAsm == NULL) {
 		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 		return 1;
 	}
 
-	inicializarTabela();
-	/*
-	for (int i=0; i<TAM_TBL; ++i) {
-		printf("%d - %s", i, tabelaSimbolos[i]->simbolo.lexema);
-		struct Celula *prox = tabelaSimbolos[i]->prox;
-		while (prox != NULL){
-			printf(" -> %s",prox->simbolo.lexema);
-			prox = prox->prox;
-		}
-		printf("\n");
-	}
-	*/
-	printf("pesquisando por const\n");
-	printf("%p, %p\n",pesquisarRegistro("const"), proc);
+	testesTabelaSimbolos();
 
+	inicializarTabela();
 
 	return 0;
 }
