@@ -1,38 +1,64 @@
+/* Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ *
+ * Tudo em um só arquivo pois é uma restrição deste trabalho
+ *
+ * Este programa segue a maioria das recomendações do estilo de código definido em: https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 
+/* MACROS */
 #define TAM_TBL 254
-#define SEPARADOR "-=-=-=-=-="
+#define SEPARADOR "=-=-=-=-="
 
- /*parametros da linha de comando*/
-char *progFonte;
-char *progAsm;
+/* DECLARAÇÕES */
 
-enum Tokens
-{
-	Identificador,
-};
+typedef enum {
+	Identificador = 0,
+} Tokens;
 
-/*registro do token na tabela*/
-struct Simbolo
-{
-	enum Tokens token;
+/*registro na tabela*/
+struct Simbolo {
+	Tokens token;
 	char *lexema;
 	char *tipo;
 	int mem; /*local na memória*/
 };
 
-struct Celula
-{
+/* Celulas da lista encadeada */
+struct Celula {
 	struct Celula *prox;
 	struct Simbolo simbolo;
 };
 
+
+/*DECLARAÇÕES DE FUNÇÕES*/
+unsigned int hash(unsigned char *str);
+struct Celula *adicionarRegistro(char *lexema, int token);
+struct Celula *pesquisarRegistro(char *lexema);
+void adicionarReservados(void);
+void mostrarTabelaSimbolos(void);
+void inicializarTabela(void);
+void testeInsercao(void);
+void testeColisao(void);
+void testeBuscaSimples(void);
+void testeBuscaEmColisao(void);
+void limparLista(struct Celula *cel);
+void limparTabela(void);
+void testesTabelaSimbolos(void);
+void testeBuscaVazia(void);
+
+/* VARIÁVEIS GLOBAIS */
+/* parametros da linha de comando */
+char *progFonte;
+char *progAsm;
 struct Celula *tabelaSimbolos[TAM_TBL];
-
-
 
 unsigned int hash(unsigned char *str)
 {
@@ -65,29 +91,20 @@ struct Celula *adicionarRegistro(char *lexema, int token)
 	return cel;
 }
 
-struct Celula *pesquisarRegistro(char *lexema)
+struct Celula *pesquisarRegistro(char *procurado)
 {
 	int encontrado = 0;
-	int i = 0;
-	char *lexAtual;
+	unsigned int pos = hash(procurado);
 	struct Celula *retorno = NULL;
-	while (!encontrado && i<TAM_TBL) {
-		if (tabelaSimbolos[i] != NULL && tabelaSimbolos[i]->simbolo.lexema != NULL) {
-			if (strcmp(tabelaSimbolos[i]->simbolo.lexema, lexema) == 0) {
-				encontrado = 1;
-				retorno = tabelaSimbolos[i];
-			} else {
-				struct Celula *prox = tabelaSimbolos[i]->prox;
-				while (prox != NULL && !encontrado){
-					if (strcmp(prox->simbolo.lexema, lexema) == 0) {
-						encontrado = 1;
-						retorno = prox;
-					}
-					prox = prox->prox;
-				}
-			}
+	struct Celula *prox = tabelaSimbolos[pos];
+
+	while (!encontrado && prox != NULL) {
+		if (prox->simbolo.lexema != NULL && strcmp(prox->simbolo.lexema, procurado) == 0) {
+			encontrado = 1;
+			retorno = prox;
+		} else {
+			prox = prox->prox;
 		}
-		++i;
 	}
 	return retorno;
 }
@@ -215,6 +232,20 @@ void testeBuscaEmColisao(void)
 		printf("OK\n");
 }
 
+/* testa a busca por um registro que não está na lista
+ */
+void testeBuscaVazia(void)
+{
+	printf("Testando busca vazia...........");
+	/* strings que colidem e são diferentes */
+	char *lex = "esse lexema não está na tabela";
+	struct Celula *encontrado = pesquisarRegistro(lex);
+	if (encontrado != NULL)
+		printf("ERRO: Busca em colisão falhou.\n");
+	else
+		printf("OK\n");
+}
+
 /* limpa a lista encadeada recursivamente.
  * Utilizado somente para fins de testes
  */
@@ -246,6 +277,7 @@ void testesTabelaSimbolos(void)
 	testeColisao();
 	testeBuscaSimples();
 	testeBuscaEmColisao();
+	testeBuscaVazia();
 	mostrarTabelaSimbolos();
 	limparTabela();
 }
