@@ -23,12 +23,14 @@ typedef enum {
 	Identificador = 0,
 } Tokens;
 
-/*registro na tabela*/
+typedef enum {
+	Integer = 0,
+} Tipo;
+
+/*registro na tabela de símbolos*/
 struct Simbolo {
 	Tokens token;
 	char *lexema;
-	char *tipo;
-	int mem; /*local na memória*/
 };
 
 /* Celulas da lista encadeada */
@@ -36,6 +38,15 @@ struct Celula {
 	struct Celula *prox;
 	struct Simbolo simbolo;
 };
+
+/* Registro léxico */
+typedef struct {
+	Tokens token;
+	char *lexema;
+	struct Celula *endereco;
+	Tipo tipo;
+	int tamanho;
+} tokenAtual;
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
@@ -78,8 +89,6 @@ struct Celula *adicionarRegistro(char *lexema, int token)
 	struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
 	simb->token = token;
 	simb->lexema = lexema;
-	simb->tipo = "int";
-	simb->mem = 0;
 	cel->prox = NULL;
 	cel->simbolo = *simb;
 	
@@ -155,7 +164,7 @@ void mostrarTabelaSimbolos(void)
 	printf(SEPARADOR"TABELA DE SÍMBOLOS"SEPARADOR"\n");
 	for (int i=0; i<TAM_TBL; ++i) {
 		if (tabelaSimbolos[i] != NULL) {
-			printf("| %d\t|-> %s", i, tabelaSimbolos[i]->simbolo.lexema);
+			printf("|\t%d\t|-> %s", i, tabelaSimbolos[i]->simbolo.lexema);
 			struct Celula *prox = tabelaSimbolos[i]->prox;
 			while (prox != NULL){
 				printf(" -> %s",prox->simbolo.lexema);
@@ -278,7 +287,6 @@ void testesTabelaSimbolos(void)
 	testeBuscaSimples();
 	testeBuscaEmColisao();
 	testeBuscaVazia();
-	mostrarTabelaSimbolos();
 	limparTabela();
 }
 
@@ -313,8 +321,8 @@ int main(int argc, char *argv[])
 	}
 
 	testesTabelaSimbolos();
-
 	inicializarTabela();
+	mostrarTabelaSimbolos();
 
 	return 0;
 }
