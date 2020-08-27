@@ -4,10 +4,15 @@
  *
  * Este programa segue a maioria das recomendações do estilo de código definido em: https://suckless.org/coding_style/
  *
- * Alunos: Laura Nunes
+ * Alunos: Laura Nunes - 587484
  * 		   Lucca Augusto - 587488
- * 		   Richard Mariano
+ * 		   Richard Mariano - 598894
  */
+
+/*TODO 
+ * toLower
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -71,6 +76,8 @@ char *progFonte;
 char *progAsm;
 struct Celula *tabelaSimbolos[TAM_TBL];
 
+
+/* DEFINIÇÃO DE FUNÇÕES */
 unsigned int hash(unsigned char *str)
 {
     unsigned int hash = 5381;
@@ -290,6 +297,53 @@ void testesTabelaSimbolos(void)
 	limparTabela();
 }
 
+
+void lexan(void)
+{
+	int estado = 0;
+	int erro = 0;
+	int aceito = 0;
+	int linha = 1;
+	char c;
+	c = getchar();
+	while (c != -1 && (!erro || !aceito)) {
+		printf("c: %c | estado: %d | erro: %d | linha: %d\n",c,estado, erro,linha);
+		if (c == '\n') {
+			linha++;
+		} else if (estado == 0) {
+			if (c == '/') {
+				estado = 1;
+			} else if (c != ' ') {
+				erro = 1;
+				break;
+			}
+		} else if (estado == 1) {
+			if (c == '*') {
+				estado = 2;
+			} else {
+				erro = 1;
+				break;
+			}
+		} else if (estado == 2) {
+			if (c == '*') {
+				estado = 3;
+			} 
+		} else if (estado == 3) {
+			if (c == '/') {
+				estado = 0;
+			} else {
+				estado = 2;
+			}
+		}
+		c = getchar();
+	}
+
+	if (erro) {
+		printf("Erro na linha %d\n",linha);
+	}
+
+}
+
 int main(int argc, char *argv[])
 {
 	char c;
@@ -323,6 +377,7 @@ int main(int argc, char *argv[])
 	testesTabelaSimbolos();
 	inicializarTabela();
 	mostrarTabelaSimbolos();
+	lexan();
 
 	return 0;
 }

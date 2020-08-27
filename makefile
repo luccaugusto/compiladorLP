@@ -6,7 +6,7 @@ clean:
 	rm -f LCDEBUG.out
 
 run:
-	./LC -f fonte.l -o prog.asm
+	./LC.out -f fonte.l -o prog.asm
 
 debug:
 	gcc -o LCDEBUG.out LC.c -g
