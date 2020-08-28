@@ -9,10 +9,6 @@
  * 		   Richard Mariano - 598894
  */
 
-/*TODO 
- * toLower
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -55,6 +51,7 @@ typedef struct {
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
+char minusculo(char l);
 unsigned int hash(unsigned char *str);
 struct Celula *adicionarRegistro(char *lexema, int token);
 struct Celula *pesquisarRegistro(char *lexema);
@@ -69,11 +66,14 @@ void limparLista(struct Celula *cel);
 void limparTabela(void);
 void testesTabelaSimbolos(void);
 void testeBuscaVazia(void);
+void lexan(void);
 
 /* VARIÁVEIS GLOBAIS */
 /* parametros da linha de comando */
-char *progFonte;
-char *progAsm;
+FILE *progFonte;
+FILE *progAsm;
+int letra; /*posicao da proxima letra a ser lida no arquivo*/
+int linha = 1; /*linha do arquivo*/
 struct Celula *tabelaSimbolos[TAM_TBL];
 
 
@@ -297,45 +297,50 @@ void testesTabelaSimbolos(void)
 	limparTabela();
 }
 
+/* Converte maiusculas para minusculas */
+char minusculo(char l)
+{
+	if (l >= 65 && l <=90)
+		l += 32; 
+	return l;
+}
+
 
 void lexan(void)
 {
 	int estado = 0;
 	int erro = 0;
-	int aceito = 0;
-	int linha = 1;
-	char c;
-	c = getchar();
-	while (c != -1 && (!erro || !aceito)) {
-		printf("c: %c | estado: %d | erro: %d | linha: %d\n",c,estado, erro,linha);
-		if (c == '\n') {
+	letra = minusculo(fgetc(progFonte));
+	while (letra != -1 && !erro) {
+		printf("c: %c | estado: %d | erro: %d | linha: %d\n",letra,estado, erro,linha);
+		if (letra == '\n') {
 			linha++;
 		} else if (estado == 0) {
-			if (c == '/') {
+			if (letra == '/') {
 				estado = 1;
-			} else if (c != ' ') {
+			} else if (letra != ' ') {
 				erro = 1;
 				break;
 			}
 		} else if (estado == 1) {
-			if (c == '*') {
+			if (letra == '*') {
 				estado = 2;
 			} else {
 				erro = 1;
 				break;
 			}
 		} else if (estado == 2) {
-			if (c == '*') {
+			if (letra == '*') {
 				estado = 3;
 			} 
 		} else if (estado == 3) {
-			if (c == '/') {
+			if (letra == '/') {
 				estado = 0;
 			} else {
 				estado = 2;
 			}
 		}
-		c = getchar();
+		letra = minusculo(fgetc(progFonte));
 	}
 
 	if (erro) {
@@ -351,10 +356,10 @@ int main(int argc, char *argv[])
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
 			case 'f':
-				progFonte = optarg;
+				progFonte = fopen(optarg, "r");
 				break;
 			case 'o':
-				progAsm = optarg;
+				progAsm = fopen(optarg,"w");
 				break;
 			case '?':
 				if (optopt == 'f')
@@ -373,6 +378,7 @@ int main(int argc, char *argv[])
 		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 		return 1;
 	}
+
 
 	testesTabelaSimbolos();
 	inicializarTabela();
