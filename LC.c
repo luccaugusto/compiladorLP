@@ -9,6 +9,13 @@
  * 		   Richard Mariano - 598894
  */
 
+
+/* TODO
+ * Colocar um estado so de aceitacao do automato
+ * reconhecer a / como divisao (atualmente so reconhece como inicio de comentario)
+ * voltar no arquivo: fseek(progFonte, -sizeof(char),SEEK_CUR);
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -17,6 +24,7 @@
 /* MACROS */
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-="
+#define ERRO_LEXICO -1
 
 /* DECLARAÇÕES */
 
@@ -66,7 +74,8 @@ void limparLista(struct Celula *cel);
 void limparTabela(void);
 void testesTabelaSimbolos(void);
 void testeBuscaVazia(void);
-void lexan(void);
+int lexan(void);
+int ehDigito(char l);
 
 /* VARIÁVEIS GLOBAIS */
 /* parametros da linha de comando */
@@ -74,6 +83,7 @@ FILE *progFonte;
 FILE *progAsm;
 int letra; /*posicao da proxima letra a ser lida no arquivo*/
 int linha = 1; /*linha do arquivo*/
+char *erroMsg /*Mensagem de erro a ser exibida*/;
 struct Celula *tabelaSimbolos[TAM_TBL];
 
 
@@ -87,6 +97,15 @@ unsigned int hash(unsigned char *str)
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
     return (hash % TAM_TBL);
+}
+
+int ehDigito(char l)
+{
+	/* valores de 0-9 em ascii */
+	int retorno = 0;
+	if (30 <= l && l <= 39)
+		retorno = 1;
+	return retorno;
 }
 
 struct Celula *adicionarRegistro(char *lexema, int token)
@@ -306,27 +325,45 @@ char minusculo(char l)
 }
 
 
-void lexan(void)
+int lexan(void)
 {
+	int retorno = 0;
 	int estado = 0;
 	int erro = 0;
+	int aceito = 0;
 	letra = minusculo(fgetc(progFonte));
 	while (letra != -1 && !erro) {
-		printf("c: %c | estado: %d | erro: %d | linha: %d\n",letra,estado, erro,linha);
+		/**/printf("c: %c | estado: %d | erro: %d | linha: %d\n",letra,estado, erro,linha);
 		if (letra == '\n') {
 			linha++;
 		} else if (estado == 0) {
 			if (letra == '/') {
+				/* comentário ou divisão */ 
 				estado = 1;
-			} else if (letra != ' ') {
-				erro = 1;
-				break;
+			} else if (letra == '_' || letra == '.') {
+				/* inicio de identificador */
+				estado = 7;
+			} else if (letra == '<') {
+				/* menor ou menor ou igual ou diferente*/
+				estado = 4;
+			} else if (letra == '>') {
+				/* maior ou maior ou igual */
+				estado = 5;
+			} else if (letra == '"') {
+				/* inicio de string */
+				estado = 9;
+			} else if (ehDigito(letra)) {
+				/* inicio de literal */ 
+				estado = 6;
+			} else if (letra == ',' || letra == ';' || letra == '+' || letra == '-' || letra == '*' || letra == '(' || letra == ')' || letra == '{' || letra == '}' || letra == '[' || letra == ']' || letra == '%' || letra == '=') {
+				estado = 0;
 			}
 		} else if (estado == 1) {
 			if (letra == '*') {
 				estado = 2;
 			} else {
 				erro = 1;
+				erroMsg = "Caractere inválido:";
 				break;
 			}
 		} else if (estado == 2) {
@@ -344,9 +381,10 @@ void lexan(void)
 	}
 
 	if (erro) {
-		printf("Erro na linha %d\n",linha);
+		printf("%d\n%s '%c'\n",linha,erroMsg,letra);
+		retorno = ERRO_LEXICO;
 	}
-
+	return retorno;
 }
 
 int main(int argc, char *argv[])
