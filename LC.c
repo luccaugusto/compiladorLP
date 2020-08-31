@@ -360,9 +360,11 @@ int lexan(void)
 	while (estado != ACEITACAO && (letra = minusculo(fgetc(progFonte))) != -1 && !erro) {
 		lexEncontrado = &letra;
 		/*printf("c: %s | estado: %d | erro: %d | linha: %d\n",lexEncontrado,estado, erro,linha);*/
-		if (letra == '\n') {
+
+        /* \n é contabilizado sempre */
+		if (letra == '\n')
 			linha++;
-		} else if (estado == 0) {
+		if (estado == 0) {
 			if (letra == '/') {
 				/* comentário ou divisão */ 
 				estado = 1;
