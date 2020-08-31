@@ -11,7 +11,7 @@
 
 
 /* TODO
- * voltar no arquivo: 
+ * esta ignorando o lexema que vem logo antes de EOF, consetar
  */
 
 #include <stdlib.h>
@@ -419,7 +419,7 @@ int lexan(void)
 				tokenAtual.token = Identificador;
 				tokenAtual.lexema = lexEncontrado;
 				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
-			} else if (letra == ' ' || ehDigito(letra) || ehLetra(letra)) {
+			} else if (letra == ' ' || letra == '\n' || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao < */
 				estado = ACEITACAO;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
@@ -431,6 +431,7 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
 			}
 		} else if (estado == 5) {
+				printf("%s %c\n",lexEncontrado,letra);
 			if (letra == '=') {
 				/* lexema de comparacao >= */
 				estado = ACEITACAO;
@@ -440,7 +441,7 @@ int lexan(void)
 				tokenAtual.lexema = lexEncontrado;
 				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
 
-			} else if (letra == ' ' || ehDigito(letra) || ehLetra(letra)) {
+			} else if (letra == ' ' || letra == '\n' || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao > */
 				estado = ACEITACAO;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
