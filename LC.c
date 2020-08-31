@@ -11,9 +11,7 @@
 
 
 /* TODO
- * Colocar um estado so de aceitacao do automato
- * reconhecer a / como divisao (atualmente so reconhece como inicio de comentario)
- * voltar no arquivo: fseek(progFonte, -sizeof(char),SEEK_CUR);
+ * voltar no arquivo: 
  */
 
 #include <stdlib.h>
@@ -25,15 +23,18 @@
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-="
 #define ERRO_LEXICO -1
+#define ACEITACAO 10
 
 /* DECLARAÇÕES */
 
 typedef enum {
 	Identificador = 0,
+	Constante,
 } Tokens;
 
 typedef enum {
 	Integer = 0,
+	Char,
 } Tipo;
 
 /*registro na tabela de símbolos*/
@@ -49,13 +50,13 @@ struct Celula {
 };
 
 /* Registro léxico */
-typedef struct {
+struct registroLex {
 	Tokens token;
 	char *lexema;
 	struct Celula *endereco;
 	Tipo tipo;
 	int tamanho;
-} tokenAtual;
+};
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
@@ -76,15 +77,18 @@ void testesTabelaSimbolos(void);
 void testeBuscaVazia(void);
 int lexan(void);
 int ehDigito(char l);
+int ehLetra(char l);
+void concatenar(char *inicio, char *fim);
 
 /* VARIÁVEIS GLOBAIS */
 /* parametros da linha de comando */
 FILE *progFonte;
 FILE *progAsm;
-int letra; /*posicao da proxima letra a ser lida no arquivo*/
+char letra; /*posicao da proxima letra a ser lida no arquivo*/
 int linha = 1; /*linha do arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 struct Celula *tabelaSimbolos[TAM_TBL];
+struct registroLex tokenAtual; 
 
 
 /* DEFINIÇÃO DE FUNÇÕES */
@@ -106,6 +110,29 @@ int ehDigito(char l)
 	if (30 <= l && l <= 39)
 		retorno = 1;
 	return retorno;
+}
+
+int ehLetra(char l)
+{
+	/* valores de 0-9 em ascii */
+	int retorno = 0;
+	if (97 <= l && l <= 122)
+		retorno = 1;
+	return retorno;
+}
+
+void concatenar(char *inicio, char *fim)
+{
+   while(*inicio)
+      inicio++;
+     
+   while(*fim)
+   {
+      *inicio = *fim;
+      fim++;
+      inicio++;
+   }
+   *inicio = '\0';
 }
 
 struct Celula *adicionarRegistro(char *lexema, int token)
@@ -324,16 +351,15 @@ char minusculo(char l)
 	return l;
 }
 
-
 int lexan(void)
 {
-	int retorno = 0;
+	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
 	int estado = 0;
 	int erro = 0;
-	int aceito = 0;
-	letra = minusculo(fgetc(progFonte));
-	while (letra != -1 && !erro) {
-		/**/printf("c: %c | estado: %d | erro: %d | linha: %d\n",letra,estado, erro,linha);
+	char *lexEncontrado;
+	while (estado != ACEITACAO && (letra = minusculo(fgetc(progFonte))) != -1 && !erro) {
+		lexEncontrado = &letra;
+		/*printf("c: %s | estado: %d | erro: %d | linha: %d\n",lexEncontrado,estado, erro,linha);*/
 		if (letra == '\n') {
 			linha++;
 		} else if (estado == 0) {
@@ -355,35 +381,85 @@ int lexan(void)
 			} else if (ehDigito(letra)) {
 				/* inicio de literal */ 
 				estado = 6;
-			} else if (letra == ',' || letra == ';' || letra == '+' || letra == '-' || letra == '*' || letra == '(' || letra == ')' || letra == '{' || letra == '}' || letra == '[' || letra == ']' || letra == '%' || letra == '=') {
-				estado = 0;
+			} else if (letra == ',' || letra == ';' || letra == '+' || letra == '-' || \
+					letra == '*' || letra == '(' || letra == ')' || letra == '{' || \
+					letra == '}' || letra == '[' || letra == ']' || letra == '%' || letra == '=') {
+				tokenAtual.token = Identificador;
+				tokenAtual.lexema = &letra;
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
 			}
 		} else if (estado == 1) {
 			if (letra == '*') {
+				/* de fato comentario */
 				estado = 2;
 			} else {
-				erro = 1;
-				erroMsg = "Caractere inválido:";
-				break;
+				/* simbolo '/' encontrado */
+				estado = ACEITACAO;
 			}
 		} else if (estado == 2) {
 			if (letra == '*') {
+				/* inicio de fim de comentario */
 				estado = 3;
 			} 
 		} else if (estado == 3) {
 			if (letra == '/') {
+				/* de fato fim de comentario volta ao inicio para ignorar*/
 				estado = 0;
 			} else {
+				/* simbolo '*' dentro do comentario */
 				estado = 2;
 			}
+		} else if (estado == 4) {
+			if (letra == '=' || letra == '>') {
+				/* lexemas de comparacao <= ou <> */
+				estado = ACEITACAO;
+
+				concatenar(lexEncontrado, &letra);
+				tokenAtual.token = Identificador;
+				tokenAtual.lexema = lexEncontrado;
+				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+			} else if (letra == ' ' || ehDigito(letra) || ehLetra(letra)) {
+				/* lexema de comparacao < */
+				estado = ACEITACAO;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				fseek(progFonte, -sizeof(char),SEEK_CUR);
+
+				tokenAtual.token = Identificador;
+				tokenAtual.lexema = lexEncontrado;
+				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+			}
+		} else if (estado == 5) {
+			if (letra == '=') {
+				/* lexema de comparacao >= */
+				estado = ACEITACAO;
+
+				concatenar(lexEncontrado, &letra);
+				tokenAtual.token = Identificador;
+				tokenAtual.lexema = lexEncontrado;
+				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+
+			} else if (letra == ' ' || ehDigito(letra) || ehLetra(letra)) {
+				/* lexema de comparacao > */
+				estado = ACEITACAO;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				fseek(progFonte, -sizeof(char),SEEK_CUR);
+
+				tokenAtual.token = Identificador;
+				tokenAtual.lexema = lexEncontrado;
+				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+			}
 		}
-		letra = minusculo(fgetc(progFonte));
 	}
 
 	if (erro) {
 		printf("%d\n%s '%c'\n",linha,erroMsg,letra);
 		retorno = ERRO_LEXICO;
 	}
+	if (letra == -1)
+		retorno = 0;
 	return retorno;
 }
 
@@ -421,7 +497,10 @@ int main(int argc, char *argv[])
 	testesTabelaSimbolos();
 	inicializarTabela();
 	mostrarTabelaSimbolos();
-	lexan();
+	while(lexan())
+		printf("Lexema encontrado: %s\n",tokenAtual.lexema);
+
+	printf("%d linhas compiladas.\n", linha);
 
 	return 0;
 }
