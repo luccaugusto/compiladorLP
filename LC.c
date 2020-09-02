@@ -29,12 +29,47 @@
 
 typedef enum {
 	Identificador = 0,
-	Constante,
+	Const,
+	Var,
+	Integer,
+	Char,
+	For,
+	If,
+	Else,
+	And,
+	Or,
+	Not,
+	Igual,
+	To,
+	A_Parenteses,
+	F_Parenteses,
+	Menor,
+	Maior,
+	Diferente,
+	MaiorIgual,
+	MenorIgual,
+	Virgula,
+	Mais,
+	Menos,
+	Vezes,
+	Barra,
+	PtVirgula,
+	A_Chaves,
+	F_Chaves,
+	Then,
+	Readln,
+	Step,
+	Write,
+	Writeln,
+	Porcento,
+	A_Colchete,
+	F_Colchete,
+	Do,
 } Tokens;
 
 typedef enum {
-	Integer = 0,
-	Char,
+	TP_Integer = 0,
+	TP_Char,
 } Tipo;
 
 /*registro na tabela de símbolos*/
@@ -173,42 +208,42 @@ struct Celula *pesquisarRegistro(char *procurado)
 
 void adicionarReservados(void)
 {
-	adicionarRegistro("const",Identificador);
-	adicionarRegistro("var",Identificador);
-	adicionarRegistro("integer",Identificador);
-	adicionarRegistro("char",Identificador);
-	adicionarRegistro("for",Identificador);
-	adicionarRegistro("if",Identificador);
-	adicionarRegistro("else",Identificador);
-	adicionarRegistro("and",Identificador);
-	adicionarRegistro("or",Identificador);
-	adicionarRegistro("not",Identificador);
-	adicionarRegistro("=",Identificador);
-	adicionarRegistro("to",Identificador);
-	adicionarRegistro("(",Identificador);
-	adicionarRegistro(")",Identificador);
-	adicionarRegistro("<",Identificador);
-	adicionarRegistro(">",Identificador);
-	adicionarRegistro("<>",Identificador);
-	adicionarRegistro(">=",Identificador);
-	adicionarRegistro("<=",Identificador);
-	adicionarRegistro(",",Identificador);
-	adicionarRegistro("+",Identificador);
-	adicionarRegistro("-",Identificador);
-	adicionarRegistro("*",Identificador);
-	adicionarRegistro("/",Identificador);
-	adicionarRegistro(";",Identificador);
-	adicionarRegistro("{",Identificador);
-	adicionarRegistro("}",Identificador);
-	adicionarRegistro("then",Identificador);
-	adicionarRegistro("readln",Identificador);
-	adicionarRegistro("step",Identificador);
-	adicionarRegistro("write",Identificador);
-	adicionarRegistro("writeln",Identificador);
-	adicionarRegistro("%",Identificador);
-	adicionarRegistro("[",Identificador);
-	adicionarRegistro("]",Identificador);
-	adicionarRegistro("do",Identificador);
+	adicionarRegistro("const",Const);
+	adicionarRegistro("var",Var);
+	adicionarRegistro("integer",Integer);
+	adicionarRegistro("char",Char);
+	adicionarRegistro("for",For);
+	adicionarRegistro("if",If);
+	adicionarRegistro("else",Else);
+	adicionarRegistro("and",And);
+	adicionarRegistro("or",Or);
+	adicionarRegistro("not",Not);
+	adicionarRegistro("=",Igual);
+	adicionarRegistro("to",To);
+	adicionarRegistro("(",A_Parenteses);
+	adicionarRegistro(")",F_Parenteses);
+	adicionarRegistro("<",Menor);
+	adicionarRegistro(">",Maior);
+	adicionarRegistro("<>",Diferente);
+	adicionarRegistro(">=",MaiorIgual);
+	adicionarRegistro("<=",MenorIgual);
+	adicionarRegistro(",",Virgula);
+	adicionarRegistro("+",Mais);
+	adicionarRegistro("-",Menos);
+	adicionarRegistro("*",Vezes);
+	adicionarRegistro("/",Barra);
+	adicionarRegistro(";",PtVirgula);
+	adicionarRegistro("{",A_Chaves);
+	adicionarRegistro("}",F_Chaves);
+	adicionarRegistro("then",Then);
+	adicionarRegistro("readln",ReadLn);
+	adicionarRegistro("step",Step);
+	adicionarRegistro("write",Write);
+	adicionarRegistro("writeln",Writeln);
+	adicionarRegistro("%",Porcento);
+	adicionarRegistro("[",A_Colchete);
+	adicionarRegistro("]",F_Colchete);
+	adicionarRegistro("do",Do);
 }
 
 /* printa a tabela de simbolos */
