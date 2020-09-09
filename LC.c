@@ -414,7 +414,7 @@ int lexan(void)
 	tokenAtual.tamanho = 0;
 
 	while (estado != ACEITACAO && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
-		printf("Lendo %c, ja tenho %s\n", letra,tokenAtual.lexema);
+		//printf("Lendo %c, ja tenho %s\n", letra,tokenAtual.lexema);
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
@@ -444,10 +444,79 @@ int lexan(void)
 				/* inicio de literal */ 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 6;
-			} else if (letra == ',' || letra == ';' || letra == '+' || letra == '-' || \
-					letra == '*' || letra == '(' || letra == ')' || letra == '{' || \
-					letra == '}' || letra == '[' || letra == ']' || letra == '%' || letra == '=') {
-				tokenAtual.token = Identificador;
+			} else if (letra == ','){
+				tokenAtual.token = Virgula;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+			}else if (letra == ';') {
+				tokenAtual.token = PtVirgula;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '+') {
+				tokenAtual.token = Mais;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '-') {
+				tokenAtual.token = Menos;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '*') {
+				tokenAtual.token = Vezes;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '(') {
+				tokenAtual.token = A_Parenteses;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == ')') {
+				tokenAtual.token = F_Parenteses;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '{') {
+				tokenAtual.token = A_Chaves;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '}') {
+				tokenAtual.token = F_Chaves;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '[') {
+				tokenAtual.token = A_Colchete;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == ']') {
+				tokenAtual.token = F_Colchete;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '%') {
+				tokenAtual.token = Porcento;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = ACEITACAO;
+				
+			}else if (letra == '=') {
+				tokenAtual.token = Igual;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO;
