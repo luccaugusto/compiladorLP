@@ -179,7 +179,7 @@ char *concatenar(char *inicio, char *fim)
 	for (int i=0; i<tamFim; ++i)
 		retorno[tamInicio+i] = fim[i];
 
-	printf("concatenado %s\n",retorno);
+	/*printf("concatenado %s\n",retorno);*/
 	return retorno;
 }
 
@@ -404,22 +404,21 @@ int lexan(void)
 	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
 	int estado = 0;
 	int erro = 0;
-	char *lexEncontrado;
 	int posAtual = ftell(progFonte);
-	letra = minusculo(fgetc(progFonte));
-	while (estado != ACEITACAO && !erro) {
 
+	/* zera o token atual */
+	tokenAtual.lexema = "";
+	tokenAtual.token = 0;
+	tokenAtual.endereco = NULL;
+	tokenAtual.tipo = 0;
+	tokenAtual.tamanho = 0;
+
+	while (estado != ACEITACAO && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
+		printf("Lendo %c, ja tenho %s\n", letra,tokenAtual.lexema);
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
-		} else if (letra == -1) {
-			retorno = 0;
-			estado = ACEITACAO;
-		}
-
-		lexEncontrado = &letra;
-		printf("letra: %d %c\n",letra,letra);
-		/*printf("c: %s | estado: %d | erro: %d | linha: %d\n",lexEncontrado,estado, erro,linha);*/
+		} 
 
 		if (estado == 0) {
 			if (letra == '/') {
@@ -427,24 +426,29 @@ int lexan(void)
 				estado = 1;
 			} else if (letra == '_' || letra == '.') {
 				/* inicio de identificador */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 7;
 			} else if (letra == '<') {
 				/* menor ou menor ou igual ou diferente*/
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 4;
 			} else if (letra == '>') {
 				/* maior ou maior ou igual */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 5;
 			} else if (letra == '"') {
 				/* inicio de string */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 9;
 			} else if (ehDigito(letra)) {
 				/* inicio de literal */ 
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 6;
 			} else if (letra == ',' || letra == ';' || letra == '+' || letra == '-' || \
 					letra == '*' || letra == '(' || letra == ')' || letra == '{' || \
 					letra == '}' || letra == '[' || letra == ']' || letra == '%' || letra == '=') {
 				tokenAtual.token = Identificador;
-				tokenAtual.lexema = &letra;
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO;
 			} else if (letra == -1) {
@@ -484,53 +488,58 @@ int lexan(void)
 				/* lexemas de comparacao <= ou <> */
 				estado = ACEITACAO;
 
-				concatenar(lexEncontrado, &letra);
-				tokenAtual.token = Identificador;
-				tokenAtual.lexema = lexEncontrado;
-				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+
+				if (letra == '=')
+					tokenAtual.token = MenorIgual;
+				else
+					tokenAtual.token = Diferente;
+
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao < */
 				estado = ACEITACAO;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema */
-				fseek(progFonte, posAtual, SEEK_SET);
 
-				tokenAtual.token = Identificador;
-				tokenAtual.lexema = lexEncontrado;
-				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra))
+					fseek(progFonte, posAtual, SEEK_SET);
+
+				tokenAtual.token = Menor;
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou <*/
 				estado = ACEITACAO;
 			}
 		} else if (estado == 5) {
-				printf("%s %c\n",lexEncontrado,letra);
 			if (letra == '=') {
 				/* lexema de comparacao >= */
 				estado = ACEITACAO;
 
-				concatenar(lexEncontrado, &letra);
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.token = Identificador;
-				tokenAtual.lexema = lexEncontrado;
-				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao > */
 				estado = ACEITACAO;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema */
-				fseek(progFonte, posAtual,SEEK_SET);
+				 * um caractere de um possivel proximo lexema
+				 */
+				if (! ehBranco(letra))
+					fseek(progFonte, posAtual,SEEK_SET);
 
 				tokenAtual.token = Identificador;
-				tokenAtual.lexema = lexEncontrado;
-				tokenAtual.endereco = pesquisarRegistro(lexEncontrado);
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou >*/
 				estado = ACEITACAO;
 			}
 
 		}
+
 		posAtual = ftell(progFonte);
-		letra = minusculo(fgetc(progFonte));
 	}
 
 	if (erro) {
@@ -573,11 +582,11 @@ int main(int argc, char *argv[])
 	}
 
 
-	testesTabelaSimbolos();
+	//testesTabelaSimbolos();
 	inicializarTabela();
-	mostrarTabelaSimbolos();
-	while(lexan());
-		//printf("Lexema encontrado: %s\n",tokenAtual.lexema);
+	//mostrarTabelaSimbolos();
+	while(lexan())
+		printf("Lexema encontrado: %s\n",tokenAtual.lexema);
 
 	printf("%d linhas compiladas.\n", linha);
 
