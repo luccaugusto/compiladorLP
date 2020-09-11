@@ -23,7 +23,7 @@
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-="
 #define ERRO_LEXICO -1
-#define ACEITACAO 10
+#define ACEITACAO 11
 
 /* DECLARAÇÕES */
 
@@ -421,6 +421,7 @@ int lexan(void)
 		} 
 
 		if (estado == 0) {
+        //printf("\nvalor: %d", letra);
 			if (letra == '/') {
 				/* comentário ou divisão */ 
 				estado = 1;
@@ -522,9 +523,15 @@ int lexan(void)
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO;
-			} else if (letra == -1) {
+			} else if (letra >=  48 && letra <= 57) {
+                /*inicio inteiro*/
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.endereco = pesquisarRegistro(&letra);
+				estado = 10;
+			}else if (letra == -1) {
 				estado = ACEITACAO;
 			}
+            
 		} else if (estado == 1) {
 			if (letra == '*') {
 				/* de fato comentario */
@@ -608,7 +615,32 @@ int lexan(void)
 				estado = ACEITACAO;
 			}
 
-		}
+		}else if (estado == 9) {
+            /*lexema de String
+            concatena até encontrar o fechamento das aspas */
+            tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+            if(letra != '"'){
+                estado = 9;
+            }else{
+                estado = ACEITACAO;
+            }
+        }
+        else if (estado == 10) {
+            /*lexema de Inteiro
+            concatena até finalizar o numero */
+            if(letra >=  48 && letra <= 57){
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+            }else {
+				estado = ACEITACAO;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra))
+					fseek(progFonte, posAtual, SEEK_SET);
+				tokenAtual.token = Menor;
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+			} 
+        }
 
 		posAtual = ftell(progFonte);
 	}
@@ -653,13 +685,14 @@ int main(int argc, char *argv[])
 	}
 
 
-	//testesTabelaSimbolos();
+	testesTabelaSimbolos();
 	inicializarTabela();
-	//mostrarTabelaSimbolos();
+	
 	while(lexan())
 		printf("Lexema encontrado: %s\n",tokenAtual.lexema);
 
 	printf("%d linhas compiladas.\n", linha);
 
+    mostrarTabelaSimbolos();
 	return 0;
 }
