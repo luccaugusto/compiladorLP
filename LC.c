@@ -424,7 +424,9 @@ int lexan(void)
 			if (letra == '/') {
 				/* comentário ou divisão */ 
 				estado = 1;
-			} else if (letra == '_' || letra == '.') {
+			} else if (letra == ' ') {
+				continue;
+			}else if (letra == '_' || letra == '.') {
 				/* inicio de identificador */
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 7;
