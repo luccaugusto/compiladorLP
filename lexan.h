@@ -123,10 +123,19 @@ int lexan(void)
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO;
+			}else if (letra == '_' || letra == '.') {
+                //tokenAtual.token =
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 7;
+			} else if ( (letra >='a' && letra<= 'z') || (letra >='A' && letra<= 'Z')) {
+                /*inicio palavra*/
+                //tokenAtual.token =
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 8;
 			} else if (letra >=  48 && letra <= 57) {
                 /*inicio inteiro*/
+                //tokenAtual.token =
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = 10;
 			}else if (letra == -1) {
 				estado = ACEITACAO;
@@ -215,7 +224,37 @@ int lexan(void)
 				estado = ACEITACAO;
 			}
 
-		}else if (estado == 9) {
+		}else if (estado == 7) {
+            /*lexema identificador _ . 
+            concatena até achar uma letra ou numero */
+            if(letra == '_' || letra == '.'){
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+            }else if((letra >=  48 && letra <= 57) || (letra >='a' && letra<= 'z') || (letra >='A' && letra<= 'Z') ){
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 8;
+             }    
+        } else if (estado == 8) {
+            /*lexema de identificador
+            concatena ate finalizar o identificador ou palavra reservada */
+            if((letra >= 48 && letra <= 57 )  || (letra >= 'a' && letra <= 'z' ) ||
+               (letra >='A' && letra <= 'Z')  ||  letra == '_' || letra == '.' ){
+                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+            }else {
+				estado = ACEITACAO;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra))
+					fseek(progFonte, posAtual, SEEK_SET);
+
+
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+                if(tokenAtual.endereco == NULL){
+                   //adicionar novo token (identificador)
+                    //adicionarRegistro()
+                }
+			} 
+        }else if (estado == 9) {
             /*lexema de String
             concatena até encontrar o fechamento das aspas */
             tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -224,8 +263,7 @@ int lexan(void)
             }else{
                 estado = ACEITACAO;
             }
-        }
-        else if (estado == 10) {
+        } else if (estado == 10) {
             /*lexema de Inteiro
             concatena até finalizar o numero */
             if(letra >=  48 && letra <= 57){
