@@ -1,7 +1,7 @@
 /* Definicoes de tipos e estruturas utilizadas */
 
 typedef enum {
-	Identificador = 0,
+	Identificador = 1,
 	Const,
 	Var,
 	Integer,

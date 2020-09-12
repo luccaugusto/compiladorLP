@@ -140,12 +140,13 @@ int main(int argc, char *argv[])
 
 	/**/testesTabelaSimbolos();
 	inicializarTabela();
-    /**/mostrarTabelaSimbolos();
+    
 	
 	while(lexan())
 		printf("Lexema encontrado: %s\n",tokenAtual.lexema);
 
 	printf("%d linhas compiladas.\n", linha);
 
+    /**/mostrarTabelaSimbolos();
 	return 0;
 }

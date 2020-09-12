@@ -247,16 +247,17 @@ int lexan(void)
 				if (! ehBranco(letra))
 					fseek(progFonte, posAtual, SEEK_SET);
 
-
+                tokenAtual.token = Identificador;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
                 if(tokenAtual.endereco == NULL){
                    //adicionar novo token (identificador)
-                    //adicionarRegistro()
+                    tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
                 }
 			} 
         }else if (estado == 9) {
             /*lexema de String
             concatena até encontrar o fechamento das aspas */
+            tokenAtual.token = TP_Char;
             tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             if(letra != '"'){
                 estado = 9;
@@ -275,8 +276,9 @@ int lexan(void)
 			 	 */
 				if (! ehBranco(letra))
 					fseek(progFonte, posAtual, SEEK_SET);
-				tokenAtual.token = Menor;
+				tokenAtual.token = Integer;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+
 			} 
         }
 

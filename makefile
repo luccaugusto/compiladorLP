@@ -8,6 +8,9 @@ clean:
 run:
 	./LC.out -f fonte.l -o prog.asm
 
+run2:
+	./LC.out -f exemplo1.l -o prog.asm
+
 debug:
 	gcc -o LCDEBUG.out LC.c -g
 	gdb ./LCDEBUG.out
