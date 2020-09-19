@@ -16,7 +16,7 @@ Z = < <> <= > >= =
 Y = and or
 lambda = ƛ
 
-S  -> DBF
+S  -> DBF | ƛ
 D  -> VD | CD | B
 V  -> 'var' T I
 T  -> 'char' | 'integer'

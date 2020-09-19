@@ -1,0 +1,23 @@
+/*DECLARAÇÕES DE FUNÇÕES*/
+char minusculo(char l);
+unsigned int hash(unsigned char *str);
+struct Celula *adicionarRegistro(char *lexema, int token);
+struct Celula *pesquisarRegistro(char *lexema);
+void adicionarReservados(void);
+void mostrarTabelaSimbolos(void);
+void inicializarTabela(void);
+void testeInsercao(void);
+void testeColisao(void);
+void testeBuscaSimples(void);
+void testeBuscaEmColisao(void);
+void limparLista(struct Celula *cel);
+void limparTabela(void);
+void testesTabelaSimbolos(void);
+void testeBuscaVazia(void);
+void ansin(void);
+int lexan(void);
+int casaToken(Tokens encontrado);
+int ehDigito(char l);
+int ehLetra(char l);
+int ehBranco(char l);
+char *concatenar(char *inicio, char *fim);

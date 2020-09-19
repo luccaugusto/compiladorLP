@@ -1,4 +1,8 @@
-/* Implementacao do automato do analisador lexico */
+/* Implementacao do automato do analisador lexico
+ * retorna 1 caso de sucesso,
+ *         0 caso EOF encontrado,
+ *         letra caso erro lexico
+ */
 
 extern struct registroLex tokenAtual;
 extern FILE *progFonte;
@@ -17,7 +21,7 @@ int lexan(void)
 	tokenAtual.tipo = 0;
 	tokenAtual.tamanho = 0;
 
-	while (estado != ACEITACAO && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
+	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
@@ -53,78 +57,78 @@ int lexan(void)
 				tokenAtual.token = Virgula;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			} else if (letra == ';') {
 				tokenAtual.token = PtVirgula;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '+') {
 				tokenAtual.token = Mais;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '-') {
 				tokenAtual.token = Menos;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '*') {
 				tokenAtual.token = Vezes;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '(') {
 				tokenAtual.token = A_Parenteses;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == ')') {
 				tokenAtual.token = F_Parenteses;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '{') {
 				tokenAtual.token = A_Chaves;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '}') {
 				tokenAtual.token = F_Chaves;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '[') {
 				tokenAtual.token = A_Colchete;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == ']') {
 				tokenAtual.token = F_Colchete;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '%') {
 				tokenAtual.token = Porcento;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '=') {
 				tokenAtual.token = Igual;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			} else if (letra == '_' || letra == '.') {
                 //tokenAtual.token =
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -140,7 +144,7 @@ int lexan(void)
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 10;
 			} else if (letra == -1) {
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
@@ -153,7 +157,7 @@ int lexan(void)
 				estado = 2;
 			} else {
 				/* simbolo '/' encontrado */
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			}
 		} else if (estado == 2) {
 			if (letra == '*') {
@@ -179,7 +183,7 @@ int lexan(void)
 		} else if (estado == 4) {
 			if (letra == '=' || letra == '>') {
 				/* lexemas de comparacao <= ou <> */
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -191,7 +195,7 @@ int lexan(void)
 
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao < */
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
@@ -203,12 +207,12 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou <*/
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			}
 		} else if (estado == 5) {
 			if (letra == '=') {
 				/* lexema de comparacao >= */
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.token = Identificador;
@@ -216,7 +220,7 @@ int lexan(void)
 
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao > */
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 				 */
@@ -227,7 +231,7 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou >*/
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 			}
 
 		} else if (estado == 7) {
@@ -245,7 +249,7 @@ int lexan(void)
             if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             } else {
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
 				if (! ehBranco(letra))
@@ -266,7 +270,7 @@ int lexan(void)
             if (letra != '"') {
                 estado = 9;
             } else {
-                estado = ACEITACAO;
+                estado = ACEITACAO_LEX;
             }
         } else if (estado == 10) {
             /*lexema de Inteiro
@@ -274,7 +278,7 @@ int lexan(void)
             if (letra >=  48 && letra <= 57) {
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             } else {
-				estado = ACEITACAO;
+				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 			 	 */

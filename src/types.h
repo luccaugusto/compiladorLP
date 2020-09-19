@@ -45,6 +45,41 @@ typedef enum {
 	TP_Char,
 } Tipo;
 
+/*
+typedef enum {
+	S = 0,
+	D,
+	V,
+	T,
+	I,
+	I2,
+	C,
+	B,
+	A,
+	X,
+	R,
+	P,
+	R1,
+	E,
+	E1,
+	E2,
+	G,
+	G1,
+	G2,
+	G3,
+	Q,
+	Y,
+	Z,
+	L,
+	L2,
+	W,
+	W2,
+	M,
+	M2,
+	ACEITACAO_SIN
+} EstadoSin;
+*/
+
 /*registro na tabela de símbolos*/
 struct Simbolo {
 	Tokens token;

@@ -21,32 +21,15 @@
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-="
 #define ERRO_LEXICO -1
-#define ACEITACAO 11
+#define ERRO_SINTATICO -2
+#define ERRO_SINTATICO_EOF -3
+#define ACEITACAO_LEX 11
+#define ACEITACAO_SIN 11
 
 /* DECLARAÇÕES */
 #include "types.h"
 
-/*DECLARAÇÕES DE FUNÇÕES*/
-char minusculo(char l);
-unsigned int hash(unsigned char *str);
-struct Celula *adicionarRegistro(char *lexema, int token);
-struct Celula *pesquisarRegistro(char *lexema);
-void adicionarReservados(void);
-void mostrarTabelaSimbolos(void);
-void inicializarTabela(void);
-void testeInsercao(void);
-void testeColisao(void);
-void testeBuscaSimples(void);
-void testeBuscaEmColisao(void);
-void limparLista(struct Celula *cel);
-void limparTabela(void);
-void testesTabelaSimbolos(void);
-void testeBuscaVazia(void);
-int lexan(void);
-int ehDigito(char l);
-int ehLetra(char l);
-int ehBranco(char l);
-char *concatenar(char *inicio, char *fim);
+#include "LC.h"
 
 /* VARIÁVEIS GLOBAIS */
 
@@ -56,6 +39,7 @@ FILE *progAsm;
 
 int linha = 0; /*linha do arquivo*/
 int erro = 0;
+int estado_sin = 0;
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 struct registroLex tokenAtual; 
@@ -68,6 +52,7 @@ struct Celula *tabelaSimbolos[TAM_TBL];
 #include "testes.h"
 #include "ts.h"
 #include "lexan.h"
+#include "ansin.h"
 
 void adicionarReservados(void)
 {
@@ -147,7 +132,7 @@ int main(int argc, char *argv[])
 	
 	while((lex=lexan())){
 		if (!erro)
-			printf("Lexema encontrado: %s\n",tokenAtual.lexema);
+			ansin();
 		else
 			goto erro;
 	}
@@ -156,7 +141,10 @@ int main(int argc, char *argv[])
 erro:
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n %s [%c] \n",linha, erroMsg, lex);
+			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
+			break;
+		case ERRO_SINTATICO:
+			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
 			break;
 	}
 	return 0;
