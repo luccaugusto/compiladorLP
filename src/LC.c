@@ -54,8 +54,9 @@ char *concatenar(char *inicio, char *fim);
 FILE *progFonte;
 FILE *progAsm;
 
-char letra; /*posicao da proxima letra a ser lida no arquivo*/
 int linha = 0; /*linha do arquivo*/
+int erro = 0;
+char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
@@ -111,6 +112,7 @@ void adicionarReservados(void)
 int main(int argc, char *argv[])
 {
 	char c;
+	int lex;
 
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
@@ -138,15 +140,24 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/**/testesTabelaSimbolos();
+	/*testesTabelaSimbolos();*/
 	inicializarTabela();
+    /*mostrarTabelaSimbolos();*/
     
 	
-	while(lexan())
-		printf("Lexema encontrado: %s\n",tokenAtual.lexema);
+	while((lex=lexan())){
+		if (!erro)
+			printf("Lexema encontrado: %s\n",tokenAtual.lexema);
+		else
+			goto erro;
+	}
 
 	printf("%d linhas compiladas.\n", linha);
-
-    /**/mostrarTabelaSimbolos();
+erro:
+	switch(erro) {
+		case ERRO_LEXICO: 
+			printf("%d\n %s [%c] \n",linha, erroMsg, lex);
+			break;
+	}
 	return 0;
 }

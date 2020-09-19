@@ -2,12 +2,12 @@
 
 extern struct registroLex tokenAtual;
 extern FILE *progFonte;
+extern int erro;
 
 int lexan(void)
 {
 	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
 	int estado = 0;
-	int erro = 0;
 	int posAtual = ftell(progFonte);
 
 	/* zera o token atual */
@@ -18,18 +18,16 @@ int lexan(void)
 	tokenAtual.tamanho = 0;
 
 	while (estado != ACEITACAO && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
-		//printf("Lendo %c, ja tenho %s\n", letra,tokenAtual.lexema);
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
 		} 
 
 		if (estado == 0) {
-        //printf("\nvalor: %d", letra);
 			if (letra == '/') {
 				/* comentário ou divisão */ 
 				estado = 1;
-			} else if (letra == ' ') {
+			} else if (ehBranco(letra)) {
 				continue;
 			} else if (letra == '_' || letra == '.') {
 				/* inicio de identificador */
@@ -145,7 +143,7 @@ int lexan(void)
 				estado = ACEITACAO;
 			} else {
 				/* caractere inválido */
-				erro = 1;
+				erro = ERRO_LEXICO;
 				erroMsg = "Caractere inválido";
 			}
             
@@ -163,7 +161,7 @@ int lexan(void)
 				estado = 3;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = 1;
+				erro = ERRO_LEXICO;
 				erroMsg = "Fim de arquivo não esperado";
 			}
 		} else if (estado == 3) {
@@ -172,7 +170,7 @@ int lexan(void)
 				estado = 0;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = 1;
+				erro = ERRO_LEXICO;
 				erroMsg = "Fim de arquivo não esperado";
 			} else {
 				/* simbolo '*' dentro do comentario */
@@ -292,8 +290,7 @@ int lexan(void)
 	}
 
 	if (erro) {
-		printf("%d\n%s '%c'\n",linha,erroMsg,letra);
-		retorno = ERRO_LEXICO;
+		retorno = letra;
 	}
 	if (letra == -1)
 		retorno = 0;

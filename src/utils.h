@@ -39,9 +39,9 @@ int ehLetra(char l)
 
 int ehBranco(char l)
 {
-	/* valores de 10, 13, 32em ascii */
+	/* valores de tab, line feed, <CR>, espaço em ascii */
 	int retorno = 0;
-	if (l == 10 || l == 13 || l == 32)
+	if (l == 9 || l == 10 || l == 13 || l == 32)
 		retorno = 1;
 	return retorno;
 }
