@@ -30,7 +30,7 @@ int ehDigito(char l)
 
 int ehLetra(char l)
 {
-	/* valores de 0-9 em ascii */
+	/* valores de a-z em ascii */
 	int retorno = 0;
 	if (97 <= l && l <= 122)
 		retorno = 1;

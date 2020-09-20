@@ -15,6 +15,13 @@ void limparTabela(void);
 void testesTabelaSimbolos(void);
 void testeBuscaVazia(void);
 void ansin(void);
+void constante(void);
+void variavel(void);
+void declaracao(void);
+void listaIds(void);
+void blocoComando(void);
+void iniciarAnSin(void);
+
 int lexan(void);
 int casaToken(Tokens encontrado);
 int ehDigito(char l);

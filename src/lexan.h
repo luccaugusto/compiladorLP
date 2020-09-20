@@ -7,6 +7,7 @@
 extern struct registroLex tokenAtual;
 extern FILE *progFonte;
 extern int erro;
+extern int lex;
 
 int lexan(void)
 {
@@ -132,7 +133,7 @@ int lexan(void)
 			} else if (letra == '_' || letra == '.') {
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 7;
-			} else if ( (letra >='a' && letra<= 'z') || (letra >='A' && letra<= 'Z')) {
+			} else if (ehLetra(letra)) {
                 /*inicio palavra*/
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 8;
@@ -262,7 +263,8 @@ int lexan(void)
         } else if (estado == 9) {
             /*lexema de String
             concatena até encontrar o fechamento das aspas */
-            tokenAtual.token = TP_Char;
+            tokenAtual.token = Literal;
+			tokenAtual.tipo = TP_Char;
             tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             if (letra != '"') {
                 estado = 9;
@@ -281,8 +283,8 @@ int lexan(void)
 			 	 */
 				if (! ehBranco(letra))
 					fseek(progFonte, posAtual, SEEK_SET);
-				tokenAtual.token = Integer;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+				tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
 
 			} 
         }
@@ -295,5 +297,6 @@ int lexan(void)
 	}
 	if (letra == -1)
 		retorno = 0;
+	lex = retorno;
 	return retorno;
 }

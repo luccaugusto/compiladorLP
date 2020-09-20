@@ -5,6 +5,8 @@
 
 extern int erro;
 extern int estado_sin;
+extern int lex;
+
 
 int casaToken(Tokens esperado)
 {
@@ -26,7 +28,80 @@ int casaToken(Tokens esperado)
 	return retorno;
 }
 
-void ansin(void)
+void iniciarAnSin()
 {
-	return;
+	printf("INICIOU \n");
+	lexan();
+	declaracao();
+}
+
+void declaracao(void)
+{
+	if (tokenAtual.token == Var) {
+		printf("%s\n",tokenAtual.lexema);
+		variavel();
+	} else if (tokenAtual.token == Const) {
+		printf("%s\n",tokenAtual.lexema);
+		constante();
+	} else {
+		blocoComando();
+	}
+}
+
+
+void blocoComando()
+{
+	
+}
+
+void constante(void)
+{
+	lexan();
+	if (casaToken(Identificador)) {
+		printf("%s\n",tokenAtual.lexema);
+		lexan();
+		if (casaToken(Igual)) {
+		printf("%s\n",tokenAtual.lexema);
+			lexan();
+			if (casaToken(Literal)) {
+		printf("%s\n",tokenAtual.lexema);
+				lexan();
+				if (casaToken(PtVirgula)) {
+		printf("%s\n",tokenAtual.lexema);
+					declaracao();
+				}
+			}
+		}
+	}
+}
+
+void variavel(void)
+{
+	/* pega o proximo token */
+	lexan();
+	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
+		printf("%s\n",tokenAtual.lexema);
+		listaIds();
+	} else {
+		erro = ERRO_SINTATICO;
+		erroMsg = "token não esperado";
+	}
+
+}
+
+void listaIds(void)
+{
+	/* TODO 
+	* arrumar gramatica reconhecer atribuicoes e lista de ids
+	*/
+	lexan();
+	if (tokenAtual.token == Identificador) {
+		printf("%s\n",tokenAtual.lexema);
+		lexan();
+		if (casaToken(PtVirgula)) {
+			printf("%s\n",tokenAtual.lexema);
+			lexan();
+			declaracao();
+		} 
+	}
 }

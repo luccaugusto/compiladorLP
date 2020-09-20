@@ -40,6 +40,7 @@ FILE *progAsm;
 int linha = 0; /*linha do arquivo*/
 int erro = 0;
 int estado_sin = 0;
+int lex = 1;
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 struct registroLex tokenAtual; 
@@ -97,7 +98,6 @@ void adicionarReservados(void)
 int main(int argc, char *argv[])
 {
 	char c;
-	int lex;
 
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
@@ -130,14 +130,17 @@ int main(int argc, char *argv[])
     /*mostrarTabelaSimbolos();*/
     
 	
-	while((lex=lexan())){
-		if (!erro)
-			ansin();
-		else
+	iniciarAnSin();
+	/*while(lexan()){
+		printf("atual: %s\n",tokenAtual.lexema);
+		if (erro)
 			goto erro;
-	}
+	}*/
 
 	printf("%d linhas compiladas.\n", linha);
+
+	return 0;
+
 erro:
 	switch(erro) {
 		case ERRO_LEXICO: 

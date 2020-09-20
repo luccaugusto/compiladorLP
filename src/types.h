@@ -38,6 +38,7 @@ typedef enum {
 	A_Colchete,
 	F_Colchete,
 	Do,
+	Literal
 } Tokens;
 
 typedef enum {
