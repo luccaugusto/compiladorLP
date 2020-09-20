@@ -130,17 +130,14 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 			} else if (letra == '_' || letra == '.') {
-                //tokenAtual.token =
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 7;
 			} else if ( (letra >='a' && letra<= 'z') || (letra >='A' && letra<= 'Z')) {
                 /*inicio palavra*/
-                //tokenAtual.token =
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 8;
 			} else if (letra >=  48 && letra <= 57) {
                 /*inicio inteiro*/
-                //tokenAtual.token =
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 10;
 			} else if (letra == -1) {
