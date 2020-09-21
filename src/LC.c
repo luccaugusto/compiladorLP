@@ -55,6 +55,22 @@ struct Celula *tabelaSimbolos[TAM_TBL];
 #include "lexan.h"
 #include "ansin.h"
 
+/*
+ * pára o programa e reporta o erro
+ */
+void abortar(void)
+{
+	switch(erro) {
+		case ERRO_LEXICO: 
+			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
+			break;
+		case ERRO_SINTATICO:
+			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
+			break;
+	}
+	exit(erro);
+}
+
 void adicionarReservados(void)
 {
 	adicionarRegistro("const",Const);
@@ -126,29 +142,16 @@ int main(int argc, char *argv[])
 	}
 
 	/*testesTabelaSimbolos();*/
+
 	inicializarTabela();
+
     /*mostrarTabelaSimbolos();*/
+	/* testeLexan();*/
     
-	
 	iniciarAnSin();
-	/*while(lexan()){
-		printf("atual: %s\n",tokenAtual.lexema);
-		if (erro)
-			goto erro;
-	}*/
 
 	printf("%d linhas compiladas.\n", linha);
 
 	return 0;
 
-erro:
-	switch(erro) {
-		case ERRO_LEXICO: 
-			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
-			break;
-		case ERRO_SINTATICO:
-			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
-			break;
-	}
-	return 0;
 }

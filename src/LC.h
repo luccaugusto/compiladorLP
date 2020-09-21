@@ -1,30 +1,41 @@
 /*DECLARAÇÕES DE FUNÇÕES*/
+
+/* utils */
+int ehLetra(char l);
+int ehDigito(char l);
+int ehBranco(char l);
 char minusculo(char l);
 unsigned int hash(unsigned char *str);
-struct Celula *adicionarRegistro(char *lexema, int token);
-struct Celula *pesquisarRegistro(char *lexema);
-void adicionarReservados(void);
-void mostrarTabelaSimbolos(void);
-void inicializarTabela(void);
-void testeInsercao(void);
+char *concatenar(char *inicio, char *fim);
+
+/* testes */
+void testeLexan(void);
 void testeColisao(void);
+void testeInsercao(void);
+void testeBuscaVazia(void);
 void testeBuscaSimples(void);
 void testeBuscaEmColisao(void);
-void limparLista(struct Celula *cel);
-void limparTabela(void);
 void testesTabelaSimbolos(void);
-void testeBuscaVazia(void);
+
+/* Tabela de símbolos */
+void limparTabela(void);
+void inicializarTabela(void);
+void adicionarReservados(void);
+void mostrarTabelaSimbolos(void);
+void limparLista(struct Celula *cel);
+struct Celula *pesquisarRegistro(char *lexema);
+struct Celula *adicionarRegistro(char *lexema, int token);
+
+/* Analisador Sintatico */
 void ansin(void);
-void constante(void);
+void abortar(void);
 void variavel(void);
-void declaracao(void);
 void listaIds(void);
+void constante(void);
+void declaracao(void);
 void blocoComando(void);
 void iniciarAnSin(void);
-
-int lexan(void);
 int casaToken(Tokens encontrado);
-int ehDigito(char l);
-int ehLetra(char l);
-int ehBranco(char l);
-char *concatenar(char *inicio, char *fim);
+
+/* Analisador léxico */
+int lexan(void);

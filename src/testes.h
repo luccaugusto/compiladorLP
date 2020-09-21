@@ -75,6 +75,7 @@ void testeBuscaVazia(void)
 		printf("OK\n");
 }
 
+/* roda todos os testes da tabela de simbolos */
 void testesTabelaSimbolos(void)
 {
 	testeInsercao();
@@ -85,3 +86,12 @@ void testesTabelaSimbolos(void)
 	limparTabela();
 }
 
+/* testa o analisador lexico lendo o arquivo todo
+ * e printando todos os lexemas encontrados
+ */
+void testeLexan(void)
+{
+	while(lexan()){
+		printf("atual: %s\n",tokenAtual.lexema);
+	}
+}
