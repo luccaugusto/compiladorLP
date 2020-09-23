@@ -17,14 +17,6 @@
 #include <unistd.h>
 #include <string.h>
 
-/* MACROS */
-#define TAM_TBL 254
-#define SEPARADOR "=-=-=-=-="
-#define ERRO_LEXICO -1
-#define ERRO_SINTATICO -2
-#define ERRO_SINTATICO_EOF -3
-#define ACEITACAO_LEX 11
-#define ACEITACAO_SIN 11
 
 /* DECLARAÇÕES */
 #include "types.h"
