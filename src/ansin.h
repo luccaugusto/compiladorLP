@@ -16,27 +16,41 @@ int casaToken(Tokens esperado)
 {
 	int retorno = 1;
 	if (esperado == 0 && estado_sin != ACEITACAO_SIN) {
-		/* chega EOF (0) mas não em estado de aceitação */
-		/* Erro Sintático */
-		erro = ERRO_SINTATICO_EOF;
-		erroMsg = "fim de arquivo não esperado.";
 
-		/* Aborta a compilação */
-		abortar();
+		/* chega EOF (0) mas não em estado de aceitação */
+		erroSintatico(ERRO_SINTATICO_EOF);
+
 	} else if (esperado != tokenAtual.token){
-		/* Erro Sintático */
-		erro = ERRO_SINTATICO;
-		erroMsg = "token não esperado";
-		
-		printf("ERRO SIN\n");
-		/* Aborta a compilação */
-		abortar();
+
+		erroSintatico(ERRO_SINTATICO);
+
 	}
 
 	return retorno;
 }
 
-void iniciarAnSin()
+/* Trata um Erro Sintático
+ * e aborta o programa
+ */
+void erroSintatico(int tipo)
+{
+	if (tipo == ERRO_SINTATICO) {
+		erro = ERRO_SINTATICO;
+		erroMsg = "token não esperado";
+		
+	} else {
+		erro = ERRO_SINTATICO_EOF;
+		erroMsg = "fim de arquivo não esperado.";
+
+		/* Aborta a compilação */
+		abortar();
+	}
+
+	/* Aborta a compilação */
+	abortar();
+}
+
+void iniciarAnSin(void)
 {
 	/* consome o primeiro token */
 	lexan();
@@ -48,10 +62,10 @@ void declaracao(void)
 {
 	/* var ou const */
 	if (tokenAtual.token == Var) {
-		printf("%s\n",tokenAtual.lexema);
+		lexan();
 		variavel();
 	} else if (tokenAtual.token == Const) {
-		printf("%s\n",tokenAtual.lexema);
+		lexan();
 		constante();
 	} else {
 		blocoComando();
@@ -61,24 +75,23 @@ void declaracao(void)
 
 void blocoComando()
 {
-	
+	if (casaToken(If)) {
+		
+	} else {
+		erroSintatico(ERRO_SINTATICO);
+	}
 }
 
 /* Const id = literal; */
 void constante(void)
 {
-	lexan();
 	if (casaToken(Identificador)) {
-		printf("%s\n",tokenAtual.lexema);
 		lexan();
 		if (casaToken(Igual)) {
-		printf("%s\n",tokenAtual.lexema);
 			lexan();
 			if (casaToken(Literal)) {
-		printf("%s\n",tokenAtual.lexema);
 				lexan();
 				if (casaToken(PtVirgula)) {
-		printf("%s\n",tokenAtual.lexema);
 					declaracao();
 				}
 			}
@@ -86,39 +99,85 @@ void constante(void)
 	}
 }
 
-/* var char|integer id;
- * var char|integer id,...;
- * var char|integer id=literal,id,...;
+/* var char|integer listaIds();
  */
 void variavel(void)
 {
-	/* pega o proximo token */
-	lexan();
-	/* funciona para char ou integer */
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
-		printf("%s\n",tokenAtual.lexema);
+		lexan();
 		listaIds();
 	} else {
-		erro = ERRO_SINTATICO;
-		erroMsg = "token não esperado";
-		abortar();
+		erroSintatico(ERRO_SINTATICO);
 	}
 
 }
 
+
+/* id;
+ * id,id,...;
+ * id=literal,...|;
+ * id[int],...|;
+ */
 void listaIds(void)
 {
-	/* TODO 
-	* arrumar gramatica reconhecer atribuicoes e lista de ids
-	*/
-	lexan();
 	if (tokenAtual.token == Identificador) {
-		printf("%s\n",tokenAtual.lexema);
 		lexan();
-		if (casaToken(PtVirgula)) {
-			printf("%s\n",tokenAtual.lexema);
+		if (tokenAtual.token == Virgula){
+			/* Lendo id,id */
+			lexan();
+			listaIds();
+		} else if (tokenAtual.token == PtVirgula) {
+			/* lendo id; */
 			lexan();
 			declaracao();
-		} 
+		} else if (tokenAtual.token == Igual) {
+			/* lendo id=literal */
+			lexan();
+			if (casaToken(Literal)) {
+				lexan();
+				if (tokenAtual.token == Virgula) {
+					/* outro id */
+					lexan();
+					listaIds();
+				} else if (tokenAtual.token == PtVirgula) {
+					/* terminou de ler o comando */
+					lexan();
+					declaracao();
+				} else {
+					erroSintatico(ERRO_SINTATICO);
+				}
+			} else {
+				erroSintatico(ERRO_SINTATICO);
+			}
+		} else if (tokenAtual.token == A_Colchete) {
+			/* lendo id[int] */
+			lexan();
+			if (casaToken(Literal)) {
+				lexan();
+				if (casaToken(F_Colchete)) {
+					lexan();
+					if (tokenAtual.token == Virgula) {
+						/* outro id */
+						lexan();
+						listaIds();
+					} else if (tokenAtual.token == PtVirgula) {
+						/* terminou de ler o comando */
+						lexan();
+						declaracao();
+					} else {
+						erroSintatico(ERRO_SINTATICO);
+					}
+				} else {
+					erroSintatico(ERRO_SINTATICO);
+				}
+			} else {
+				erroSintatico(ERRO_SINTATICO);
+			}
+			
+		} else {
+			erroSintatico(ERRO_SINTATICO);
+		}
+	} else {
+		erroSintatico(ERRO_SINTATICO);
 	}
 }

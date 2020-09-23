@@ -35,6 +35,7 @@ void constante(void);
 void declaracao(void);
 void blocoComando(void);
 void iniciarAnSin(void);
+void erroSintatico(int tipo);
 int casaToken(Tokens encontrado);
 
 /* Analisador léxico */
