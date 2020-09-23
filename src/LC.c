@@ -64,9 +64,11 @@ void abortar(void)
 		case ERRO_LEXICO: 
 			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
 			break;
-		case ERRO_SINTATICO:      /* fallthrough*/ 
-		case ERRO_SINTATICO_EOF:
+		case ERRO_SINTATICO:
 			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
+			break;
+		case ERRO_SINTATICO_EOF:
+			printf("%d\n %s \n", linha, erroMsg);
 			break;
 	}
 	exit(erro);

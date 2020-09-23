@@ -1,7 +1,15 @@
 /* Analisador sintático
  * retorna 1 caso sucesso,
  *         0 caso erro,
+ *
+ * TODAS as leituras de lexemas são feitas fora
+ * da chamada ao próximo procedimento de símbolo
+ * 
+ * O procedimento de símbolo não faz leitura do
+ * simbolo que espera. Esse símbolo já deve ter
+ * sido lido antes.
  */
+
 
 extern int erro;
 extern int estado_sin;
@@ -10,7 +18,15 @@ extern int lex;
 
 /* confere se o último token lido é esperado
  * Caso não seja o token esperado, aborta a
- * execução chamando erro()
+ * execução chamando erroSintatico()
+ *
+ * essa função tem seu uso limitado pois
+ * alguns estados aceitam mais de um Token
+ * como por exemplo: Var char|integer.
+ * Nesses casos casaToken nao pode ser
+ * utilizada.
+ * Quando só existe uma opção de Token
+ * casaToken DEVE ser utilizada.
  */
 int casaToken(Tokens esperado)
 {
@@ -37,19 +53,18 @@ void erroSintatico(int tipo)
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
 		erroMsg = "token não esperado";
-		
 	} else {
 		erro = ERRO_SINTATICO_EOF;
 		erroMsg = "fim de arquivo não esperado.";
-
-		/* Aborta a compilação */
-		abortar();
 	}
 
 	/* Aborta a compilação */
 	abortar();
 }
 
+/* Consime o primeiro token e chama 
+ * o simbolo inicial
+ */
 void iniciarAnSin(void)
 {
 	/* consome o primeiro token */
@@ -58,6 +73,10 @@ void iniciarAnSin(void)
 	declaracao();
 }
 
+/* Declaracao de variáveis ou constantes 
+ * Var variavel();
+ * Const constante();
+ */
 void declaracao(void)
 {
 	/* var ou const */
@@ -73,13 +92,9 @@ void declaracao(void)
 }
 
 
+/* TODO */
 void blocoComando()
 {
-	if (casaToken(If)) {
-		
-	} else {
-		erroSintatico(ERRO_SINTATICO);
-	}
 }
 
 /* Const id = literal; */
@@ -120,7 +135,7 @@ void variavel(void)
  */
 void listaIds(void)
 {
-	if (tokenAtual.token == Identificador) {
+	if (casaToken(Identificador)) {
 		lexan();
 		if (tokenAtual.token == Virgula){
 			/* Lendo id,id */
@@ -129,7 +144,12 @@ void listaIds(void)
 		} else if (tokenAtual.token == PtVirgula) {
 			/* lendo id; */
 			lexan();
-			declaracao();
+			if (tokenAtual.token == Integer tokenAtual.token == Char)
+				/* Lista de declaracoes tipo Var integer c; char d; */
+				variavel();
+			else
+				/* fim do comando */
+				declaracao();
 		} else if (tokenAtual.token == Igual) {
 			/* lendo id=literal */
 			lexan();
@@ -139,17 +159,18 @@ void listaIds(void)
 					/* outro id */
 					lexan();
 					listaIds();
-				} else if (tokenAtual.token == PtVirgula) {
+				} else if (casaToken(PtVirgula)) {
 					/* terminou de ler o comando */
 					lexan();
-					declaracao();
-				} else {
-					erroSintatico(ERRO_SINTATICO);
+					if (tokenAtual.token == Integer tokenAtual.token == Char)
+						/* Lista de declaracoes tipo Var integer c; char d; */
+						variavel();
+					else
+						/* fim do comando */
+						declaracao();
 				}
-			} else {
-				erroSintatico(ERRO_SINTATICO);
 			}
-		} else if (tokenAtual.token == A_Colchete) {
+		} else if (casaToken(A_Colchete)) {
 			/* lendo id[int] */
 			lexan();
 			if (casaToken(Literal)) {
@@ -160,24 +181,13 @@ void listaIds(void)
 						/* outro id */
 						lexan();
 						listaIds();
-					} else if (tokenAtual.token == PtVirgula) {
+					} else if (casaToken(PtVirgula)) {
 						/* terminou de ler o comando */
 						lexan();
-						declaracao();
-					} else {
-						erroSintatico(ERRO_SINTATICO);
+						variavel();
 					}
-				} else {
-					erroSintatico(ERRO_SINTATICO);
 				}
-			} else {
-				erroSintatico(ERRO_SINTATICO);
 			}
-			
-		} else {
-			erroSintatico(ERRO_SINTATICO);
 		}
-	} else {
-		erroSintatico(ERRO_SINTATICO);
 	}
 }
