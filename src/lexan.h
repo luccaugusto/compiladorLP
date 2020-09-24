@@ -298,5 +298,6 @@ int lexan(void)
 	if (letra == -1)
 		retorno = 0;
 	lex = retorno;
+	printf("%s\n",tokenAtual.lexema);
 	return retorno;
 }

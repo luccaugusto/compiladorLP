@@ -15,3 +15,7 @@ run2:
 debug:
 	gcc -o LCDEBUG.out src/LC.c -g
 	gdb ./LCDEBUG.out
+
+teste:
+	make
+	./LC.out -f examples/testes/fonte.l -o prog.asm

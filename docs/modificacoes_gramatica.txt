@@ -1,0 +1,5 @@
+Renomear estado R2 para R1
+Renomear estado R1 para R2
+C1 eh o regex de literal, pode sair
+transformar R2 (antigo R1) em T2
+renomear T2 para algo mais generico
