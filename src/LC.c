@@ -10,6 +10,7 @@
 
 /* TODO:
  * Juntar tudo num arquivo so substituindo os includes pelo conteudo do arquivo
+ * Fazer pilha de chamadas para debugar
  */
 
 #include <stdlib.h>
@@ -29,18 +30,23 @@
 FILE *progFonte;
 FILE *progAsm;
 
-int linha = 0; /*linha do arquivo*/
-int erro = 0;
-int estado_sin = 0;
 int lex = 1;
+int erro = 0;
+int linha = 0; /*linha do arquivo*/
+int tamPilha = 0;
+int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
+
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
+
+struct elemento *pilha = NULL;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
 
 /* DEFINIÇÃO DE FUNÇÕES */
 
+#include "pilha.h"
 #include "utils.h"
 #include "testes.h"
 #include "ts.h"
