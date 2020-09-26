@@ -6,3 +6,6 @@ renomear T2 para algo mais generico
 colocar ';' fechando comandos de escrita
 identificadores podem ter [] depois, referenciando a posicao no array. Ainda nao eh possivel na gramatica
 inverter a ordem de precedencia dos operadores
+remover ambiguidade da expressao 2 -> 
+	X1 -> X X4
+	X4 -> X2 X | lambda

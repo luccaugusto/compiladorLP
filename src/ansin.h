@@ -10,7 +10,7 @@
  * sido lido antes.
  */
 
-/* TODO Refatorar identificacao de array ou identificador
+/* TODO Refatorar identificacao de array ou identificador */
 
 
 extern int erro;
@@ -292,12 +292,12 @@ void listaIds(void)
 	estado_sin = ACEITACAO_SIN;
 }
 
-
 /***********************************************
  *
  *  Procedimentos de Bloco de comandos
  *
  ***********************************************/
+
 
 /* Atribuicao
  * ID=literal;
@@ -470,6 +470,9 @@ void teste1(void)
 	}
 }
 
+/* Comando de leitura
+ * readln(id)
+ */
 void leitura(void)
 {
 	if (DEBUG_SIN) printf("leitura\n");
@@ -501,6 +504,9 @@ void leitura(void)
 	}
 }
 
+/* Comando nulo
+ * ;
+ */
 void nulo(void)
 {
 	if (DEBUG_SIN) printf("nulo\n");
@@ -510,6 +516,9 @@ void nulo(void)
 	}
 }
 
+/* Comando de escrita
+ * write(id|const)
+ */
 void escrita(void)
 {
 	if (DEBUG_SIN) printf("escrita\n");
@@ -554,6 +563,7 @@ void expressao(void)
 			lexan();
 		}
 	} else if (tokenAtual.token == Identificador) {
+		/* id op id*/
 		lexan();
 		if (tokenAtual.token == A_Colchete) {
 			/* lendo array: id[i] */
@@ -574,6 +584,7 @@ void expressao(void)
 	}
 }
 
+/* TODO tirar ambiguidade */
 void expressao1(void)
 {
 	expressao();
@@ -582,37 +593,31 @@ void expressao1(void)
 	expressao();
 }
 
+
+/*  Operador */
 void expressao2(void){
-	if (tokenAtual.token == Literal) {
-		/* const = const */
-		lexan();
-		if (casaToken(Igual)) {
-			lexan();
-			if (casaToken(Literal))
-				lexan();
-		}
-	} else if (tokenAtual.token == MaiorIgual ||
-			tokenAtual.token == MenorIgual    ||
-			tokenAtual.token == MaiorIgual    ||
-			tokenAtual.token == Maior         ||
-			tokenAtual.token == Menor         ||
-			tokenAtual.token == Diferente)
+	if (    tokenAtual.token == MaiorIgual ||
+			tokenAtual.token == MenorIgual ||
+			tokenAtual.token == Maior      ||
+			tokenAtual.token == Menor      ||
+			tokenAtual.token == Diferente  ||
+			tokenAtual.token == Or         ||
+			tokenAtual.token == Mais       ||
+			tokenAtual.token == Menos      ||
+			tokenAtual.token == Porcento   ||
+			tokenAtual.token == Barra      ||
+			tokenAtual.token == And        ||
+			tokenAtual.token == Vezes      ||
+			tokenAtual.token == Not        ||
+			tokenAtual.token == Igual)
 	{
+
 		lexan();
-	} else if (tokenAtual.token == Igual) {
-		/* =num */
-		if (casaToken(Literal)) {
-			lexan();
-		}
-	} else if (tokenAtual.token == Or    ||
-			tokenAtual.token == Mais     ||
-			tokenAtual.token == Menos    ||
-			tokenAtual.token == Porcento ||
-			tokenAtual.token == Barra    ||
-			tokenAtual.token == And      ||
-			tokenAtual.token == Vezes    ||
-			tokenAtual.token == Not)
-	{
-		lexan();
+
+	} else {
+
+		erroSintatico(ERRO_SINTATICO);
+
 	}
 }
+
