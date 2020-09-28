@@ -12,6 +12,12 @@ run:
 run2:
 	./LC.out -f exemplo1.l -o prog.asm
 
+monolitico:
+	gcc -o LC-mono.out monolitico/LC.c
+
+runm:
+	./LC-mono.out -f fonte.l -o prog.asm
+
 debug:
 	gcc -o LCDEBUG.out src/LC.c -g
 	gdb ./LCDEBUG.out

@@ -53,7 +53,7 @@ int casaToken(Tokens esperado)
 void erroSintatico(int tipo)
 {
 	/* mostra a pilha de chamadas */
-	printPilha();
+	/*printPilha(); */
 
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
