@@ -107,6 +107,7 @@ struct registroLex {
 #define ACEITACAO_SIN 12
 #define N_ACEITACAO_SIN -4 
 #define SUCESSO 0
+#define DEVOLVIDO_NULL -2
 
 #define DEBUG_LEX 0
 #define DEBUG_SIN 0
@@ -188,12 +189,13 @@ FILE *progAsm;
 
 int lex = 1;
 int erro = 0;
-int linha = 0; /*linha do arquivo*/
+int linha = 1; /*linha do arquivo*/
 int tamPilha = 0;
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 
-char letra; /*posicao da proxima letra a ser lida no arquivo*/
+char letra; /* letra lida*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
+char devolvido = DEVOLVIDO_NULL; /* caractere devolvido pelo lexan */
 
 struct elemento *pilha = NULL;
 struct registroLex tokenAtual; 
@@ -411,13 +413,10 @@ void limparTabela(void)
  *         0 caso EOF encontrado,
  *         letra caso erro lexico
  */
-
-
 int lexan(void)
 {
 	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
 	int estado = 0;
-	int posAtual = ftell(progFonte);
 
 	/* zera o token atual */
 	tokenAtual.lexema = (char *)"";
@@ -426,7 +425,15 @@ int lexan(void)
 	tokenAtual.tipo = (Tipo)0;
 	tokenAtual.tamanho = 0;
 
-	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
+	/* gasta o caractere devolvido se existir */
+	if (devolvido != DEVOLVIDO_NULL) {
+		letra = devolvido;
+		devolvido = DEVOLVIDO_NULL;
+	} else {
+		letra = minusculo(getchar());
+	}
+
+	while (estado != ACEITACAO_LEX && !erro && letra ) {
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
@@ -437,7 +444,7 @@ int lexan(void)
 				/* comentário ou divisão */ 
 				estado = 1;
 			} else if (ehBranco(letra)) {
-				continue;
+				goto fimloop;
 			} else if (letra == '_' || letra == '.') {
 				/* inicio de identificador */
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -550,7 +557,7 @@ int lexan(void)
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"Caractere inválido";
+				erroMsg = (char *)"caractere invalido.";
 			}
             
 		} else if (estado == 1) {
@@ -565,11 +572,39 @@ int lexan(void)
 			if (letra == '*') {
 				/* inicio de fim de comentario */
 				estado = 3;
-			} else if (letra == -1) {
+			} else if (letra == EOF) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"Fim de arquivo não esperado";
-			}
+				erroMsg = (char *)"fim de arquivo nao esperado.";
+			} else if (letra != '/' &&
+					!ehBranco(letra)&&
+					!ehDigito(letra)&&
+					!ehLetra(letra) &&
+					letra != '_'    &&
+					letra != '.'    &&
+					letra != '<'    &&
+					letra != '>'    &&
+					letra != '"'    &&
+					letra != ','    &&
+					letra != ';'    &&
+					letra != '+'    &&
+					letra != '-'    &&
+					letra != '('    &&
+					letra != ')'    &&
+					letra != '{'    &&
+					letra != '}'    &&
+					letra != '['    &&
+					letra != ']'    &&
+					letra != '%'    &&
+					letra != '='    &&
+					letra != '_'    &&
+					letra != '.'    )
+			{
+				/* caractere inválido */
+				erro = ERRO_LEXICO;
+				erroMsg = (char *)"caractere invalido.";
+				
+			} 
 		} else if (estado == 3) {
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
@@ -577,7 +612,7 @@ int lexan(void)
 			} else if (letra == -1) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"Fim de arquivo não esperado";
+				erroMsg = (char *)"fim de arquivo nao esperado.";
 			} else {
 				/* simbolo '*' dentro do comentario */
 				estado = 2;
@@ -603,7 +638,7 @@ int lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra))
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 
 				tokenAtual.token = Menor;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -623,11 +658,11 @@ int lexan(void)
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao > */
 				estado = ACEITACAO_LEX;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				/* devolve o caractere pois consumiu
 				 * um caractere de um possivel proximo lexema
 				 */
 				if (! ehBranco(letra))
-					fseek(progFonte, posAtual,SEEK_SET);
+					devolvido = letra;
 
 				tokenAtual.token = Maior;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -655,7 +690,7 @@ int lexan(void)
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
 				if (! ehBranco(letra))
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 
                 tokenAtual.token = (Tokens) identificaTipo(tokenAtual.lexema);
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -686,20 +721,23 @@ int lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra))
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
+
 				tokenAtual.token = Literal;
 				tokenAtual.tipo = TP_Integer;
 
 			} 
         }
-
-		posAtual = ftell(progFonte);
+fimloop:
+		/* se ja aceitou nao le o proximo */
+		if (estado != ACEITACAO_LEX)
+			letra = minusculo(getchar());
 	}
 
 	if (erro) {
-		retorno = letra;
+		abortar();
 	}
-	if (letra == -1)
+	if (letra == EOF)
 		retorno = 0;
 	lex = retorno;
 	if (DEBUG_LEX) printf("%s\n",tokenAtual.lexema);
@@ -758,10 +796,10 @@ void erroSintatico(int tipo)
 
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
-		erroMsg = "token não esperado";
+		erroMsg = (char *)"token nao esperado.";
 	} else {
 		erro = ERRO_SINTATICO_EOF;
-		erroMsg = "fim de arquivo não esperado.";
+		erroMsg = (char *)"fim de arquivo nao esperado.";
 	}
 
 	/* Aborta a compilação */
@@ -1379,13 +1417,13 @@ void abortar(void)
 {
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
+			printf("%d\n%s\n", linha, erroMsg);
 			break;
 		case ERRO_SINTATICO:
-			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s] \n", linha, erroMsg, tokenAtual.lexema);
 			break;
 		case ERRO_SINTATICO_EOF:
-			printf("%d\n %s \n", linha, erroMsg);
+			printf("%d\n%s \n", linha, erroMsg);
 			break;
 	}
 	exit(erro);
@@ -1400,50 +1438,48 @@ void sucesso(void)
 
 void adicionarReservados(void)
 {
-	adicionarRegistro("const",Const);
-	adicionarRegistro("var",Var);
-	adicionarRegistro("integer",Integer);
-	adicionarRegistro("char",Char);
-	adicionarRegistro("for",For);
-	adicionarRegistro("if",If);
-	adicionarRegistro("else",Else);
-	adicionarRegistro("and",And);
-	adicionarRegistro("or",Or);
-	adicionarRegistro("not",Not);
-	adicionarRegistro("=",Igual);
-	adicionarRegistro("to",To);
-	adicionarRegistro("(",A_Parenteses);
-	adicionarRegistro(")",F_Parenteses);
-	adicionarRegistro("<",Menor);
-	adicionarRegistro(">",Maior);
-	adicionarRegistro("<>",Diferente);
-	adicionarRegistro(">=",MaiorIgual);
-	adicionarRegistro("<=",MenorIgual);
-	adicionarRegistro(",",Virgula);
-	adicionarRegistro("+",Mais);
-	adicionarRegistro("-",Menos);
-	adicionarRegistro("*",Vezes);
-	adicionarRegistro("/",Barra);
-	adicionarRegistro(";",PtVirgula);
-	adicionarRegistro("{",A_Chaves);
-	adicionarRegistro("}",F_Chaves);
-	adicionarRegistro("then",Then);
-	adicionarRegistro("readln",Readln);
-	adicionarRegistro("step",Step);
-	adicionarRegistro("write",Write);
-	adicionarRegistro("writeln",Writeln);
-	adicionarRegistro("%",Porcento);
-	adicionarRegistro("[",A_Colchete);
-	adicionarRegistro("]",F_Colchete);
-	adicionarRegistro("do",Do);
+	adicionarRegistro((char *)"const",Const);
+	adicionarRegistro((char *)"var",Var);
+	adicionarRegistro((char *)"integer",Integer);
+	adicionarRegistro((char *)"char",Char);
+	adicionarRegistro((char *)"for",For);
+	adicionarRegistro((char *)"if",If);
+	adicionarRegistro((char *)"else",Else);
+	adicionarRegistro((char *)"and",And);
+	adicionarRegistro((char *)"or",Or);
+	adicionarRegistro((char *)"not",Not);
+	adicionarRegistro((char *)"=",Igual);
+	adicionarRegistro((char *)"to",To);
+	adicionarRegistro((char *)"(",A_Parenteses);
+	adicionarRegistro((char *)")",F_Parenteses);
+	adicionarRegistro((char *)"<",Menor);
+	adicionarRegistro((char *)">",Maior);
+	adicionarRegistro((char *)"<>",Diferente);
+	adicionarRegistro((char *)">=",MaiorIgual);
+	adicionarRegistro((char *)"<=",MenorIgual);
+	adicionarRegistro((char *)",",Virgula);
+	adicionarRegistro((char *)"+",Mais);
+	adicionarRegistro((char *)"-",Menos);
+	adicionarRegistro((char *)"*",Vezes);
+	adicionarRegistro((char *)"/",Barra);
+	adicionarRegistro((char *)";",PtVirgula);
+	adicionarRegistro((char *)"{",A_Chaves);
+	adicionarRegistro((char *)"}",F_Chaves);
+	adicionarRegistro((char *)"then",Then);
+	adicionarRegistro((char *)"readln",Readln);
+	adicionarRegistro((char *)"step",Step);
+	adicionarRegistro((char *)"write",Write);
+	adicionarRegistro((char *)"writeln",Writeln);
+	adicionarRegistro((char *)"%",Porcento);
+	adicionarRegistro((char *)"[",A_Colchete);
+	adicionarRegistro((char *)"]",F_Colchete);
+	adicionarRegistro((char *)"do",Do);
 }
 
 int main(int argc, char *argv[])
 {
 	char c;
 
-	progFonte = fopen(argv[1],"r");
-	progAsm = fopen(argv[2],"w");
 
 	/* 
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
@@ -1465,12 +1501,12 @@ int main(int argc, char *argv[])
 					printf("\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 					return 1;
 		}
-	}*/
+	}
 
 	if (progFonte == NULL || progAsm == NULL) {
 		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 		return 1;
-	}
+	} */
 
 	/*testesTabelaSimbolos();*/
 
