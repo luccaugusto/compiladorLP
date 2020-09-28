@@ -72,6 +72,13 @@ void abortar(void)
 	exit(erro);
 }
 
+/* pára o programa e reporta linhas compiladas */
+void sucesso(void)
+{
+	printf("%d linhas compiladas.\n", linha);
+	exit(SUCESSO);
+}
+
 void adicionarReservados(void)
 {
 	adicionarRegistro("const",Const);
@@ -151,7 +158,6 @@ int main(int argc, char *argv[])
     
 	iniciarAnSin();
 
-	printf("%d linhas compiladas.\n", linha);
 
 	return 0;
 

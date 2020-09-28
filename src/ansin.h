@@ -98,10 +98,8 @@ void declaracao(void)
 	} else {
 		lexan();
 		blocoComandos();
-		estado_sin = ACEITACAO_SIN;
 		fimDeArquivo();
 	}
-	estado_sin = ACEITACAO_SIN;
 }
 
 
@@ -112,10 +110,10 @@ void blocoComandos()
 {
 	if (DEBUG_SIN) printf("blocoComandos\n");
 	/*push("blocoComandos");*/
-	estado_sin = N_ACEITACAO_SIN;
 	switch(tokenAtual.token)
 	{
 		case Identificador:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			atribuicao();
 			blocoComandos();
@@ -123,6 +121,7 @@ void blocoComandos()
 			break;
 
 		case For:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			repeticao();
 			blocoComandos();
@@ -130,6 +129,7 @@ void blocoComandos()
 			break;
 
 		case If:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			teste();
 			blocoComandos();
@@ -137,6 +137,7 @@ void blocoComandos()
 			break;
 
 		case PtVirgula:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			nulo();
 			blocoComandos();
@@ -144,6 +145,7 @@ void blocoComandos()
 			break;
 
 		case Readln:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			leitura();
 			blocoComandos();
@@ -151,6 +153,7 @@ void blocoComandos()
 			break;
 
 		case Write:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			escrita();
 			blocoComandos();
@@ -158,6 +161,7 @@ void blocoComandos()
 			break;
 
 		case Writeln:
+			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			escritaLn();
 			blocoComandos();
@@ -179,16 +183,18 @@ void blocoComandos()
 /* EOF */
 void fimDeArquivo(void)
 {
-	if (DEBUG_SIN) printf("fimdearquivo\n");
+	if (DEBUG_SIN) printf("fimDeArquivo\n");
 	/*push("fimdearquivo");*/
 
+	/* se lex nao for 0 ainda n leu o EOF */
 	if (lex)
 		erroSintatico(ERRO_SINTATICO);
 
+	/* leu fim de arquivo mas nao em estado de aceitacao */
 	else if (estado_sin != ACEITACAO_SIN)
 		erroSintatico(ERRO_SINTATICO_EOF);
 
-	return;
+	sucesso();
 }
 
 /***********************************************
@@ -230,6 +236,7 @@ void variavel(void)
 	} else {
 		erroSintatico(ERRO_SINTATICO);
 	}
+	estado_sin = ACEITACAO_SIN;
 }
 
 
@@ -254,8 +261,7 @@ void listaIds(void)
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
 				/* Lista de declaracoes tipo Var integer c; char d; */
 				variavel();
-			else /* fim do comando */
-				estado_sin = ACEITACAO_SIN;
+			/* else fim do comando */
 
 		} else if (tokenAtual.token == Igual) {
 			/* lendo id=literal */
@@ -272,9 +278,7 @@ void listaIds(void)
 					if (tokenAtual.token == Integer || tokenAtual.token == Char)
 						/* Lista de declaracoes tipo Var integer c; char d; */
 						variavel();
-					else
-						/* fim do comando */
-						estado_sin = ACEITACAO_SIN;
+					/* else fim do comando */
 				}
 			}
 		} else if (casaToken(A_Colchete)) {
@@ -302,7 +306,6 @@ void listaIds(void)
 			}
 		}
 	}
-	estado_sin = ACEITACAO_SIN;
 }
 
 /***********************************************
@@ -349,14 +352,12 @@ void atribuicao(void)
 				}
 			}
 			if (casaToken(PtVirgula)) {
-				estado_sin = ACEITACAO_SIN;
 				lexan();
 			}
 
 		} else if (casaToken(Literal)) {
 			lexan();
 			if (casaToken(PtVirgula)) {
-				estado_sin = ACEITACAO_SIN;
 				lexan();
 			}
 		}
@@ -428,43 +429,36 @@ void comandos2(void)
 		case Identificador:
 			lexan();
 			atribuicao();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case For:
 			lexan();
 			repeticao();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case If:
 			lexan();
 			teste();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case PtVirgula:
 			lexan();
 			nulo();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Readln:
 			lexan();
 			leitura();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Write:
 			lexan();
 			escrita();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Writeln:
 			lexan();
 			escritaLn();
-			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case A_Chaves:
@@ -473,7 +467,6 @@ void comandos2(void)
 			/* o } ja foi lido por alguem na chamada antiga chamou */
 			if (casaToken(F_Chaves)) {
 				lexan();
-				estado_sin = ACEITACAO_SIN;
 			}
 			break;
 

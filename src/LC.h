@@ -7,9 +7,10 @@
 #define ACEITACAO_LEX 11
 #define ACEITACAO_SIN 12
 #define N_ACEITACAO_SIN -4 
+#define SUCESSO 0
 
-#define DEBUG_LEX 1
-#define DEBUG_SIN 1
+#define DEBUG_LEX 0
+#define DEBUG_SIN 0
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
@@ -47,7 +48,6 @@ void ansin(void);
 void teste1(void);
 void leitura(void);
 void escrita(void);
-void abortar(void);
 void variavel(void);
 void listaIds(void);
 void expressao(void);
@@ -57,6 +57,7 @@ void comandos2(void);
 void repeticao(void);
 void expressao1(void);
 void expressao2(void);
+void expressao3(void);
 void repeticao1(void);
 void declaracao(void);
 void atribuicao(void);
@@ -75,3 +76,7 @@ void initPilha(void);
 void printPilha(void);
 void push(char *metodo);
 struct elemento *pop(void);
+
+/* Fluxo de execução geral */
+void abortar(void);
+void sucesso(void);
