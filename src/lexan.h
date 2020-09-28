@@ -225,7 +225,7 @@ int lexan(void)
 				if (! ehBranco(letra))
 					fseek(progFonte, posAtual,SEEK_SET);
 
-				tokenAtual.token = Identificador;
+				tokenAtual.token = Maior;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou >*/

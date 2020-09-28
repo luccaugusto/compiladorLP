@@ -86,7 +86,6 @@ void declaracao(void)
 {
 	if (DEBUG_SIN) printf("Declaracao\n");
 	/*push("Declaracao");*/
-	estado_sin = N_ACEITACAO_SIN;
 	/* var ou const */
 	if (tokenAtual.token == Var) {
 		lexan();
@@ -99,6 +98,7 @@ void declaracao(void)
 	} else {
 		lexan();
 		blocoComandos();
+		estado_sin = ACEITACAO_SIN;
 		fimDeArquivo();
 	}
 	estado_sin = ACEITACAO_SIN;
@@ -112,58 +112,67 @@ void blocoComandos()
 {
 	if (DEBUG_SIN) printf("blocoComandos\n");
 	/*push("blocoComandos");*/
+	estado_sin = N_ACEITACAO_SIN;
 	switch(tokenAtual.token)
 	{
 		case Identificador:
 			lexan();
 			atribuicao();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case For:
 			lexan();
 			repeticao();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case If:
 			lexan();
 			teste();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case PtVirgula:
 			lexan();
 			nulo();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Readln:
 			lexan();
 			leitura();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Write:
 			lexan();
 			escrita();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case Writeln:
 			lexan();
 			escritaLn();
 			blocoComandos();
+			estado_sin = ACEITACAO_SIN;
 			break;
 
 		case F_Chaves:
 			/* encontrou o fim do bloco de comandos atual,
 			 * retorna e deixa o metodo que chamou tratar o }
 			 */
+			estado_sin = ACEITACAO_SIN;
 			return;
 
 		default:
-			erroSintatico(ERRO_SINTATICO);
+			return;
 	}
 }
 
@@ -172,9 +181,13 @@ void fimDeArquivo(void)
 {
 	if (DEBUG_SIN) printf("fimdearquivo\n");
 	/*push("fimdearquivo");*/
-	if (estado_sin != ACEITACAO_SIN) {
+
+	if (lex)
+		erroSintatico(ERRO_SINTATICO);
+
+	else if (estado_sin != ACEITACAO_SIN)
 		erroSintatico(ERRO_SINTATICO_EOF);
-	}
+
 	return;
 }
 
@@ -306,23 +319,52 @@ void atribuicao(void)
 {
 	if (DEBUG_SIN) printf("atribuicao\n");
 	/*push("atribuicao");*/
-	if (casaToken(Identificador)) {
+	/* lendo array: id[i] */
+	if (tokenAtual.token == A_Colchete) {
 		lexan();
-		if (casaToken(Igual)) {
+		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 			lexan();
-			if (casaToken(Literal)) {
+			if (casaToken(F_Colchete)) {
 				lexan();
-				if (casaToken(PtVirgula)) {
-					estado_sin = ACEITACAO_SIN;
+			}
+		} else {
+			erroSintatico(ERRO_SINTATICO);
+		}
+	}
+	if (casaToken(Igual)) {
+		lexan();
+		if (tokenAtual.token == Identificador) {
+			lexan();
+			/* lendo array: id[i] */
+			if (tokenAtual.token == A_Colchete) {
+				lexan();
+				if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 					lexan();
+					if (casaToken(F_Colchete)) {
+						lexan();
+					}
+
+				} else {
+					erroSintatico(ERRO_SINTATICO);
 				}
+			}
+			if (casaToken(PtVirgula)) {
+				estado_sin = ACEITACAO_SIN;
+				lexan();
+			}
+
+		} else if (casaToken(Literal)) {
+			lexan();
+			if (casaToken(PtVirgula)) {
+				estado_sin = ACEITACAO_SIN;
+				lexan();
 			}
 		}
 	}
 } 
 
 /* Repeticao
- * For ID = literal to literal repeticao1();
+ * ID = literal to literal repeticao1();
  */
 void repeticao(void)
 {
@@ -435,23 +477,32 @@ void comandos2(void)
 			}
 			break;
 
+		case F_Chaves:
+			/* encontrou o fim do bloco de comandos atual,
+			 * retorna e deixa o metodo que chamou tratar o }
+			 */
+			return;
+
 		default:
 			erroSintatico(ERRO_SINTATICO);
 	}
 }
 
 /* Teste
- * if expressao() then comandos2() teste1()
+ * expressao() then comandos2() teste1()
  */
 void teste(void)
 {
 	if (DEBUG_SIN) printf("teste\n");
 	/*push("teste");*/
 	expressao();
-	lexan();
+	/* then foi lido antes de retornar de expressao() */
 	if (casaToken(Then)) {
-		comandos2();
 		lexan();
+		comandos2();
+		if (tokenAtual.token == F_Chaves) {
+			lexan(); 
+		}
 		teste1();
 	}
 }
@@ -466,6 +517,7 @@ void teste1(void)
 	/*push("teste1");*/
 	lexan();
 	if (tokenAtual.token == Else) {
+		lexan();
 		comandos2();
 	}
 }
@@ -525,13 +577,11 @@ void escrita(void)
 	/*push("escrita");*/
 	if (casaToken(A_Parenteses)) {
 		lexan();
-		if (casaToken(Literal)) {
+		expressao2();
+		if (casaToken(F_Parenteses)) {
 			lexan();
-			if (casaToken(F_Parenteses)) {
+			if (casaToken(PtVirgula)) {
 				lexan();
-				if (casaToken(PtVirgula)) {
-					lexan();
-				}
 			}
 		}
 	}
@@ -557,67 +607,73 @@ void expressao(void)
 	/*push("expressao");*/
 	if (tokenAtual.token == A_Parenteses) {
 		lexan();
-		expressao1();
+		expressao();
 		lexan();
 		if (casaToken(F_Parenteses)) {
 			lexan();
 		}
 	} else if (tokenAtual.token == Identificador) {
-		/* id op id*/
+		 /* id */
 		lexan();
+		/* lendo array: id[i] */
 		if (tokenAtual.token == A_Colchete) {
-			/* lendo array: id[i] */
 			lexan();
 			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 				lexan();
 				if (casaToken(F_Colchete)) {
 					lexan();
+					expressao1();
 				}
 			} else {
 				erroSintatico(ERRO_SINTATICO);
 			}
+		} else {
+			expressao1();
 		}
-	} else if (tokenAtual.token == Literal) {
+	} else if (casaToken(Literal)) {
 		lexan();
-	} else {
 		expressao1();
 	}
 }
 
-/* TODO tirar ambiguidade */
 void expressao1(void)
 {
-	expressao();
-	lexan();
-	expressao2();
-	expressao();
-}
-
-
-/*  Operador */
-void expressao2(void){
-	if (    tokenAtual.token == MaiorIgual ||
-			tokenAtual.token == MenorIgual ||
-			tokenAtual.token == Maior      ||
-			tokenAtual.token == Menor      ||
-			tokenAtual.token == Diferente  ||
-			tokenAtual.token == Or         ||
-			tokenAtual.token == Mais       ||
-			tokenAtual.token == Menos      ||
-			tokenAtual.token == Porcento   ||
-			tokenAtual.token == Barra      ||
-			tokenAtual.token == And        ||
-			tokenAtual.token == Vezes      ||
-			tokenAtual.token == Not        ||
-			tokenAtual.token == Igual)
+	if (DEBUG_SIN) printf("expressao1\n");
+	/* op id */
+	if (tokenAtual.token == MaiorIgual ||
+		tokenAtual.token == MenorIgual ||
+		tokenAtual.token == Maior      ||
+		tokenAtual.token == Menor      ||
+		tokenAtual.token == Diferente  ||
+		tokenAtual.token == Or         ||
+		tokenAtual.token == Mais       ||
+		tokenAtual.token == Menos      ||
+		tokenAtual.token == Porcento   ||
+		tokenAtual.token == Barra      ||
+		tokenAtual.token == And        ||
+		tokenAtual.token == Vezes      ||
+		tokenAtual.token == Not        ||
+		tokenAtual.token == Igual)
 	{
-
 		lexan();
-
-	} else {
-
-		erroSintatico(ERRO_SINTATICO);
-
+		expressao(); 
 	}
+	/* leu lambda */
+	/* id sozinho, retorna (lambda) */
 }
 
+/* lista de expressoes */
+void expressao2(void)
+{
+	expressao();
+	expressao3();
+}
+
+void expressao3(void)
+{
+	if (tokenAtual.token == Virgula) {
+		lexan();
+		expressao2();
+	}
+	/* else lambda */
+}

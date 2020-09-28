@@ -9,7 +9,7 @@
 #define N_ACEITACAO_SIN -4 
 
 #define DEBUG_LEX 1
-#define DEBUG_SIN 0
+#define DEBUG_SIN 1
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
