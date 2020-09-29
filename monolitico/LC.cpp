@@ -533,7 +533,7 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
-			} else if (letra == 37) {
+			} else if (letra == '%') {
 				tokenAtual.token = Porcento;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
@@ -682,6 +682,21 @@ int lexan(void)
 				letra = 0;
 			}
 
+		} else if (estado == 6) {
+			/* le ate encontrar diferente de numero */
+			if (ehDigito(letra)) {
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+			} else {
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				if (! ehBranco(letra))
+					devolvido = letra;
+
+                tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
+				tokenAtual.endereco = NULL;
+			}
 		} else if (estado == 7) {
             /*lexema identificador _ . 
             concatena até achar uma letra ou numero */
@@ -713,12 +728,9 @@ int lexan(void)
         } else if (estado == 9) {
             /*lexema de String
             concatena até encontrar o fechamento das aspas */
-            tokenAtual.token = Literal;
-			tokenAtual.tipo = TP_Char;
             tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            if (letra != '"') {
-                estado = 9;
-            } else {
+            if (letra == '"') {
+				tokenAtual.tipo = TP_Char;
                 estado = ACEITACAO_LEX;
             }
         } else if (estado == 10) {

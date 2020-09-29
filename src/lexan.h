@@ -233,6 +233,21 @@ int lexan(void)
 				estado = ACEITACAO_LEX;
 			}
 
+		} else if (estado == 6) {
+			/* le ate encontrar diferente de numero */
+			if (ehDigito(letra)) {
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+			} else {
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				if (! ehBranco(letra))
+					fseek(progFonte, posAtual, SEEK_SET);
+
+                tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
+				tokenAtual.endereco = NULL;
+			}
 		} else if (estado == 7) {
             /*lexema identificador _ . 
             concatena até achar uma letra ou numero */
