@@ -796,7 +796,7 @@ void erroSintatico(int tipo)
 
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
-		erroMsg = (char *)"token nao esperado.";
+		erroMsg = (char *)"token nao esperado";
 	} else {
 		erro = ERRO_SINTATICO_EOF;
 		erroMsg = (char *)"fim de arquivo nao esperado.";
@@ -1420,7 +1420,7 @@ void abortar(void)
 			printf("%d\n%s\n", linha, erroMsg);
 			break;
 		case ERRO_SINTATICO:
-			printf("%d\n%s [%s] \n", linha, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
 			break;
 		case ERRO_SINTATICO_EOF:
 			printf("%d\n%s \n", linha, erroMsg);
@@ -1511,6 +1511,7 @@ int main(int argc, char *argv[])
 	/*testesTabelaSimbolos();*/
 
 	inicializarTabela();
+
 
     /*mostrarTabelaSimbolos();*/
 	/* testeLexan();*/
