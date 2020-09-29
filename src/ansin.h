@@ -84,7 +84,7 @@ void iniciarAnSin(void)
  */
 void declaracao(void)
 {
-	if (DEBUG_SIN) printf("Declaracao\n");
+	if (DEBUG_SIN) printf("SIN: Declaracao\n");
 	/*push("Declaracao");*/
 	/* var ou const */
 	if (tokenAtual.token == Var) {
@@ -108,7 +108,7 @@ void declaracao(void)
  */
 void blocoComandos()
 {
-	if (DEBUG_SIN) printf("blocoComandos\n");
+	if (DEBUG_SIN) printf("SIN: blocoComandos\n");
 	/*push("blocoComandos");*/
 	switch(tokenAtual.token)
 	{
@@ -183,7 +183,7 @@ void blocoComandos()
 /* EOF */
 void fimDeArquivo(void)
 {
-	if (DEBUG_SIN) printf("fimDeArquivo\n");
+	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 	/*push("fimdearquivo");*/
 
 	/* se lex nao for 0 ainda n leu o EOF */
@@ -206,7 +206,7 @@ void fimDeArquivo(void)
 /* Const id = literal; */
 void constante(void)
 {
-	if (DEBUG_SIN) printf("constante\n");
+	if (DEBUG_SIN) printf("SIN: constante\n");
 	/*push("constante");*/
 	estado_sin = N_ACEITACAO_SIN;
 	if (casaToken(Identificador)) {
@@ -227,7 +227,7 @@ void constante(void)
  */
 void variavel(void)
 {
-	if (DEBUG_SIN) printf("variavel\n");
+	if (DEBUG_SIN) printf("SIN: variavel\n");
 	/*push("variavel");*/
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
@@ -247,7 +247,7 @@ void variavel(void)
  */
 void listaIds(void)
 {
-	if (DEBUG_SIN) printf("listaIds\n");
+	if (DEBUG_SIN) printf("SIN: listaIds\n");
 	/*push("listaIds");*/
 	if (casaToken(Identificador)) {
 		lexan();
@@ -320,7 +320,7 @@ void listaIds(void)
  */
 void atribuicao(void)
 {
-	if (DEBUG_SIN) printf("atribuicao\n");
+	if (DEBUG_SIN) printf("SIN: atribuicao\n");
 	/*push("atribuicao");*/
 	/* lendo array: id[i] */
 	if (tokenAtual.token == A_Colchete) {
@@ -369,19 +369,49 @@ void atribuicao(void)
  */
 void repeticao(void)
 {
-	if (DEBUG_SIN) printf("repeticao\n");
+	if (DEBUG_SIN) printf("SIN: repeticao\n");
 	/*push("repeticao");*/
 	if (casaToken(Identificador)) {
 		lexan();
+		if (tokenAtual.token == A_Colchete) {
+			/* lendo array: id[i] */
+			lexan();
+			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+				lexan();
+				if (casaToken(F_Colchete)) {
+					lexan();
+				}
+			} else {
+				erroSintatico(ERRO_SINTATICO);
+			}
+		}
+		/* ja leu ( id|id[i] ) e pode fechar o comando */
 		if (casaToken(Igual)) {
 			lexan();
 			if (casaToken(Literal)) {
 				lexan();
 				if (casaToken(To)) {
 					lexan();
-					if (casaToken(Literal)) {
+					if (tokenAtual.token == Literal) {
 						lexan();
 						repeticao1();
+					} else if (tokenAtual.token == Identificador) {
+						lexan();
+						if (tokenAtual.token == A_Colchete) {
+							/* lendo array: id[i] */
+							lexan();
+							if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+								lexan();
+								if (casaToken(F_Colchete)) {
+									lexan();
+								}
+							} else {
+								erroSintatico(ERRO_SINTATICO);
+							}
+						}
+						/* ja leu ( id|id[i] ) e pode fechar o comando */
+						repeticao1();
+
 					}
 				}
 			}
@@ -398,7 +428,7 @@ void repeticao(void)
  */
 void repeticao1(void)
 {
-	if (DEBUG_SIN) printf("repeticao1\n");
+	if (DEBUG_SIN) printf("SIN: repeticao1\n");
 	/*push("repeticao1");*/
 	if (tokenAtual.token == Step) {
 		lexan();
@@ -422,7 +452,7 @@ void repeticao1(void)
  */
 void comandos2(void)
 {
-	if (DEBUG_SIN) printf("comandos2\n");
+	if (DEBUG_SIN) printf("SIN: comandos2\n");
 	/*push("comandos2");*/
 	switch(tokenAtual.token)
 	{
@@ -486,7 +516,7 @@ void comandos2(void)
  */
 void teste(void)
 {
-	if (DEBUG_SIN) printf("teste\n");
+	if (DEBUG_SIN) printf("SIN: teste\n");
 	/*push("teste");*/
 	expressao();
 	/* then foi lido antes de retornar de expressao() */
@@ -506,7 +536,7 @@ void teste(void)
  */
 void teste1(void)
 {
-	if (DEBUG_SIN) printf("teste1\n");
+	if (DEBUG_SIN) printf("SIN: teste1\n");
 	/*push("teste1");*/
 	lexan();
 	if (tokenAtual.token == Else) {
@@ -520,7 +550,7 @@ void teste1(void)
  */
 void leitura(void)
 {
-	if (DEBUG_SIN) printf("leitura\n");
+	if (DEBUG_SIN) printf("SIN: leitura\n");
 	/*push("leitura");*/
 	if (casaToken(A_Parenteses)) {
 		lexan();

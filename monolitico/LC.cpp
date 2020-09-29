@@ -1132,19 +1132,49 @@ void atribuicao(void)
  */
 void repeticao(void)
 {
-	if (DEBUG_SIN) printf("repeticao\n");
+	if (DEBUG_SIN) printf("SIN: repeticao\n");
 	/*push("repeticao");*/
 	if (casaToken(Identificador)) {
 		lexan();
+		if (tokenAtual.token == A_Colchete) {
+			/* lendo array: id[i] */
+			lexan();
+			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+				lexan();
+				if (casaToken(F_Colchete)) {
+					lexan();
+				}
+			} else {
+				erroSintatico(ERRO_SINTATICO);
+			}
+		}
+		/* ja leu ( id|id[i] ) e pode fechar o comando */
 		if (casaToken(Igual)) {
 			lexan();
 			if (casaToken(Literal)) {
 				lexan();
 				if (casaToken(To)) {
 					lexan();
-					if (casaToken(Literal)) {
+					if (tokenAtual.token == Literal) {
 						lexan();
 						repeticao1();
+					} else if (tokenAtual.token == Identificador) {
+						lexan();
+						if (tokenAtual.token == A_Colchete) {
+							/* lendo array: id[i] */
+							lexan();
+							if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+								lexan();
+								if (casaToken(F_Colchete)) {
+									lexan();
+								}
+							} else {
+								erroSintatico(ERRO_SINTATICO);
+							}
+						}
+						/* ja leu ( id|id[i] ) e pode fechar o comando */
+						repeticao1();
+
 					}
 				}
 			}

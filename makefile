@@ -7,7 +7,7 @@ clean:
 	rm -f prog.asm
 
 run:
-	./LC.out -f fonte.l -o prog.asm
+	./LC.out -f examples/fonte.l -o prog.asm
 
 run2:
 	./LC.out -f exemplo1.l -o prog.asm
