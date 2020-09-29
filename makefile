@@ -13,7 +13,7 @@ run2:
 	./LC.out -f exemplo1.l -o prog.asm
 
 monolitico:
-	gcc -o LC-mono.out monolitico/LC.c
+	g++ -o LC-mono.out monolitico/LC.cpp
 
 runm:
 	./LC-mono.out -f fonte.l -o prog.asm

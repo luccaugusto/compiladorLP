@@ -23,7 +23,7 @@ int ehDigito(char l)
 {
 	/* valores de 0-9 em ascii */
 	int retorno = 0;
-	if (30 <= l && l <= 39)
+	if (48 <= l && l <= 57)
 		retorno = 1;
 	return retorno;
 }

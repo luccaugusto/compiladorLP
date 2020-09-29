@@ -24,7 +24,8 @@ int lexan(void)
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
         /* \n é contabilizado sempre */
-		if (letra == '\n' || letra == '\r') {
+		/*if (letra == '\n' || letra == '\r') {*/
+		if (letra == '\n') {
 			linha++;
 		} 
 

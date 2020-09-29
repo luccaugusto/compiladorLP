@@ -229,7 +229,7 @@ int ehDigito(char l)
 {
 	/* valores de 0-9 em ascii */
 	int retorno = 0;
-	if (30 <= l && l <= 39)
+	if (48 <= l && l <= 57)
 		retorno = 1;
 	return retorno;
 }
@@ -433,7 +433,10 @@ int lexan(void)
 		letra = minusculo(getchar());
 	}
 
-	while (estado != ACEITACAO_LEX && !erro && letra ) {
+	int k=0;
+
+	/* por algum motivo o k precisa existir para nao entrar em loop */
+	while (estado != ACEITACAO_LEX && !erro && letra  && k++ < 80) {
         /* \n é contabilizado sempre */
 		if (letra == '\n' || letra == '\r') {
 			linha++;
@@ -530,7 +533,7 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
-			} else if (letra == '%') {
+			} else if (letra == 37) {
 				tokenAtual.token = Porcento;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				tokenAtual.endereco = pesquisarRegistro(&letra);
@@ -554,10 +557,12 @@ int lexan(void)
 				estado = 10;
 			} else if (letra == -1) {
 				estado = ACEITACAO_LEX;
+				letra = 0;
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"caractere invalido.";
+				abortar();
 			}
             
 		} else if (estado == 1) {
@@ -576,6 +581,7 @@ int lexan(void)
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
+				abortar();
 			} else if (letra != '/' &&
 					!ehBranco(letra)&&
 					!ehDigito(letra)&&
@@ -603,6 +609,7 @@ int lexan(void)
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"caractere invalido.";
+				abortar();
 				
 			} 
 		} else if (estado == 3) {
@@ -612,7 +619,9 @@ int lexan(void)
 			} else if (letra == -1) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
+				letra = 0;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
+				abortar();
 			} else {
 				/* simbolo '*' dentro do comentario */
 				estado = 2;
@@ -644,6 +653,7 @@ int lexan(void)
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou <*/
+				letra = 0;
 				estado = ACEITACAO_LEX;
 			}
 		} else if (estado == 5) {
@@ -669,6 +679,7 @@ int lexan(void)
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou >*/
 				estado = ACEITACAO_LEX;
+				letra = 0;
 			}
 
 		} else if (estado == 7) {
@@ -732,6 +743,7 @@ fimloop:
 		/* se ja aceitou nao le o proximo */
 		if (estado != ACEITACAO_LEX)
 			letra = minusculo(getchar());
+
 	}
 
 	if (erro) {
