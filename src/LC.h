@@ -2,11 +2,12 @@
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-=-=-=-="
 #define ERRO_LEXICO -1
-#define ERRO_SINTATICO -2
-#define ERRO_SINTATICO_EOF -3
+#define ERRO_LEXICO_EOF -2
+#define ERRO_SINTATICO -3
+#define ERRO_SINTATICO_EOF -4
+#define N_ACEITACAO_SIN -5 
 #define ACEITACAO_LEX 11
 #define ACEITACAO_SIN 12
-#define N_ACEITACAO_SIN -4 
 #define SUCESSO 0
 
 #define DEBUG_LEX 0
@@ -69,7 +70,7 @@ int casaToken(Tokens encontrado);
 
 
 /* Analisador léxico */
-int lexan(void);
+void lexan(void);
 
 /* Pilha */
 void initPilha(void);

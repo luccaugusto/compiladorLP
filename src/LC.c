@@ -1,6 +1,5 @@
 /* Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
- *
- * Este programa segue a maioria das recomendações do estilo de código definido em: https://suckless.org/coding_style/
+ * * Este programa segue a maioria das recomendações do estilo de código definido em: https://suckless.org/coding_style/
  *
  * Alunos: Laura Nunes - 587484
  * 		   Lucca Augusto - 587488
@@ -60,13 +59,16 @@ void abortar(void)
 {
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n %s [%c] \n", linha, erroMsg, lex);
+			printf("%d\n%s [%c]\n", linha, erroMsg, lex);
 			break;
+
 		case ERRO_SINTATICO:
-			printf("%d\n %s [%s] \n", linha, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s]\n", linha, erroMsg, tokenAtual.lexema);
 			break;
+
+		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
-			printf("%d\n %s \n", linha, erroMsg);
+			printf("%d\n%s\n", linha, erroMsg);
 			break;
 	}
 	exit(erro);

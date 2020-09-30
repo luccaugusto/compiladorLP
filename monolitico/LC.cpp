@@ -17,10 +17,6 @@
  */
 
 
-/* TODO:
- * Fazer pilha de chamadas para debugar
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -101,11 +97,12 @@ struct registroLex {
 #define TAM_TBL 254
 #define SEPARADOR "=-=-=-=-=-=-=-="
 #define ERRO_LEXICO -1
-#define ERRO_SINTATICO -2
-#define ERRO_SINTATICO_EOF -3
+#define ERRO_LEXICO_EOF -2
+#define ERRO_SINTATICO -3
+#define ERRO_SINTATICO_EOF -4
 #define ACEITACAO_LEX 11
 #define ACEITACAO_SIN 12
-#define N_ACEITACAO_SIN -4 
+#define N_ACEITACAO_SIN -5 
 #define SUCESSO 0
 #define DEVOLVIDO_NULL -2
 
@@ -169,7 +166,7 @@ int casaToken(Tokens encontrado);
 
 
 /* Analisador léxico */
-int lexan(void);
+void lexan(void);
 
 /* Pilha */
 void initPilha(void);
@@ -413,9 +410,9 @@ void limparTabela(void)
  *         0 caso EOF encontrado,
  *         letra caso erro lexico
  */
-int lexan(void)
+void lexan(void)
 {
-	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
+	int retorno = 1;/* marca lex como 0 quando chega ao fim do arquivo */
 	int estado = 0;
 
 	/* zera o token atual */
@@ -603,7 +600,8 @@ int lexan(void)
 					letra != ']'    &&
 					letra != '%'    &&
 					letra != '='    &&
-					letra != '_'    &&
+					letra != ':'    &&
+					letra != '\''    &&
 					letra != '.'    )
 			{
 				/* caractere inválido */
@@ -616,7 +614,7 @@ int lexan(void)
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
 				estado = 0;
-			} else if (letra == -1) {
+			} else if (letra == EOF) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
 				letra = 0;
@@ -731,8 +729,44 @@ int lexan(void)
             tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             if (letra == '"') {
 				tokenAtual.tipo = TP_Char;
+				tokenAtual.token = Literal;
                 estado = ACEITACAO_LEX;
-            }
+            } else if (letra == EOF) {
+				/*EOF encontrado*/
+				erro = ERRO_LEXICO_EOF;
+				erroMsg = (char *)"fim de arquivo nao esperado.";
+				abortar();
+			} else if (letra != '/' &&
+					!ehBranco(letra)&&
+					!ehDigito(letra)&&
+					!ehLetra(letra) &&
+					letra != '_'    &&
+					letra != '.'    &&
+					letra != '<'    &&
+					letra != '>'    &&
+					letra != '"'    &&
+					letra != ','    &&
+					letra != ';'    &&
+					letra != '+'    &&
+					letra != '-'    &&
+					letra != '('    &&
+					letra != ')'    &&
+					letra != '{'    &&
+					letra != '}'    &&
+					letra != '['    &&
+					letra != ']'    &&
+					letra != '%'    &&
+					letra != '='    &&
+					letra != ':'    &&
+					letra != '\''   &&
+					letra != '.'    )
+			{
+				/* caractere inválido */
+				erro = ERRO_LEXICO;
+				erroMsg = (char *)"caractere invalido.";
+				abortar();
+				
+			}
         } else if (estado == 10) {
             /*lexema de Inteiro
             concatena até finalizar o numero */
@@ -758,14 +792,12 @@ fimloop:
 
 	}
 
-	if (erro) {
-		abortar();
+	if (! letra) {
+		lex = 0;
+		linha++;
 	}
-	if (letra == EOF)
-		retorno = 0;
-	lex = retorno;
-	if (DEBUG_LEX) printf("%s\n",tokenAtual.lexema);
-	return retorno;
+	
+	if (DEBUG_LEX) printf("lexema: %s , token:%d\n",tokenAtual.lexema, tokenAtual.token);
 }
 
 /* Analisador sintático
@@ -796,14 +828,9 @@ fimloop:
 int casaToken(Tokens esperado)
 {
 	int retorno = 1;
-	if (esperado == 0 && estado_sin != ACEITACAO_SIN) {
-
-		/* chega EOF (0) mas não em estado de aceitação */
-		erroSintatico(ERRO_SINTATICO_EOF);
-
-	} else if (esperado != tokenAtual.token){
-
-		erroSintatico(ERRO_SINTATICO);
+	if (esperado != tokenAtual.token){
+		if (lex) erroSintatico(ERRO_SINTATICO);
+		else erroSintatico(ERRO_SINTATICO_EOF);
 
 	}
 
@@ -946,7 +973,7 @@ void blocoComandos()
 /* EOF */
 void fimDeArquivo(void)
 {
-	if (DEBUG_SIN) printf("fimDeArquivo\n");
+	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 	/*push("fimdearquivo");*/
 
 	/* se lex nao for 0 ainda n leu o EOF */
@@ -1451,12 +1478,14 @@ void expressao1(void)
 /* lista de expressoes */
 void expressao2(void)
 {
+	if (DEBUG_SIN) printf("expressao2\n");
 	expressao();
 	expressao3();
 }
 
 void expressao3(void)
 {
+	if (DEBUG_SIN) printf("expressao3\n");
 	if (tokenAtual.token == Virgula) {
 		lexan();
 		expressao2();
@@ -1476,6 +1505,7 @@ void abortar(void)
 		case ERRO_SINTATICO:
 			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
 			break;
+		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
 			printf("%d\n%s \n", linha, erroMsg);
 			break;

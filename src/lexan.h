@@ -9,9 +9,8 @@ extern FILE *progFonte;
 extern int erro;
 extern int lex;
 
-int lexan(void)
+void lexan(void)
 {
-	int retorno = 1;/* retorna 0 quando chega ao fim do arquivo */
 	int estado = 0;
 	int posAtual = ftell(progFonte);
 
@@ -24,8 +23,7 @@ int lexan(void)
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
         /* \n é contabilizado sempre */
-		/*if (letra == '\n' || letra == '\r') {*/
-		if (letra == '\n') {
+		if (letra == '\n' || letra == '\r') {
 			linha++;
 		} 
 
@@ -142,12 +140,13 @@ int lexan(void)
                 /*inicio inteiro*/
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 10;
-			} else if (letra == -1) {
+			} else if ( ! letra) {
 				estado = ACEITACAO_LEX;
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = "Caractere inválido";
+				erroMsg = "caractere invalido";
+				abortar();
 			}
             
 		} else if (estado == 1) {
@@ -166,7 +165,38 @@ int lexan(void)
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
 				erroMsg = "Fim de arquivo não esperado";
-			}
+				abortar();
+			} else if (letra != '/' &&
+					!ehBranco(letra)&&
+					!ehDigito(letra)&&
+					!ehLetra(letra) &&
+					letra != '_'    &&
+					letra != '.'    &&
+					letra != '<'    &&
+					letra != '>'    &&
+					letra != '"'    &&
+					letra != ','    &&
+					letra != ';'    &&
+					letra != '+'    &&
+					letra != '-'    &&
+					letra != '('    &&
+					letra != ')'    &&
+					letra != '{'    &&
+					letra != '}'    &&
+					letra != '['    &&
+					letra != ']'    &&
+					letra != '%'    &&
+					letra != '='    &&
+					letra != ':'    &&
+					letra != '\''   &&
+					letra != '.'    )
+			{
+				/* caractere inválido */
+				erro = ERRO_LEXICO;
+				erroMsg = "caractere invalido.";
+				abortar();
+				
+			} 
 		} else if (estado == 3) {
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
@@ -175,6 +205,7 @@ int lexan(void)
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
 				erroMsg = "Fim de arquivo não esperado";
+				abortar();
 			} else {
 				/* simbolo '*' dentro do comentario */
 				estado = 2;
@@ -279,14 +310,49 @@ int lexan(void)
         } else if (estado == 9) {
             /*lexema de String
             concatena até encontrar o fechamento das aspas */
-            tokenAtual.token = Literal;
-			tokenAtual.tipo = TP_Char;
-            tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            if (letra != '"') {
-                estado = 9;
-            } else {
+
+			tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+            if (letra == '"') {
+            	tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Char;
                 estado = ACEITACAO_LEX;
-            }
+            } else if (letra == EOF) {
+				/*EOF encontrado*/
+				erro = ERRO_LEXICO_EOF;
+				erroMsg = "fim de arquivo nao esperado.";
+				abortar();
+			} else if (letra != '/' &&
+					!ehBranco(letra)&&
+					!ehDigito(letra)&&
+					!ehLetra(letra) &&
+					letra != '_'    &&
+					letra != ':'    &&
+					letra != '.'    &&
+					letra != '<'    &&
+					letra != '>'    &&
+					letra != '"'    &&
+					letra != ','    &&
+					letra != ';'    &&
+					letra != '+'    &&
+					letra != '-'    &&
+					letra != '('    &&
+					letra != ')'    &&
+					letra != '{'    &&
+					letra != '}'    &&
+					letra != '['    &&
+					letra != ']'    &&
+					letra != '%'    &&
+					letra != '='    &&
+					letra != '\''   &&
+					letra != '.'    )
+			{
+				/* caractere inválido */
+				printf("LETRA:%d %c\n",letra,letra);
+				erro = ERRO_LEXICO;
+				erroMsg = "caractere invalido.";
+				abortar();
+				
+			}
         } else if (estado == 10) {
             /*lexema de Inteiro
             concatena até finalizar o numero */
@@ -308,12 +374,11 @@ int lexan(void)
 		posAtual = ftell(progFonte);
 	}
 
-	if (erro) {
-		retorno = letra;
+	/* leu EOF */
+	if (letra == -1) {
+		lex = 0;
+		linha++;
 	}
-	if (letra == -1)
-		retorno = 0;
-	lex = retorno;
-	if (DEBUG_LEX) printf("%s\n",tokenAtual.lexema);
-	return retorno;
+
+	if (DEBUG_LEX) printf("lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);
 }

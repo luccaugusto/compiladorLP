@@ -91,7 +91,7 @@ void testesTabelaSimbolos(void)
  */
 void testeLexan(void)
 {
-	while(lexan()){
+	while(lex){
 		printf("atual: %s\n",tokenAtual.lexema);
 	}
 }

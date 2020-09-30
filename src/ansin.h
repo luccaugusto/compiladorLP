@@ -33,15 +33,10 @@ extern int lex;
 int casaToken(Tokens esperado)
 {
 	int retorno = 1;
-	if (esperado == 0 && estado_sin != ACEITACAO_SIN) {
 
-		/* chega EOF (0) mas não em estado de aceitação */
-		erroSintatico(ERRO_SINTATICO_EOF);
-
-	} else if (esperado != tokenAtual.token){
-
-		erroSintatico(ERRO_SINTATICO);
-
+	if (esperado != tokenAtual.token){
+		if (lex) erroSintatico(ERRO_SINTATICO);
+		else erroSintatico(ERRO_SINTATICO_EOF);
 	}
 
 	return retorno;
@@ -507,7 +502,8 @@ void comandos2(void)
 			return;
 
 		default:
-			erroSintatico(ERRO_SINTATICO);
+			if (lex) erroSintatico(ERRO_SINTATICO);
+			else erroSintatico(ERRO_SINTATICO_EOF);
 	}
 }
 
@@ -661,8 +657,8 @@ void expressao(void)
 
 void expressao1(void)
 {
-	if (DEBUG_SIN) printf("expressao1\n");
-	/* op id */
+	if (DEBUG_SIN) printf("SIN: expressao1\n");
+	/* op id|literal */
 	if (tokenAtual.token == MaiorIgual ||
 		tokenAtual.token == MenorIgual ||
 		tokenAtual.token == Maior      ||
@@ -688,12 +684,14 @@ void expressao1(void)
 /* lista de expressoes */
 void expressao2(void)
 {
+	if (DEBUG_SIN) printf("SIN: expressao2\n");
 	expressao();
 	expressao3();
 }
 
 void expressao3(void)
 {
+	if (DEBUG_SIN) printf("SIN: expressao3\n");
 	if (tokenAtual.token == Virgula) {
 		lexan();
 		expressao2();

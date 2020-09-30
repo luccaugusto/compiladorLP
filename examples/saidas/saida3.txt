@@ -1,2 +1,2 @@
 3
-lexema nao identificado [%].
+token nao esperado [%].
