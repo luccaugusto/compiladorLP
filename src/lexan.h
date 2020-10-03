@@ -23,7 +23,7 @@ void lexan(void)
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
         /* \n é contabilizado sempre */
-		if (letra == '\n' || letra == '\r') {
+		if (letra == '\n') {
 			linha++;
 		} 
 
@@ -377,7 +377,7 @@ void lexan(void)
 	/* leu EOF */
 	if (letra == -1) {
 		lex = 0;
-		linha++;
+		linha--;
 	}
 
 	if (DEBUG_LEX) printf("lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);

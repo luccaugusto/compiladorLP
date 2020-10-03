@@ -412,7 +412,6 @@ void limparTabela(void)
  */
 void lexan(void)
 {
-	int retorno = 1;/* marca lex como 0 quando chega ao fim do arquivo */
 	int estado = 0;
 
 	/* zera o token atual */
@@ -435,7 +434,7 @@ void lexan(void)
 	/* por algum motivo o k precisa existir para nao entrar em loop */
 	while (estado != ACEITACAO_LEX && !erro && letra  && k++ < 80) {
         /* \n é contabilizado sempre */
-		if (letra == '\n' || letra == '\r') {
+		if (letra == '\n') {
 			linha++;
 		} 
 
@@ -574,7 +573,7 @@ void lexan(void)
 			if (letra == '*') {
 				/* inicio de fim de comentario */
 				estado = 3;
-			} else if (letra == EOF) {
+			} else if (!letra) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
@@ -605,6 +604,7 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
+				printf("linha: %d\n", linha);
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"caractere invalido.";
 				abortar();
@@ -790,11 +790,14 @@ fimloop:
 		if (estado != ACEITACAO_LEX)
 			letra = minusculo(getchar());
 
+		/* aborta em caso de erro */
+		if (erro) abortar();
+
 	}
 
 	if (! letra) {
 		lex = 0;
-		linha++;
+		linha--;
 	}
 	
 	if (DEBUG_LEX) printf("lexema: %s , token:%d\n",tokenAtual.lexema, tokenAtual.token);
