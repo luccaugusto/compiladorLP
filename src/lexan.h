@@ -145,7 +145,7 @@ void lexan(void)
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = "caractere invalido";
+				erroMsg = "lexema nao identificado";
 				abortar();
 			}
             
@@ -163,8 +163,8 @@ void lexan(void)
 				estado = 3;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO;
-				erroMsg = "Fim de arquivo não esperado";
+				erro = ERRO_LEXICO_EOF;
+				erroMsg = "fim de arquivo nao esperado";
 				abortar();
 			} else if (letra != '/' &&
 					!ehBranco(letra)&&
@@ -193,7 +193,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = "caractere invalido.";
+				erroMsg = "lexema nao identificado";
 				abortar();
 				
 			} 
@@ -203,8 +203,8 @@ void lexan(void)
 				estado = 0;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO;
-				erroMsg = "Fim de arquivo não esperado";
+				erro = ERRO_LEXICO_EOF;
+				erroMsg = "fim de arquivo nao esperado";
 				abortar();
 			} else {
 				/* simbolo '*' dentro do comentario */
@@ -349,7 +349,7 @@ void lexan(void)
 				/* caractere inválido */
 				printf("LETRA:%d %c\n",letra,letra);
 				erro = ERRO_LEXICO;
-				erroMsg = "caractere invalido.";
+				erroMsg = "lexema nao identificado";
 				abortar();
 				
 			}
@@ -375,10 +375,7 @@ void lexan(void)
 	}
 
 	/* leu EOF */
-	if (letra == -1) {
-		lex = 0;
-		linha--;
-	}
+	if (letra == -1) lex = 0;
 
 	if (DEBUG_LEX) printf("lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);
 }

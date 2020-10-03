@@ -59,7 +59,7 @@ void abortar(void)
 {
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n%s [%c]\n", linha, erroMsg, lex);
+			printf("%d\n%s [%c]\n", linha, erroMsg, letra);
 			break;
 
 		case ERRO_SINTATICO:

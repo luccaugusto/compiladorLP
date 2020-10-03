@@ -557,7 +557,7 @@ void lexan(void)
 			} else {
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"caractere invalido.";
+				erroMsg = (char *)"lexema nao identificado";
 				abortar();
 			}
             
@@ -575,7 +575,7 @@ void lexan(void)
 				estado = 3;
 			} else if (!letra) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO;
+				erro = ERRO_LEXICO_EOF;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
 				abortar();
 			} else if (letra != '/' &&
@@ -604,9 +604,8 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				printf("linha: %d\n", linha);
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"caractere invalido.";
+				erroMsg = (char *)"lexema nao identificado";
 				abortar();
 				
 			} 
@@ -614,9 +613,9 @@ void lexan(void)
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
 				estado = 0;
-			} else if (letra == EOF) {
+			} else if (!letra) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO;
+				erro = ERRO_LEXICO_EOF;
 				letra = 0;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
 				abortar();
@@ -674,7 +673,7 @@ void lexan(void)
 
 				tokenAtual.token = Maior;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-			} else if (letra == -1) {
+			} else if (!letra) {
 				/*EOF encontrado, assume que encontrou >*/
 				estado = ACEITACAO_LEX;
 				letra = 0;
@@ -731,7 +730,7 @@ void lexan(void)
 				tokenAtual.tipo = TP_Char;
 				tokenAtual.token = Literal;
                 estado = ACEITACAO_LEX;
-            } else if (letra == EOF) {
+            } else if (!letra) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO_EOF;
 				erroMsg = (char *)"fim de arquivo nao esperado.";
@@ -763,7 +762,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO;
-				erroMsg = (char *)"caractere invalido.";
+				erroMsg = (char *)"lexema nao identificado";
 				abortar();
 				
 			}
@@ -790,15 +789,9 @@ fimloop:
 		if (estado != ACEITACAO_LEX)
 			letra = minusculo(getchar());
 
-		/* aborta em caso de erro */
-		if (erro) abortar();
-
 	}
 
-	if (! letra) {
-		lex = 0;
-		linha--;
-	}
+	if (! letra) lex = 0;
 	
 	if (DEBUG_LEX) printf("lexema: %s , token:%d\n",tokenAtual.lexema, tokenAtual.token);
 }
@@ -1502,8 +1495,8 @@ void expressao3(void)
 void abortar(void)
 {
 	switch(erro) {
-		case ERRO_LEXICO: 
-			printf("%d\n%s\n", linha, erroMsg);
+		case ERRO_LEXICO:
+			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
 			break;
 		case ERRO_SINTATICO:
 			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
