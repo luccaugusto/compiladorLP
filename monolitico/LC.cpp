@@ -98,13 +98,14 @@ struct registroLex {
 #define SEPARADOR "=-=-=-=-=-=-=-="
 #define ERRO_LEXICO -1
 #define ERRO_LEXICO_EOF -2
-#define ERRO_SINTATICO -3
-#define ERRO_SINTATICO_EOF -4
+#define ERRO_LEXICO_INV -3
+#define ERRO_SINTATICO -4
+#define ERRO_SINTATICO_EOF -5
 #define ACEITACAO_LEX 11
 #define ACEITACAO_SIN 12
-#define N_ACEITACAO_SIN -5 
+#define N_ACEITACAO_SIN -6 
 #define SUCESSO 0
-#define DEVOLVIDO_NULL -2
+#define DEVOLVIDO_NULL -7
 
 #define DEBUG_LEX 0
 #define DEBUG_SIN 0
@@ -555,7 +556,7 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 				letra = 0;
 			} else {
-				/* caractere inválido */
+				/* lexema nao identificado */
 				erro = ERRO_LEXICO;
 				erroMsg = (char *)"lexema nao identificado";
 				abortar();
@@ -604,8 +605,8 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				erro = ERRO_LEXICO;
-				erroMsg = (char *)"lexema nao identificado";
+				erro = ERRO_LEXICO_INV;
+				erroMsg = (char *)"caractere invalido.";
 				abortar();
 				
 			} 
@@ -761,8 +762,8 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				erro = ERRO_LEXICO;
-				erroMsg = (char *)"lexema nao identificado";
+				erro = ERRO_LEXICO_INV;
+				erroMsg = (char *)"caractere invalido.";
 				abortar();
 				
 			}
@@ -1501,6 +1502,7 @@ void abortar(void)
 		case ERRO_SINTATICO:
 			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
 			break;
+		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
 			printf("%d\n%s \n", linha, erroMsg);

@@ -143,7 +143,7 @@ void lexan(void)
 			} else if ( ! letra) {
 				estado = ACEITACAO_LEX;
 			} else {
-				/* caractere inválido */
+				/* lexema nao identificado */
 				erro = ERRO_LEXICO;
 				erroMsg = "lexema nao identificado";
 				abortar();
@@ -192,8 +192,8 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				erro = ERRO_LEXICO;
-				erroMsg = "lexema nao identificado";
+				erro = ERRO_LEXICO_INV;
+				erroMsg = "caractere invalido.";
 				abortar();
 				
 			} 
@@ -347,9 +347,8 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				printf("LETRA:%d %c\n",letra,letra);
-				erro = ERRO_LEXICO;
-				erroMsg = "lexema nao identificado";
+				erro = ERRO_LEXICO_INV;
+				erroMsg = "caractere invalido.";
 				abortar();
 				
 			}

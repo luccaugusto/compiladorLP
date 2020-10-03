@@ -3,9 +3,10 @@
 #define SEPARADOR "=-=-=-=-=-=-=-="
 #define ERRO_LEXICO -1
 #define ERRO_LEXICO_EOF -2
-#define ERRO_SINTATICO -3
-#define ERRO_SINTATICO_EOF -4
-#define N_ACEITACAO_SIN -5 
+#define ERRO_LEXICO_INV -3
+#define ERRO_SINTATICO -4
+#define ERRO_SINTATICO_EOF -5
+#define N_ACEITACAO_SIN -6 
 #define ACEITACAO_LEX 11
 #define ACEITACAO_SIN 12
 #define SUCESSO 0

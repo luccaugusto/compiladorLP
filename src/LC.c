@@ -8,7 +8,6 @@
 
 
 /* TODO:
- * Juntar tudo num arquivo so substituindo os includes pelo conteudo do arquivo
  * Fazer pilha de chamadas para debugar
  */
 
@@ -65,7 +64,7 @@ void abortar(void)
 		case ERRO_SINTATICO:
 			printf("%d\n%s [%s]\n", linha, erroMsg, tokenAtual.lexema);
 			break;
-
+		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
 			printf("%d\n%s\n", linha, erroMsg);
@@ -77,7 +76,7 @@ void abortar(void)
 /* pára o programa e reporta linhas compiladas */
 void sucesso(void)
 {
-	printf("%d linhas compiladas.\n", linha);
+	printf("%d linhas compiladas.\n", --linha);
 	exit(SUCESSO);
 }
 
