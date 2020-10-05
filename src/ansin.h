@@ -16,6 +16,7 @@
 extern int erro;
 extern int estado_sin;
 extern int lex;
+extern int lido;
 
 
 /* confere se o último token lido é esperado
@@ -55,7 +56,7 @@ void erroSintatico(int tipo)
 		erroMsg = "token não esperado";
 	} else {
 		erro = ERRO_SINTATICO_EOF;
-		erroMsg = "fim de arquivo não esperado.";
+		erroMsg = "fim de arquivo não esperado";
 	}
 
 	/* Aborta a compilação */
@@ -79,19 +80,36 @@ void iniciarAnSin(void)
  */
 void declaracao(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: Declaracao\n");
 	/*push("Declaracao");*/
+
+
 	/* var ou const */
 	if (tokenAtual.token == Var) {
+		lido=0;
 		lexan();
 		variavel();
 		declaracao();
 	} else if (tokenAtual.token == Const) {
+		lido=0;
 		lexan();
 		constante();
 		declaracao();
 	} else {
-		lexan();
+		/* existem casos especificos onde o
+	 	* token do bloco de comandos ja foi lido
+	 	* e portanto nao precisa ser lido aqui,
+	 	* conferir listaIds para ver a lista desses
+	 	* casos 
+	 	*
+	 	* se ainda nao leu, le
+	 	* se ja leu, utiliza o lexema lido
+	 	* e marca que nao leu
+	 	* */
+		if (!lido) lexan();
+		else lido = 0;
+
 		blocoComandos();
 		fimDeArquivo();
 	}
@@ -103,8 +121,10 @@ void declaracao(void)
  */
 void blocoComandos()
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: blocoComandos\n");
 	/*push("blocoComandos");*/
+
 	switch(tokenAtual.token)
 	{
 		case Identificador:
@@ -178,8 +198,10 @@ void blocoComandos()
 /* EOF */
 void fimDeArquivo(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 	/*push("fimdearquivo");*/
+
 
 	/* se lex nao for 0 ainda n leu o EOF */
 	if (lex)
@@ -201,22 +223,25 @@ void fimDeArquivo(void)
 /* Const id = literal; */
 void constante(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: constante\n");
 	/*push("constante");*/
+
 	estado_sin = N_ACEITACAO_SIN;
 	casaToken(Identificador); lexan();
 	casaToken(Igual);         lexan();
 	casaToken(Literal);       lexan();
 	casaToken(PtVirgula);
-	declaracao();
 }
 
 /* var char|integer listaIds();
  */
 void variavel(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: variavel\n");
 	/*push("variavel");*/
+
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
 		lexan();
@@ -235,20 +260,31 @@ void variavel(void)
  */
 void listaIds(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: listaIds\n");
 	/*push("listaIds");*/
+
 	casaToken(Identificador); lexan();
+
 	if (tokenAtual.token == Virgula){
 		/* Lendo id,id */
 		lexan();
 		listaIds();
+
 	} else if (tokenAtual.token == PtVirgula) {
-		/* lendo id; */
+		/* lendo fim de um comando */
 		lexan();
+		/* Lista de declaracoes tipo Var integer c; char d; */
 		if (tokenAtual.token == Integer || tokenAtual.token == Char)
-			/* Lista de declaracoes tipo Var integer c; char d; */
 			variavel();
-		/* else fim do comando */
+		else
+			/* fim do comando e marca lido como 1
+			 * pois leu um lexema que nao
+			 * foi utilizado aqui, portanto
+			 * o proximo metodo nao precisa ler
+			 * este lexema
+			 * */
+			lido = 1;
 
 	} else if (tokenAtual.token == Igual) {
 		/* lendo id=literal */
@@ -261,16 +297,24 @@ void listaIds(void)
 		} else if (casaToken(PtVirgula)) {
 			/* terminou de ler o comando */
 			lexan();
+			/* Lista de declaracoes tipo Var integer c; char d; */
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
-				/* Lista de declaracoes tipo Var integer c; char d; */
 				variavel();
-			/* else fim do comando */
+			else
+				/* fim do comando e marca lido como 1
+			 	* pois leu um lexema que nao
+			 	* foi utilizado aqui, portanto
+			 	* o proximo metodo nao precisa ler
+			 	* este lexema
+			 	* */
+				lido = 1;
 		}
 	} else if (casaToken(A_Colchete)) {
 		/* lendo id[int] */
 		lexan();
 		casaToken(Literal);    lexan();
 		casaToken(F_Colchete); lexan();
+
 		if (tokenAtual.token == Virgula) {
 			/* outro id */
 			lexan();
@@ -278,12 +322,17 @@ void listaIds(void)
 		} else if (casaToken(PtVirgula)) {
 			/* terminou de ler o comando */
 			lexan();
-			if (tokenAtual.token == Var || tokenAtual.token == Const) 
-				/* var|const integer id[2]; var|const char ... */
-				declaracao();
-			else /* integer id[2]; integer listaIds()... */
-				estado_sin = ACEITACAO_SIN;
-			variavel();
+			/* Lista de declaracoes tipo Var integer c; char d; */
+			if (tokenAtual.token == Integer || tokenAtual.token == Char)
+				variavel();
+			else
+				/* fim do comando e marca lido como 1
+			 	* pois leu um lexema que nao
+			 	* foi utilizado aqui, portanto
+			 	* o proximo metodo nao precisa ler
+			 	* este lexema
+			 	* */
+				lido = 1;
 		}
 	}
 }
@@ -300,8 +349,10 @@ void listaIds(void)
  */
 void atribuicao(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: atribuicao\n");
 	/*push("atribuicao");*/
+
 	/* lendo array: id[i] */
 	if (tokenAtual.token == A_Colchete) {
 		lexan();
@@ -338,8 +389,10 @@ void atribuicao(void)
  */
 void repeticao(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: repeticao\n");
 	/*push("repeticao");*/
+
 	casaToken(Identificador); lexan();
 	if (tokenAtual.token == A_Colchete) {
 		/* lendo array: id[i] */
@@ -391,8 +444,10 @@ void repeticao(void)
  */
 void repeticao1(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: repeticao1\n");
 	/*push("repeticao1");*/
+
 	if (tokenAtual.token == Step) {
 		lexan();
 		casaToken(Literal); lexan();
@@ -411,8 +466,10 @@ void repeticao1(void)
  */
 void comandos2(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: comandos2\n");
 	/*push("comandos2");*/
+
 	switch(tokenAtual.token)
 	{
 		case Identificador:
@@ -476,8 +533,10 @@ void comandos2(void)
  */
 void teste(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: teste\n");
 	/*push("teste");*/
+
 	expressao();
 	/* then foi lido antes de retornar de expressao() */
 	casaToken(Then);
@@ -496,8 +555,10 @@ void teste(void)
  */
 void teste1(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: teste1\n");
 	/*push("teste1");*/
+
 	lexan();
 	if (tokenAtual.token == Else) {
 		lexan();
@@ -510,8 +571,10 @@ void teste1(void)
  */
 void leitura(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: leitura\n");
 	/*push("leitura");*/
+
 	casaToken(A_Parenteses);  lexan();
 	casaToken(Identificador); lexan();
 
@@ -537,8 +600,10 @@ void leitura(void)
  */
 void nulo(void)
 {
-	if (DEBUG_SIN) printf("nulo\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: nulo\n");
 	/*push("nulo");*/
+
 	casaToken(PtVirgula); lexan();
 }
 
@@ -547,8 +612,10 @@ void nulo(void)
  */
 void escrita(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escrita\n");
 	/*push("escrita");*/
+
 	casaToken(A_Parenteses); lexan();
 	expressao2();
 	casaToken(F_Parenteses); lexan();
@@ -564,15 +631,19 @@ void escrita(void)
  */
 void escritaLn(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escritaLn\n");
 	/*push("escritaLn");*/
+
 	escrita();
 }
 
 void expressao(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("expressao\n");
 	/*push("expressao");*/
+
 	if (tokenAtual.token == A_Parenteses) {
 		lexan();
 		expressao();
@@ -602,7 +673,10 @@ void expressao(void)
 
 void expressao1(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao1\n");
+	/*push("expressao1");*/
+
 	/* op id|literal */
 	if (tokenAtual.token == MaiorIgual ||
 		tokenAtual.token == MenorIgual ||
@@ -629,14 +703,21 @@ void expressao1(void)
 /* lista de expressoes */
 void expressao2(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao2\n");
+	/*push("expressao2");*/
+
 	expressao();
 	expressao3();
 }
 
+/* mais uma expressao ou lambda */
 void expressao3(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao3\n");
+	/*push("expressao3");*/
+
 	if (tokenAtual.token == Virgula) {
 		lexan();
 		expressao2();

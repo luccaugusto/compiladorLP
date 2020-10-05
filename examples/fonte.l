@@ -10,4 +10,5 @@ Const MAXITER=10;
   readln(nome);
   For n=1 to MAXITER do {
     writeln("Ola' ",nome);
+  }
 

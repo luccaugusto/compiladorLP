@@ -187,6 +187,7 @@ FILE *progAsm;
 
 int lex = 1;
 int erro = 0;
+int lido = 0;
 int linha = 1; /*linha do arquivo*/
 int tamPilha = 0;
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
@@ -606,7 +607,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO_INV;
-				erroMsg = (char *)"caractere invalido.";
+				erroMsg = (char *)"caractere invalido";
 				abortar();
 				
 			} 
@@ -763,7 +764,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO_INV;
-				erroMsg = (char *)"caractere invalido.";
+				erroMsg = (char *)"caractere invalido";
 				abortar();
 				
 			}
@@ -809,7 +810,6 @@ fimloop:
  * sido lido antes.
  */
 
-
 /* confere se o último token lido é esperado
  * Caso não seja o token esperado, aborta a
  * execução chamando erroSintatico()
@@ -825,10 +825,10 @@ fimloop:
 int casaToken(Tokens esperado)
 {
 	int retorno = 1;
+
 	if (esperado != tokenAtual.token){
 		if (lex) erroSintatico(ERRO_SINTATICO);
 		else erroSintatico(ERRO_SINTATICO_EOF);
-
 	}
 
 	return retorno;
@@ -840,14 +840,14 @@ int casaToken(Tokens esperado)
 void erroSintatico(int tipo)
 {
 	/* mostra a pilha de chamadas */
-	/* printPilha(); */
+	/*printPilha(); */
 
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
 		erroMsg = (char *)"token nao esperado";
 	} else {
 		erro = ERRO_SINTATICO_EOF;
-		erroMsg = (char *)"fim de arquivo nao esperado.";
+		erroMsg = (char *)"fim de arquivo nao esperado";
 	}
 
 	/* Aborta a compilação */
@@ -871,19 +871,36 @@ void iniciarAnSin(void)
  */
 void declaracao(void)
 {
-	if (DEBUG_SIN) printf("Declaracao\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: Declaracao\n");
 	/*push("Declaracao");*/
+
+
 	/* var ou const */
 	if (tokenAtual.token == Var) {
+		lido=0;
 		lexan();
 		variavel();
 		declaracao();
 	} else if (tokenAtual.token == Const) {
+		lido=0;
 		lexan();
 		constante();
 		declaracao();
 	} else {
-		lexan();
+		/* existem casos especificos onde o
+	 	* token do bloco de comandos ja foi lido
+	 	* e portanto nao precisa ser lido aqui,
+	 	* conferir listaIds para ver a lista desses
+	 	* casos 
+	 	*
+	 	* se ainda nao leu, le
+	 	* se ja leu, utiliza o lexema lido
+	 	* e marca que nao leu
+	 	* */
+		if (!lido) lexan();
+		else lido = 0;
+
 		blocoComandos();
 		fimDeArquivo();
 	}
@@ -895,8 +912,10 @@ void declaracao(void)
  */
 void blocoComandos()
 {
-	if (DEBUG_SIN) printf("blocoComandos\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: blocoComandos\n");
 	/*push("blocoComandos");*/
+
 	switch(tokenAtual.token)
 	{
 		case Identificador:
@@ -970,8 +989,10 @@ void blocoComandos()
 /* EOF */
 void fimDeArquivo(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 	/*push("fimdearquivo");*/
+
 
 	/* se lex nao for 0 ainda n leu o EOF */
 	if (lex)
@@ -993,29 +1014,25 @@ void fimDeArquivo(void)
 /* Const id = literal; */
 void constante(void)
 {
-	if (DEBUG_SIN) printf("constante\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: constante\n");
 	/*push("constante");*/
+
 	estado_sin = N_ACEITACAO_SIN;
-	if (casaToken(Identificador)) {
-		lexan();
-		if (casaToken(Igual)) {
-			lexan();
-			if (casaToken(Literal)) {
-				lexan();
-				if (casaToken(PtVirgula)) {
-					declaracao();
-				}
-			}
-		}
-	}
+	casaToken(Identificador); lexan();
+	casaToken(Igual);         lexan();
+	casaToken(Literal);       lexan();
+	casaToken(PtVirgula);
 }
 
 /* var char|integer listaIds();
  */
 void variavel(void)
 {
-	if (DEBUG_SIN) printf("variavel\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: variavel\n");
 	/*push("variavel");*/
+
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
 		lexan();
@@ -1034,63 +1051,79 @@ void variavel(void)
  */
 void listaIds(void)
 {
-	if (DEBUG_SIN) printf("listaIds\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: listaIds\n");
 	/*push("listaIds");*/
-	if (casaToken(Identificador)) {
+
+	casaToken(Identificador); lexan();
+
+	if (tokenAtual.token == Virgula){
+		/* Lendo id,id */
 		lexan();
-		if (tokenAtual.token == Virgula){
-			/* Lendo id,id */
+		listaIds();
+
+	} else if (tokenAtual.token == PtVirgula) {
+		/* lendo fim de um comando */
+		lexan();
+		/* Lista de declaracoes tipo Var integer c; char d; */
+		if (tokenAtual.token == Integer || tokenAtual.token == Char)
+			variavel();
+		else
+			/* fim do comando e marca lido como 1
+			 * pois leu um lexema que nao
+			 * foi utilizado aqui, portanto
+			 * o proximo metodo nao precisa ler
+			 * este lexema
+			 * */
+			lido = 1;
+
+	} else if (tokenAtual.token == Igual) {
+		/* lendo id=literal */
+		lexan();
+		casaToken(Literal); lexan();
+		if (tokenAtual.token == Virgula) {
+			/* outro id */
 			lexan();
 			listaIds();
-		} else if (tokenAtual.token == PtVirgula) {
-			/* lendo id; */
+		} else if (casaToken(PtVirgula)) {
+			/* terminou de ler o comando */
 			lexan();
+			/* Lista de declaracoes tipo Var integer c; char d; */
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
-				/* Lista de declaracoes tipo Var integer c; char d; */
 				variavel();
-			/* else fim do comando */
+			else
+				/* fim do comando e marca lido como 1
+			 	* pois leu um lexema que nao
+			 	* foi utilizado aqui, portanto
+			 	* o proximo metodo nao precisa ler
+			 	* este lexema
+			 	* */
+				lido = 1;
+		}
+	} else if (casaToken(A_Colchete)) {
+		/* lendo id[int] */
+		lexan();
+		casaToken(Literal);    lexan();
+		casaToken(F_Colchete); lexan();
 
-		} else if (tokenAtual.token == Igual) {
-			/* lendo id=literal */
+		if (tokenAtual.token == Virgula) {
+			/* outro id */
 			lexan();
-			if (casaToken(Literal)) {
-				lexan();
-				if (tokenAtual.token == Virgula) {
-					/* outro id */
-					lexan();
-					listaIds();
-				} else if (casaToken(PtVirgula)) {
-					/* terminou de ler o comando */
-					lexan();
-					if (tokenAtual.token == Integer || tokenAtual.token == Char)
-						/* Lista de declaracoes tipo Var integer c; char d; */
-						variavel();
-					/* else fim do comando */
-				}
-			}
-		} else if (casaToken(A_Colchete)) {
-			/* lendo id[int] */
+			listaIds();
+		} else if (casaToken(PtVirgula)) {
+			/* terminou de ler o comando */
 			lexan();
-			if (casaToken(Literal)) {
-				lexan();
-				if (casaToken(F_Colchete)) {
-					lexan();
-					if (tokenAtual.token == Virgula) {
-						/* outro id */
-						lexan();
-						listaIds();
-					} else if (casaToken(PtVirgula)) {
-						/* terminou de ler o comando */
-						lexan();
-						if (tokenAtual.token == Var || tokenAtual.token == Const) 
-							/* var|const integer id[2]; var|const char ... */
-							declaracao();
-						else /* integer id[2]; integer listaIds()... */
-							estado_sin = ACEITACAO_SIN;
-							variavel();
-					}
-				}
-			}
+			/* Lista de declaracoes tipo Var integer c; char d; */
+			if (tokenAtual.token == Integer || tokenAtual.token == Char)
+				variavel();
+			else
+				/* fim do comando e marca lido como 1
+			 	* pois leu um lexema que nao
+			 	* foi utilizado aqui, portanto
+			 	* o proximo metodo nao precisa ler
+			 	* este lexema
+			 	* */
+				lido = 1;
 		}
 	}
 }
@@ -1107,10 +1140,53 @@ void listaIds(void)
  */
 void atribuicao(void)
 {
-	if (DEBUG_SIN) printf("atribuicao\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: atribuicao\n");
 	/*push("atribuicao");*/
+
 	/* lendo array: id[i] */
 	if (tokenAtual.token == A_Colchete) {
+		lexan();
+		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+			lexan();
+			casaToken(F_Colchete); lexan();
+		} else {
+			erroSintatico(ERRO_SINTATICO);
+		}
+	}
+	casaToken(Igual); lexan();
+	if (tokenAtual.token == Identificador) {
+		lexan();
+		/* lendo array: id[i] */
+		if (tokenAtual.token == A_Colchete) {
+			lexan();
+			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
+				lexan();
+				casaToken(F_Colchete); lexan();
+			} else {
+				erroSintatico(ERRO_SINTATICO);
+			}
+		}
+		casaToken(PtVirgula); lexan();
+
+	} else if (casaToken(Literal)) {
+		lexan();
+		casaToken(PtVirgula); lexan();
+	}
+} 
+
+/* Repeticao
+ * ID = literal to literal repeticao1();
+ */
+void repeticao(void)
+{
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: repeticao\n");
+	/*push("repeticao");*/
+
+	casaToken(Identificador); lexan();
+	if (tokenAtual.token == A_Colchete) {
+		/* lendo array: id[i] */
 		lexan();
 		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 			lexan();
@@ -1121,44 +1197,16 @@ void atribuicao(void)
 			erroSintatico(ERRO_SINTATICO);
 		}
 	}
-	if (casaToken(Igual)) {
+
+	/* ja leu ( id|id[i] ) e pode fechar o comando */
+	casaToken(Igual);   lexan();
+	casaToken(Literal); lexan();
+	casaToken(To);      lexan();
+
+	if (tokenAtual.token == Literal) {
 		lexan();
-		if (tokenAtual.token == Identificador) {
-			lexan();
-			/* lendo array: id[i] */
-			if (tokenAtual.token == A_Colchete) {
-				lexan();
-				if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-					lexan();
-					if (casaToken(F_Colchete)) {
-						lexan();
-					}
-
-				} else {
-					erroSintatico(ERRO_SINTATICO);
-				}
-			}
-			if (casaToken(PtVirgula)) {
-				lexan();
-			}
-
-		} else if (casaToken(Literal)) {
-			lexan();
-			if (casaToken(PtVirgula)) {
-				lexan();
-			}
-		}
-	}
-} 
-
-/* Repeticao
- * ID = literal to literal repeticao1();
- */
-void repeticao(void)
-{
-	if (DEBUG_SIN) printf("SIN: repeticao\n");
-	/*push("repeticao");*/
-	if (casaToken(Identificador)) {
+		repeticao1();
+	} else if (tokenAtual.token == Identificador) {
 		lexan();
 		if (tokenAtual.token == A_Colchete) {
 			/* lendo array: id[i] */
@@ -1173,36 +1221,8 @@ void repeticao(void)
 			}
 		}
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
-		if (casaToken(Igual)) {
-			lexan();
-			if (casaToken(Literal)) {
-				lexan();
-				if (casaToken(To)) {
-					lexan();
-					if (tokenAtual.token == Literal) {
-						lexan();
-						repeticao1();
-					} else if (tokenAtual.token == Identificador) {
-						lexan();
-						if (tokenAtual.token == A_Colchete) {
-							/* lendo array: id[i] */
-							lexan();
-							if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-								lexan();
-								if (casaToken(F_Colchete)) {
-									lexan();
-								}
-							} else {
-								erroSintatico(ERRO_SINTATICO);
-							}
-						}
-						/* ja leu ( id|id[i] ) e pode fechar o comando */
-						repeticao1();
+		repeticao1();
 
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -1215,17 +1235,15 @@ void repeticao(void)
  */
 void repeticao1(void)
 {
-	if (DEBUG_SIN) printf("repeticao1\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: repeticao1\n");
 	/*push("repeticao1");*/
+
 	if (tokenAtual.token == Step) {
 		lexan();
-		if (casaToken(Literal)) {
-			lexan();
-			if (casaToken(Do)) {
-				lexan();
-				comandos2();
-			}
-		}
+		casaToken(Literal); lexan();
+		casaToken(Do);      lexan();
+		comandos2();
 	} else if (casaToken(Do)) {
 		lexan();
 		comandos2();
@@ -1239,8 +1257,10 @@ void repeticao1(void)
  */
 void comandos2(void)
 {
-	if (DEBUG_SIN) printf("comandos2\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: comandos2\n");
 	/*push("comandos2");*/
+
 	switch(tokenAtual.token)
 	{
 		case Identificador:
@@ -1294,7 +1314,8 @@ void comandos2(void)
 			return;
 
 		default:
-			erroSintatico(ERRO_SINTATICO);
+			if (lex) erroSintatico(ERRO_SINTATICO);
+			else erroSintatico(ERRO_SINTATICO_EOF);
 	}
 }
 
@@ -1303,18 +1324,20 @@ void comandos2(void)
  */
 void teste(void)
 {
-	if (DEBUG_SIN) printf("teste\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: teste\n");
 	/*push("teste");*/
+
 	expressao();
 	/* then foi lido antes de retornar de expressao() */
-	if (casaToken(Then)) {
-		lexan();
-		comandos2();
-		if (tokenAtual.token == F_Chaves) {
-			lexan(); 
-		}
-		teste1();
-	}
+	casaToken(Then);
+	lexan();
+	comandos2();
+
+	if (tokenAtual.token == F_Chaves)
+		lexan(); 
+
+	teste1();
 }
 
 /* else comandos2()
@@ -1323,8 +1346,10 @@ void teste(void)
  */
 void teste1(void)
 {
-	if (DEBUG_SIN) printf("teste1\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: teste1\n");
 	/*push("teste1");*/
+
 	lexan();
 	if (tokenAtual.token == Else) {
 		lexan();
@@ -1337,32 +1362,27 @@ void teste1(void)
  */
 void leitura(void)
 {
-	if (DEBUG_SIN) printf("leitura\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: leitura\n");
 	/*push("leitura");*/
-	if (casaToken(A_Parenteses)) {
+
+	casaToken(A_Parenteses);  lexan();
+	casaToken(Identificador); lexan();
+
+	if (tokenAtual.token == A_Colchete) {
+		/* lendo array: id[i] */
 		lexan();
-		if (casaToken(Identificador)) {
+		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 			lexan();
-			if (tokenAtual.token == A_Colchete) {
-				/* lendo array: id[i] */
-				lexan();
-				if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-					lexan();
-					if (casaToken(F_Colchete)) {
-						lexan();
-					}
-				} else {
-					erroSintatico(ERRO_SINTATICO);
-				}
-			}
-			/* ja leu ( id|id[i] ) e pode fechar o comando */
-			if (casaToken(F_Parenteses)) {
-				lexan();
-				if (casaToken(PtVirgula)) {
-					lexan();
-				}
-			}
+			casaToken(F_Colchete); lexan();
+		} else {
+			erroSintatico(ERRO_SINTATICO);
 		}
+	}
+	/* ja leu ( id|id[i] ) e pode fechar o comando */
+	if (casaToken(F_Parenteses)) {
+		lexan();
+		casaToken(PtVirgula); lexan();
 	}
 }
 
@@ -1371,11 +1391,11 @@ void leitura(void)
  */
 void nulo(void)
 {
-	if (DEBUG_SIN) printf("nulo\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: nulo\n");
 	/*push("nulo");*/
-	if (casaToken(PtVirgula)) {
-		lexan();
-	}
+
+	casaToken(PtVirgula); lexan();
 }
 
 /* Comando de escrita
@@ -1383,18 +1403,14 @@ void nulo(void)
  */
 void escrita(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escrita\n");
 	/*push("escrita");*/
-	if (casaToken(A_Parenteses)) {
-		lexan();
-		expressao2();
-		if (casaToken(F_Parenteses)) {
-			lexan();
-			if (casaToken(PtVirgula)) {
-				lexan();
-			}
-		}
-	}
+
+	casaToken(A_Parenteses); lexan();
+	expressao2();
+	casaToken(F_Parenteses); lexan();
+	casaToken(PtVirgula);    lexan();
 }
 
 /* Funciona como um wrapper para o escrita.
@@ -1402,26 +1418,28 @@ void escrita(void)
  * deve colocar a quebra de linha no final.
  * Isso será tratado posteriormente, ao implementar
  * a geração de código
- * TODO colocar quebra de linha
+ * TODO colocar quebra de linha na geracao de codigo
  */
 void escritaLn(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escritaLn\n");
 	/*push("escritaLn");*/
+
 	escrita();
 }
 
 void expressao(void)
 {
+	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("expressao\n");
 	/*push("expressao");*/
+
 	if (tokenAtual.token == A_Parenteses) {
 		lexan();
 		expressao();
 		lexan();
-		if (casaToken(F_Parenteses)) {
-			lexan();
-		}
+		casaToken(F_Parenteses); lexan();
 	} else if (tokenAtual.token == Identificador) {
 		 /* id */
 		lexan();
@@ -1430,10 +1448,8 @@ void expressao(void)
 			lexan();
 			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
 				lexan();
-				if (casaToken(F_Colchete)) {
-					lexan();
-					expressao1();
-				}
+				casaToken(F_Colchete); lexan();
+				expressao1();
 			} else {
 				erroSintatico(ERRO_SINTATICO);
 			}
@@ -1448,8 +1464,11 @@ void expressao(void)
 
 void expressao1(void)
 {
-	if (DEBUG_SIN) printf("expressao1\n");
-	/* op id */
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: expressao1\n");
+	/*push("expressao1");*/
+
+	/* op id|literal */
 	if (tokenAtual.token == MaiorIgual ||
 		tokenAtual.token == MenorIgual ||
 		tokenAtual.token == Maior      ||
@@ -1475,20 +1494,28 @@ void expressao1(void)
 /* lista de expressoes */
 void expressao2(void)
 {
-	if (DEBUG_SIN) printf("expressao2\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: expressao2\n");
+	/*push("expressao2");*/
+
 	expressao();
 	expressao3();
 }
 
+/* mais uma expressao ou lambda */
 void expressao3(void)
 {
-	if (DEBUG_SIN) printf("expressao3\n");
+	/* DEBUGGER E PILHA */
+	if (DEBUG_SIN) printf("SIN: expressao3\n");
+	/*push("expressao3");*/
+
 	if (tokenAtual.token == Virgula) {
 		lexan();
 		expressao2();
 	}
 	/* else lambda */
 }
+
 
 /*
  * pára o programa e reporta o erro
@@ -1505,7 +1532,7 @@ void abortar(void)
 		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
-			printf("%d\n%s \n", linha, erroMsg);
+			printf("%d\n%s. \n", linha, erroMsg);
 			break;
 	}
 	exit(erro);
@@ -1514,7 +1541,7 @@ void abortar(void)
 /* pára o programa e reporta linhas compiladas */
 void sucesso(void)
 {
-	printf("%d linhas compiladas.\n", linha);
+	printf("%d linhas compiladas.\n", --linha);
 	exit(SUCESSO);
 }
 
@@ -1560,36 +1587,6 @@ void adicionarReservados(void)
 
 int main(int argc, char *argv[])
 {
-	char c;
-
-
-	/* 
-	while((c = getopt(argc,argv,"f:o:")) != -1) {
-		switch(c) {
-			case 'f':
-				progFonte = fopen(optarg, "r");
-				break;
-			case 'o':
-				progAsm = fopen(optarg,"w");
-				break;
-			case '?':
-				if (optopt == 'f')
-					printf("Programa fonte não especificado.");
-				else if (optopt == 'o')
-					printf("Arquivo de saída não especificado.");
-				else
-					printf("Parametros não especificados");
-			default:
-					printf("\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
-					return 1;
-		}
-	}
-
-	if (progFonte == NULL || progAsm == NULL) {
-		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
-		return 1;
-	} */
-
 	/*testesTabelaSimbolos();*/
 
 	inicializarTabela();

@@ -193,7 +193,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO_INV;
-				erroMsg = "caractere invalido.";
+				erroMsg = "caractere invalido";
 				abortar();
 				
 			} 
@@ -348,7 +348,7 @@ void lexan(void)
 			{
 				/* caractere inválido */
 				erro = ERRO_LEXICO_INV;
-				erroMsg = "caractere invalido.";
+				erroMsg = "caractere invalido";
 				abortar();
 				
 			}
@@ -377,5 +377,5 @@ void lexan(void)
 	/* leu EOF */
 	if (letra == -1) lex = 0;
 
-	if (DEBUG_LEX) printf("lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);
+	if (DEBUG_LEX) printf("LEX: lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);
 }

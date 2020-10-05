@@ -30,6 +30,7 @@ FILE *progAsm;
 
 int lex = 1;
 int erro = 0;
+int lido = 0;
 int linha = 0; /*linha do arquivo*/
 int tamPilha = 0;
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
