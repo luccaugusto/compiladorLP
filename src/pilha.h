@@ -7,13 +7,19 @@ struct elemento {
 	char *metodo; /* nome do metodo na pilha */
 };
 
-extern int tamPilha; /* numero de elementos na pilha */
-extern struct elemento *pilha;
+struct pilha_d {
+	struct elemento *elementos;
+	int tam;
+};
+
+extern struct pilha_d *pilha;
 
 /* inicia a pilha com um elemento apenas */
 void initPilha(void)
 {
-	pilha = malloc(sizeof(struct elemento));
+	pilha = malloc(sizeof(struct pilha_d));
+	pilha->elementos = malloc(sizeof(struct elemento));
+	pilha->tam = 1;
 }
 
 /* insere na pilha */
@@ -25,16 +31,15 @@ void push(char *metodo)
 	if (pilha == NULL) {
 
 		initPilha();
-		++tamPilha;
-		pilha[0] = elem;
+		pilha->elementos[0] = elem;
 
 	} else {
 
 		/* adiciona uma posicao na pilha */
-		pilha = (struct elemento *) realloc(pilha, sizeof(tamPilha * sizeof(struct elemento)));
+		pilha->elementos = (struct elemento *) realloc(pilha->elementos,
+				(pilha->tam+1) * sizeof(struct elemento));
 		/* insere o elemento nessa posicao e incrementa a contagem do tamanho */
-		pilha[tamPilha++] = elem;
-		printPilha();
+		pilha->elementos[pilha->tam++] = elem;
 
 	}
 }
@@ -44,24 +49,22 @@ struct elemento *pop(void)
 {
 	struct elemento *retorno = NULL;
 	/* nada a fazer se a pilha estiver vazia */
-	if (pilha != NULL) {
+	if (pilha->elementos != NULL) {
 
 		/* ultima posicao */
-		retorno = &pilha[tamPilha-1]; 
+		retorno = &pilha->elementos[pilha->tam-1]; 
 
-		/* pilha se torna vazia */
-		if (tamPilha == 1) {
+		/* pilha se torna vazia entao deleta */
+		if (pilha->tam == 1) {
 
-			--tamPilha;
-			free(&pilha[0]);
-			free(pilha);
+			deletaPilha();
 
 		} else {
 
 			/* deleta o ultimo elemento e reduz a contagem do tamanho */
-			free(&pilha[tamPilha--]);
-			if ( !realloc(pilha,sizeof(pilha - sizeof(struct elemento))) )
-				printf("ERRO NA PILHA\n");
+			pilha->elementos = (struct elemento *) realloc(pilha->elementos,
+					(pilha->tam-1) * sizeof(struct elemento));
+			pilha->tam--;
 
 		}
 
@@ -70,13 +73,43 @@ struct elemento *pop(void)
 	return retorno;
 }
 
+/* remove um elemento da pilha e NAO retorna ele */
+void del(void)
+{
+	/* nada a fazer se a pilha estiver vazia */
+	if (pilha->elementos != NULL) {
+
+		/* pilha se torna vazia entao deleta */
+		if (pilha->tam == 1) {
+
+			deletaPilha();
+
+		} else {
+
+			/* deleta o ultimo elemento e reduz a contagem do tamanho */
+			pilha->elementos = (struct elemento *) realloc(pilha->elementos,
+					(pilha->tam-1) * sizeof(struct elemento));
+			pilha->tam--;
+
+		}
+
+	}
+
+}
+
+void deletaPilha(void)
+{
+	free(pilha->elementos);
+	free(pilha);
+}
+
 /* exibe a pilha na tela */
 void printPilha(void)
 {
 	printf(SEPARADOR"\n");
-	if (pilha != NULL) {
-		for(int i=tamPilha-1; i >= 0 ; --i) {
-			printf("%d- %s\n",i,pilha[i].metodo);
+	if (pilha != NULL && pilha->elementos != NULL) {
+		for(int i=pilha->tam-1; i >= 0 ; --i) {
+			printf("%d- %s\n",i,pilha->elementos[i].metodo);
 		}
 	}
 	printf("\n");

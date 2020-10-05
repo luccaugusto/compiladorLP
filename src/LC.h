@@ -74,8 +74,10 @@ int casaToken(Tokens encontrado);
 void lexan(void);
 
 /* Pilha */
+void del(void);
 void initPilha(void);
 void printPilha(void);
+void deletaPilha(void);
 void push(char *metodo);
 struct elemento *pop(void);
 

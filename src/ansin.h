@@ -53,10 +53,10 @@ void erroSintatico(int tipo)
 
 	if (tipo == ERRO_SINTATICO) {
 		erro = ERRO_SINTATICO;
-		erroMsg = "token não esperado";
+		erroMsg = "token nao esperado";
 	} else {
 		erro = ERRO_SINTATICO_EOF;
-		erroMsg = "fim de arquivo não esperado";
+		erroMsg = "fim de arquivo nao esperado";
 	}
 
 	/* Aborta a compilação */
@@ -82,7 +82,7 @@ void declaracao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: Declaracao\n");
-	/*push("Declaracao");*/
+	push("Declaracao");
 
 
 	/* var ou const */
@@ -113,6 +113,7 @@ void declaracao(void)
 		blocoComandos();
 		fimDeArquivo();
 	}
+	del();
 }
 
 
@@ -123,7 +124,7 @@ void blocoComandos()
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: blocoComandos\n");
-	/*push("blocoComandos");*/
+	push("blocoComandos");
 
 	switch(tokenAtual.token)
 	{
@@ -193,6 +194,7 @@ void blocoComandos()
 		default:
 			return;
 	}
+	del();
 }
 
 /* EOF */
@@ -200,7 +202,7 @@ void fimDeArquivo(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
-	/*push("fimdearquivo");*/
+	push("fimdearquivo");
 
 
 	/* se lex nao for 0 ainda n leu o EOF */
@@ -212,6 +214,7 @@ void fimDeArquivo(void)
 		erroSintatico(ERRO_SINTATICO_EOF);
 
 	sucesso();
+	del();
 }
 
 /***********************************************
@@ -225,13 +228,14 @@ void constante(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: constante\n");
-	/*push("constante");*/
+	push("constante");
 
 	estado_sin = N_ACEITACAO_SIN;
 	casaToken(Identificador); lexan();
 	casaToken(Igual);         lexan();
 	casaToken(Literal);       lexan();
 	casaToken(PtVirgula);
+	del();
 }
 
 /* var char|integer listaIds();
@@ -240,7 +244,7 @@ void variavel(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: variavel\n");
-	/*push("variavel");*/
+	push("variavel");
 
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
@@ -250,6 +254,7 @@ void variavel(void)
 		erroSintatico(ERRO_SINTATICO);
 	}
 	estado_sin = ACEITACAO_SIN;
+	del();
 }
 
 
@@ -262,7 +267,7 @@ void listaIds(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: listaIds\n");
-	/*push("listaIds");*/
+	push("listaIds");
 
 	casaToken(Identificador); lexan();
 
@@ -335,6 +340,7 @@ void listaIds(void)
 				lido = 1;
 		}
 	}
+	del();
 }
 
 /***********************************************
@@ -351,7 +357,7 @@ void atribuicao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: atribuicao\n");
-	/*push("atribuicao");*/
+	push("atribuicao");
 
 	/* lendo array: id[i] */
 	if (tokenAtual.token == A_Colchete) {
@@ -382,6 +388,7 @@ void atribuicao(void)
 		lexan();
 		casaToken(PtVirgula); lexan();
 	}
+	del();
 } 
 
 /* Repeticao
@@ -391,7 +398,7 @@ void repeticao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: repeticao\n");
-	/*push("repeticao");*/
+	push("repeticao");
 
 	casaToken(Identificador); lexan();
 	if (tokenAtual.token == A_Colchete) {
@@ -433,6 +440,7 @@ void repeticao(void)
 		repeticao1();
 
 	}
+	del();
 }
 
 /* 
@@ -446,7 +454,7 @@ void repeticao1(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: repeticao1\n");
-	/*push("repeticao1");*/
+	push("repeticao1");
 
 	if (tokenAtual.token == Step) {
 		lexan();
@@ -457,6 +465,7 @@ void repeticao1(void)
 		lexan();
 		comandos2();
 	}
+	del();
 }
 
 /* R1 na gramatica
@@ -468,7 +477,7 @@ void comandos2(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: comandos2\n");
-	/*push("comandos2");*/
+	push("comandos2");
 
 	switch(tokenAtual.token)
 	{
@@ -526,6 +535,7 @@ void comandos2(void)
 			if (lex) erroSintatico(ERRO_SINTATICO);
 			else erroSintatico(ERRO_SINTATICO_EOF);
 	}
+	del();
 }
 
 /* Teste
@@ -535,7 +545,7 @@ void teste(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: teste\n");
-	/*push("teste");*/
+	push("teste");
 
 	expressao();
 	/* then foi lido antes de retornar de expressao() */
@@ -547,6 +557,7 @@ void teste(void)
 		lexan(); 
 
 	teste1();
+	del();
 }
 
 /* else comandos2()
@@ -557,13 +568,14 @@ void teste1(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: teste1\n");
-	/*push("teste1");*/
+	push("teste1");
 
 	lexan();
 	if (tokenAtual.token == Else) {
 		lexan();
 		comandos2();
 	}
+	del();
 }
 
 /* Comando de leitura
@@ -573,7 +585,7 @@ void leitura(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: leitura\n");
-	/*push("leitura");*/
+	push("leitura");
 
 	casaToken(A_Parenteses);  lexan();
 	casaToken(Identificador); lexan();
@@ -593,6 +605,7 @@ void leitura(void)
 		lexan();
 		casaToken(PtVirgula); lexan();
 	}
+	del();
 }
 
 /* Comando nulo
@@ -602,9 +615,10 @@ void nulo(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: nulo\n");
-	/*push("nulo");*/
+	push("nulo");
 
 	casaToken(PtVirgula); lexan();
+	del();
 }
 
 /* Comando de escrita
@@ -614,12 +628,13 @@ void escrita(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escrita\n");
-	/*push("escrita");*/
+	push("escrita");
 
 	casaToken(A_Parenteses); lexan();
 	expressao2();
 	casaToken(F_Parenteses); lexan();
 	casaToken(PtVirgula);    lexan();
+	del();
 }
 
 /* Funciona como um wrapper para o escrita.
@@ -633,16 +648,17 @@ void escritaLn(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("escritaLn\n");
-	/*push("escritaLn");*/
+	push("escritaLn");
 
 	escrita();
+	del();
 }
 
 void expressao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("expressao\n");
-	/*push("expressao");*/
+	push("expressao");
 
 	if (tokenAtual.token == A_Parenteses) {
 		lexan();
@@ -669,13 +685,14 @@ void expressao(void)
 		lexan();
 		expressao1();
 	}
+	del();
 }
 
 void expressao1(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao1\n");
-	/*push("expressao1");*/
+	push("expressao1");
 
 	/* op id|literal */
 	if (tokenAtual.token == MaiorIgual ||
@@ -698,6 +715,7 @@ void expressao1(void)
 	}
 	/* leu lambda */
 	/* id sozinho, retorna (lambda) */
+	del();
 }
 
 /* lista de expressoes */
@@ -705,10 +723,11 @@ void expressao2(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao2\n");
-	/*push("expressao2");*/
+	push("expressao2");
 
 	expressao();
 	expressao3();
+	del();
 }
 
 /* mais uma expressao ou lambda */
@@ -716,11 +735,12 @@ void expressao3(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao3\n");
-	/*push("expressao3");*/
+	push("expressao3");
 
 	if (tokenAtual.token == Virgula) {
 		lexan();
 		expressao2();
 	}
 	/* else lambda */
+	del();
 }

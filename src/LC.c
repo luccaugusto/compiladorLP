@@ -32,13 +32,12 @@ int lex = 1;
 int erro = 0;
 int lido = 0;
 int linha = 0; /*linha do arquivo*/
-int tamPilha = 0;
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 
-struct elemento *pilha = NULL;
+struct pilha_d *pilha = NULL;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
@@ -57,18 +56,19 @@ struct Celula *tabelaSimbolos[TAM_TBL];
  */
 void abortar(void)
 {
+	if (DEBUG_SIN) printPilha();
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
+			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
 			break;
 
 		case ERRO_SINTATICO:
-			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, tokenAtual.lexema);
 			break;
 		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
-			printf("%d\n%s.\n", linha, erroMsg);
+			printf("%d\n%s.\n", linha+1, erroMsg);
 			break;
 	}
 	exit(erro);
