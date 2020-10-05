@@ -364,6 +364,7 @@ void lexan(void)
 			 	 */
 				if (! ehBranco(letra))
 					fseek(progFonte, posAtual, SEEK_SET);
+
 				tokenAtual.token = Literal;
 				tokenAtual.tipo = TP_Integer;
 

@@ -58,16 +58,16 @@ void abortar(void)
 {
 	switch(erro) {
 		case ERRO_LEXICO: 
-			printf("%d\n%s [%c]\n", linha, erroMsg, letra);
+			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
 			break;
 
 		case ERRO_SINTATICO:
-			printf("%d\n%s [%s]\n", linha, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
 			break;
 		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
 		case ERRO_SINTATICO_EOF:
-			printf("%d\n%s\n", linha, erroMsg);
+			printf("%d\n%s.\n", linha, erroMsg);
 			break;
 	}
 	exit(erro);
@@ -76,7 +76,7 @@ void abortar(void)
 /* pára o programa e reporta linhas compiladas */
 void sucesso(void)
 {
-	printf("%d linhas compiladas.\n", --linha);
+	printf("%d linhas compiladas.\n", linha-1);
 	exit(SUCESSO);
 }
 
