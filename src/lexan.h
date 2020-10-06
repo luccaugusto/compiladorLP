@@ -21,7 +21,7 @@ void lexan(void)
 	tokenAtual.tipo = 0;
 	tokenAtual.tamanho = 0;
 
-	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(fgetc(progFonte))) != -1) { 
+	while (estado != ACEITACAO_LEX && !erro && (letra = getChar()) != -1) { 
         /* \n é contabilizado sempre */
 		if (letra == '\n') {
 			linha++;

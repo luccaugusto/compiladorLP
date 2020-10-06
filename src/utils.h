@@ -98,14 +98,17 @@ char *concatenar(char *inicio, char *fim)
 	int tamInicio = strlen(inicio);
 	int tamFim = strlen(fim);
 
-	retorno = malloc(tamInicio+tamFim);
+	/* acrescenta a posicao do \0 */
+	retorno = (char *) malloc(tamInicio+tamFim+1);
 
 	for (int i=0; i<tamInicio; ++i)
 		retorno[i] = inicio[i];
+
 	for (int i=0; i<tamFim; ++i)
 		retorno[tamInicio+i] = fim[i];
 
-	/*printf("concatenado %s\n",retorno);*/
+	retorno[tamInicio+tamFim]='\0';
+
 	return retorno;
 }
 
@@ -117,3 +120,11 @@ char minusculo(char l)
 	return l;
 }
 
+/* ************************** *
+   LEITURA DE ARQUIVO 
+ * ************************** */
+char getChar(void)
+{
+	int c = fgetc(progFonte);
+	return minusculo((char)c);
+}

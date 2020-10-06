@@ -1,5 +1,6 @@
 make:
 	gcc -o LC.out src/LC.c
+	g++ -o LC-mono.out monolitico/LC.cpp
 
 clean:
 	rm -f LC.out
@@ -12,11 +13,8 @@ run:
 run2:
 	./LC.out -f exemplo1.l -o prog.asm
 
-monolitico:
-	g++ -o LC-mono.out monolitico/LC.cpp
-
 runm:
-	./LC-mono.out -f fonte.l -o prog.asm
+	./LC-mono.out < examples/fonte.l
 
 debug:
 	gcc -o LCDEBUG.out src/LC.c -g
