@@ -11,10 +11,8 @@
 #define ACEITACAO_SIN 12
 #define SUCESSO 0
 
-#define DEBUG_LEX 1
-#define DEBUG_SIN 1
-
-#define NOP 0
+#define DEBUG_LEX 0
+#define DEBUG_SIN 0
 
 
 /*DECLARAÇÕES DE FUNÇÕES*/
