@@ -46,10 +46,16 @@ typedef enum {
 	TP_Char,
 } Tipo;
 
+typedef enum {
+	CL_Const = 0,
+	CL_Var,
+} Classe;
+
 /*registro na tabela de símbolos*/
 struct Simbolo {
 	Tokens token;
 	char *lexema;
+	registroLex dados; /* dados do simbolo na tabela */
 };
 
 /* Celulas da lista encadeada */
@@ -64,5 +70,6 @@ struct registroLex {
 	char *lexema;
 	struct Celula *endereco;
 	Tipo tipo;
+	Classe classe;
 	int tamanho;
 };
