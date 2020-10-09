@@ -4,7 +4,7 @@
  */
 
 struct elemento {
-	char *metodo; /* nome do metodo na pilha */
+	char *str; /* nome do metodo na pilha */
 };
 
 struct pilha_d {
@@ -12,28 +12,30 @@ struct pilha_d {
 	int tam;
 };
 
-extern struct pilha_d *pilha;
+void del(struct pilha_d *);
+struct pilha_d *initPilha(void);
+void printPilha(struct pilha_d *);
+void deletaPilha(struct pilha_d *);
+void push(char *, struct pilha_d *);
+struct elemento *pop(struct pilha_d *);
+
 
 /* inicia a pilha com um elemento apenas */
-void initPilha(void)
+struct pilha_d *initPilha(void)
 {
-	pilha = malloc(sizeof(struct pilha_d));
+	struct pilha_d *pilha = malloc(sizeof(struct pilha_d));
 	pilha->elementos = malloc(sizeof(struct elemento));
 	pilha->tam = 1;
+	return pilha;
 }
 
 /* insere na pilha */
-void push(char *metodo)
+void push(char *str, struct pilha_d *pilha)
 {
 	struct elemento elem;
-	elem.metodo = metodo;
+	elem.str = str;
 	/* pilha vazia, cria uma posicao e insere o elemento nela */
-	if (pilha == NULL) {
-
-		initPilha();
-		pilha->elementos[0] = elem;
-
-	} else {
+	if (pilha != NULL) {
 
 		/* adiciona uma posicao na pilha */
 		pilha->elementos = (struct elemento *) realloc(pilha->elementos,
@@ -45,7 +47,7 @@ void push(char *metodo)
 }
 
 /* remove um elemento da pilha e retorna ele */
-struct elemento *pop(void)
+struct elemento *pop(struct pilha_d *pilha)
 {
 	struct elemento *retorno = NULL;
 	/* nada a fazer se a pilha estiver vazia */
@@ -74,7 +76,7 @@ struct elemento *pop(void)
 }
 
 /* remove um elemento da pilha e NAO retorna ele */
-void del(void)
+void del(struct pilha_d *pilha)
 {
 	/* nada a fazer se a pilha estiver vazia */
 	if (pilha->elementos != NULL) {
@@ -97,19 +99,19 @@ void del(void)
 
 }
 
-void deletaPilha(void)
+void deletaPilha(struct pilha_d *pilha)
 {
 	free(pilha->elementos);
 	free(pilha);
 }
 
 /* exibe a pilha na tela */
-void printPilha(void)
+void printPilha(struct pilha_d *pilha)
 {
 	printf(SEPARADOR"\n");
 	if (pilha != NULL && pilha->elementos != NULL) {
 		for(int i=pilha->tam-1; i >= 0 ; --i) {
-			printf("%d- %s\n",i,pilha->elementos[i].metodo);
+			printf("%d- %s\n",i,pilha->elementos[i].str);
 		}
 	}
 	printf("\n");

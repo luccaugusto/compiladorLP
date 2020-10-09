@@ -70,17 +70,8 @@ void fimDeArquivo(void);
 void erroSintatico(int tipo);
 int casaToken(Tokens encontrado);
 
-
 /* Analisador léxico */
 void lexan(void);
-
-/* Pilha */
-void del(void);
-void initPilha(void);
-void printPilha(void);
-void deletaPilha(void);
-void push(char *metodo);
-struct elemento *pop(void);
 
 /* Fluxo de execução geral */
 void abortar(void);
