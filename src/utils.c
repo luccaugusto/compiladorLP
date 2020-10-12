@@ -1,9 +1,22 @@
 /* Definicao das funcoes utilitárias do projeto */
+#ifndef _UTILS
+#define _UTILS
+#include "types.h"
+
+char getChar(void);
+int ehLetra(char l);
+int ehDigito(char l);
+int ehBranco(char l);
+char minusculo(char l);
+unsigned int hash(unsigned char *, int);
+char *concatenar(char *, char *);
+
+extern FILE *progFonte;
 
 /* ************************** *
               HASH
  * ************************** */
-unsigned int hash(unsigned char *str)
+unsigned int hash(unsigned char *str, int mod)
 {
     unsigned int hash = 5381;
     int c;
@@ -11,7 +24,7 @@ unsigned int hash(unsigned char *str)
     while (c = *str++)
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-    return (hash % TAM_TBL);
+    return (hash % mod);
 }
 
 
@@ -128,3 +141,4 @@ char getChar(void)
 	int c = fgetc(progFonte);
 	return minusculo((char)c);
 }
+#endif

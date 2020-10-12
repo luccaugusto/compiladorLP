@@ -1,5 +1,8 @@
 /* Definicoes de tipos e estruturas utilizadas */
 
+#ifndef _TYPES
+#define _TYPES
+
 typedef enum {
 	Identificador = 1,
 	Const,
@@ -55,7 +58,7 @@ typedef enum {
 struct Simbolo {
 	Tokens token;
 	char *lexema;
-	registroLex dados; /* dados do simbolo na tabela */
+//	struct registroLex *dados; /* dados do simbolo na tabela */
 };
 
 /* Celulas da lista encadeada */
@@ -73,3 +76,4 @@ struct registroLex {
 	Classe classe;
 	int tamanho;
 };
+#endif

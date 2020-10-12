@@ -1,5 +1,17 @@
 /* Testes automatizados do compilador */
 
+#include "ts.c"
+#include "lexan.c"
+
+/* testes */
+void testeLexan(void);
+void testeColisao(void);
+void testeInsercao(void);
+void testeBuscaVazia(void);
+void testeBuscaSimples(void);
+void testeBuscaEmColisao(void);
+void testesTabelaSimbolos(void);
+
 /* testa a inserção de um registro na tabela */
 void testeInsercao(void)
 {
@@ -92,6 +104,7 @@ void testesTabelaSimbolos(void)
 void testeLexan(void)
 {
 	while(lex){
+		lexan();
 		printf("atual: %s\n",tokenAtual.lexema);
 	}
 }

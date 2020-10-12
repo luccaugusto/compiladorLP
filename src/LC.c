@@ -7,56 +7,27 @@
  */
 
 
-/* TODO:
- * Fazer pilha de chamadas para debugar
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 
-
-/* DECLARAÇÕES */
-#include "types.h"
-
+#include "pilha.c"
+#include "utils.c"
+#include "ts.c"
 #include "LC.h"
-
-/* VARIÁVEIS GLOBAIS */
-
-/* parametros da linha de comando */
-FILE *progFonte;
-FILE *progAsm;
-
-int lex = 1;
-int erro = 0;
-int lido = 0;
-int linha = 0; /*linha do arquivo*/
-int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
-
-char letra; /*posicao da proxima letra a ser lida no arquivo*/
-char *erroMsg; /*Mensagem de erro a ser exibida*/
-
-struct pilha_d *pilha = NULL;
-struct registroLex tokenAtual; 
-struct Celula *tabelaSimbolos[TAM_TBL];
-
+#include "testes.c"
+#include "lexan.c"
+#include "ansin.c"
 
 /* DEFINIÇÃO DE FUNÇÕES */
-
-#include "pilha.h"
-#include "utils.h"
-#include "testes.h"
-#include "ts.h"
-#include "lexan.h"
-#include "ansin.h"
 
 /*
  * pára o programa e reporta o erro
  */
 void abortar(void)
 {
-	if (DEBUG_SIN) printPilha();
+	if (DEBUG_SIN) printPilha(pilha);
 	switch(erro) {
 		case ERRO_LEXICO: 
 			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
@@ -81,45 +52,6 @@ void sucesso(void)
 	exit(SUCESSO);
 }
 
-void adicionarReservados(void)
-{
-	adicionarRegistro("const",Const);
-	adicionarRegistro("var",Var);
-	adicionarRegistro("integer",Integer);
-	adicionarRegistro("char",Char);
-	adicionarRegistro("for",For);
-	adicionarRegistro("if",If);
-	adicionarRegistro("else",Else);
-	adicionarRegistro("and",And);
-	adicionarRegistro("or",Or);
-	adicionarRegistro("not",Not);
-	adicionarRegistro("=",Igual);
-	adicionarRegistro("to",To);
-	adicionarRegistro("(",A_Parenteses);
-	adicionarRegistro(")",F_Parenteses);
-	adicionarRegistro("<",Menor);
-	adicionarRegistro(">",Maior);
-	adicionarRegistro("<>",Diferente);
-	adicionarRegistro(">=",MaiorIgual);
-	adicionarRegistro("<=",MenorIgual);
-	adicionarRegistro(",",Virgula);
-	adicionarRegistro("+",Mais);
-	adicionarRegistro("-",Menos);
-	adicionarRegistro("*",Vezes);
-	adicionarRegistro("/",Barra);
-	adicionarRegistro(";",PtVirgula);
-	adicionarRegistro("{",A_Chaves);
-	adicionarRegistro("}",F_Chaves);
-	adicionarRegistro("then",Then);
-	adicionarRegistro("readln",Readln);
-	adicionarRegistro("step",Step);
-	adicionarRegistro("write",Write);
-	adicionarRegistro("writeln",Writeln);
-	adicionarRegistro("%",Porcento);
-	adicionarRegistro("[",A_Colchete);
-	adicionarRegistro("]",F_Colchete);
-	adicionarRegistro("do",Do);
-}
 
 int main(int argc, char *argv[])
 {

@@ -34,9 +34,8 @@ void push(char *str, struct pilha_d *pilha)
 {
 	struct elemento elem;
 	elem.str = str;
-	/* pilha vazia, cria uma posicao e insere o elemento nela */
-	if (pilha != NULL) {
 
+	if (pilha != NULL) {
 		/* adiciona uma posicao na pilha */
 		pilha->elementos = (struct elemento *) realloc(pilha->elementos,
 				(pilha->tam+1) * sizeof(struct elemento));
@@ -51,7 +50,7 @@ struct elemento *pop(struct pilha_d *pilha)
 {
 	struct elemento *retorno = NULL;
 	/* nada a fazer se a pilha estiver vazia */
-	if (pilha->elementos != NULL) {
+	if (pilha != NULL) {
 
 		/* ultima posicao */
 		retorno = &pilha->elementos[pilha->tam-1]; 
@@ -59,7 +58,7 @@ struct elemento *pop(struct pilha_d *pilha)
 		/* pilha se torna vazia entao deleta */
 		if (pilha->tam == 1) {
 
-			deletaPilha();
+			deletaPilha(pilha);
 
 		} else {
 
@@ -79,12 +78,12 @@ struct elemento *pop(struct pilha_d *pilha)
 void del(struct pilha_d *pilha)
 {
 	/* nada a fazer se a pilha estiver vazia */
-	if (pilha->elementos != NULL) {
+	if (pilha != NULL) {
 
 		/* pilha se torna vazia entao deleta */
 		if (pilha->tam == 1) {
 
-			deletaPilha();
+			deletaPilha(pilha);
 
 		} else {
 
@@ -108,7 +107,7 @@ void deletaPilha(struct pilha_d *pilha)
 /* exibe a pilha na tela */
 void printPilha(struct pilha_d *pilha)
 {
-	printf(SEPARADOR"\n");
+	printf("=-------=-------=\n");
 	if (pilha != NULL && pilha->elementos != NULL) {
 		for(int i=pilha->tam-1; i >= 0 ; --i) {
 			printf("%d- %s\n",i,pilha->elementos[i].str);
