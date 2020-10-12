@@ -22,6 +22,9 @@
 #include <unistd.h>
 #include <string.h>
 
+/*TODO: REMOVER ESTE INCLUDE ANTES DE MANDAR PRO VERDE*/
+#include "pilha.c"
+
 
 /* DECLARAÇÕES */
 /* Definicoes de tipos e estruturas utilizadas */
