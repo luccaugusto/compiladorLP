@@ -4,7 +4,7 @@
 
 #define ACEITACAO_SIN 12
 
-#define DEBUG_SIN 1
+#define DEBUG_SIN 0
 
 #include "types.h"
 
@@ -12,6 +12,7 @@ extern int erro;
 extern int estado_sin;
 extern int lex;
 extern int lido;
+extern struct pilha_d *pilha;
 
 /* Analisador Sintatico */
 void nulo(void);

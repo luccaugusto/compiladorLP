@@ -12,6 +12,7 @@ unsigned int hash(unsigned char *, int);
 char *concatenar(char *, char *);
 
 extern FILE *progFonte;
+extern char *lexemaLido;
 
 /* ************************** *
               HASH
@@ -105,6 +106,23 @@ int identificaTipo(char *lex)
    MANIPULACAO DE STRING 
  * ************************** */
 
+/* remove o ultimo caractere de str */
+char *encurtar(char *str)
+{
+	char *retorno;
+	int tamstr = strlen(str)-1;
+
+	/* remove a ultima posicao e acrescenta a posicao do \0 */
+	retorno = (char *) malloc(tamstr);
+
+	for (int i=0; i<tamstr; ++i)
+		retorno[i] = str[i];
+
+	retorno[tamstr]='\0';
+
+	return retorno;
+}
+
 char *concatenar(char *inicio, char *fim)
 {
 	char *retorno;
@@ -121,6 +139,7 @@ char *concatenar(char *inicio, char *fim)
 		retorno[tamInicio+i] = fim[i];
 
 	retorno[tamInicio+tamFim]='\0';
+
 
 	return retorno;
 }
@@ -139,6 +158,8 @@ char minusculo(char l)
 char getChar(void)
 {
 	int c = fgetc(progFonte);
-	return minusculo((char)c);
+	char *l = (char *) &c;
+	lexemaLido = concatenar(lexemaLido,l);
+	return (char) c;
 }
 #endif

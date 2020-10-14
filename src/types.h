@@ -58,7 +58,9 @@ typedef enum {
 struct Simbolo {
 	Tokens token;
 	char *lexema;
-//	struct registroLex *dados; /* dados do simbolo na tabela */
+	Tipo tipo;
+	Classe classe;
+	int tamanho;
 };
 
 /* Celulas da lista encadeada */

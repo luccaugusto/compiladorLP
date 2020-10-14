@@ -1,6 +1,8 @@
 /* MACROS */
 #define SUCESSO 0
 
+#include "pilha.c"
+
 /* VARIÁVEIS GLOBAIS */
 
 /* parametros da linha de comando */
@@ -15,8 +17,9 @@ int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg; /*Mensagem de erro a ser exibida*/
+char *lexemaLido; /* lexema lido sem transformar em minusculo */
 
-struct pilha_d *pilha = NULL;
+struct pilha_d *pilha;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 

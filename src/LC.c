@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "pilha.c"
 #include "utils.c"
 #include "ts.c"
 #include "LC.h"
@@ -34,7 +33,7 @@ void abortar(void)
 			break;
 
 		case ERRO_SINTATICO:
-			printf("%d\n%s [%s].\n", linha+1, erroMsg, tokenAtual.lexema);
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, lexemaLido);
 			break;
 		case ERRO_LEXICO_INV:   /* Fallthrough */
 		case ERRO_LEXICO_EOF:   /* Fallthrough */
@@ -84,12 +83,13 @@ int main(int argc, char *argv[])
 	}
 
 	/*testesTabelaSimbolos();*/
-
 	inicializarTabela();
 
     /*mostrarTabelaSimbolos();*/
 	/* testeLexan();*/
     
+	pilha = initPilha();
+
 	iniciarAnSin();
 
 

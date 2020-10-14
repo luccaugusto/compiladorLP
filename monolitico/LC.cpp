@@ -23,7 +23,7 @@
 #include <string.h>
 
 /*TODO: REMOVER ESTE INCLUDE ANTES DE MANDAR PRO VERDE*/
-#include "pilha.c"
+#include "../src/pilha.c"
 
 
 /* DECLARAÇÕES */
@@ -172,12 +172,6 @@ int casaToken(Tokens encontrado);
 /* Analisador léxico */
 void lexan(void);
 
-/* Pilha */
-void initPilha(void);
-void printPilha(void);
-void push(char *metodo);
-struct elemento *pop(void);
-
 /* Fluxo de execução geral */
 void abortar(void);
 void sucesso(void);
@@ -192,14 +186,12 @@ int lex = 1;
 int erro = 0;
 int lido = 0;
 int linha = 1; /*linha do arquivo*/
-int tamPilha = 0;
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 
 char letra; /* letra lida*/
 char *erroMsg /*Mensagem de erro a ser exibida*/;
 char devolvido = DEVOLVIDO_NULL; /* caractere devolvido pelo lexan */
 
-struct elemento *pilha = NULL;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 

@@ -7,10 +7,14 @@
  *         0 caso EOF encontrado,
  *         letra caso erro lexico
  */
+
 void lexan(void)
 {
 	int estado = 0;
 	int posAtual = ftell(progFonte);
+
+	/* zera o lexemaLido */
+	lexemaLido = "";
 
 	/* zera o token atual */
 	tokenAtual.lexema = "";
@@ -20,6 +24,8 @@ void lexan(void)
 	tokenAtual.tamanho = 0;
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = getChar()) != -1) { 
+		letra = minusculo(letra);
+
         /* \n é contabilizado sempre */
 		if (letra == '\n') {
 			linha++;
@@ -134,7 +140,7 @@ void lexan(void)
                 /*inicio palavra*/
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 8;
-			} else if (letra >=  48 && letra <= 57) {
+			} else if (ehDigito(letra)) {
                 /*inicio inteiro*/
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 10;
@@ -228,8 +234,10 @@ void lexan(void)
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 			 	 */
-				if (! ehBranco(letra))
+				if (! ehBranco(letra)) {
 					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
 
 				tokenAtual.token = Menor;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -252,8 +260,10 @@ void lexan(void)
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 				 */
-				if (! ehBranco(letra))
+				if (! ehBranco(letra)) {
 					fseek(progFonte, posAtual,SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
 
 				tokenAtual.token = Maior;
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -270,8 +280,10 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
-				if (! ehBranco(letra))
+				if (! ehBranco(letra)) {
 					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
 
                 tokenAtual.token = Literal;
 				tokenAtual.tipo = TP_Integer;
@@ -295,8 +307,10 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
-				if (! ehBranco(letra))
+				if (! ehBranco(letra)) {
 					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
 
                 tokenAtual.token = identificaTipo(tokenAtual.lexema);
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
@@ -353,15 +367,17 @@ void lexan(void)
         } else if (estado == 10) {
             /*lexema de Inteiro
             concatena até finalizar o numero */
-            if (letra >=  48 && letra <= 57) {
+            if (ehDigito(letra)) {
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
             } else {
 				estado = ACEITACAO_LEX;
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 			 	 */
-				if (! ehBranco(letra))
+				if (! ehBranco(letra)) {
 					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
 
 				tokenAtual.token = Literal;
 				tokenAtual.tipo = TP_Integer;

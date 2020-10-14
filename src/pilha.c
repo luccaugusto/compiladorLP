@@ -23,8 +23,8 @@ struct elemento *pop(struct pilha_d *);
 /* inicia a pilha com um elemento apenas */
 struct pilha_d *initPilha(void)
 {
-	struct pilha_d *pilha = malloc(sizeof(struct pilha_d));
-	pilha->elementos = malloc(sizeof(struct elemento));
+	struct pilha_d *pilha = (struct pilha_d *) malloc(sizeof(struct pilha_d));
+	pilha->elementos = (struct elemento *) malloc(sizeof(struct elemento));
 	pilha->tam = 1;
 	return pilha;
 }

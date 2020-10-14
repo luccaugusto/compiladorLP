@@ -5,7 +5,7 @@
 #define ERRO_LEXICO_INV -3
 #define ACEITACAO_LEX 11
 
-#define DEBUG_LEX 1
+#define DEBUG_LEX 0
 
 extern struct registroLex tokenAtual;
 extern FILE *progFonte;

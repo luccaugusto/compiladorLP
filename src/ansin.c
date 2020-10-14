@@ -11,6 +11,7 @@
  */
 
 /* TODO Refatorar identificacao de array ou identificador */
+
 #ifndef _ANSIN
 #define _ANSIN
 
@@ -80,7 +81,6 @@ void declaracao(void)
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: Declaracao\n");
 	push("Declaracao",pilha);
-
 
 	/* var ou const */
 	if (tokenAtual.token == Var) {
@@ -201,13 +201,9 @@ void fimDeArquivo(void)
 	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 	push("fimdearquivo",pilha);
 
-
 	/* se lex nao for 0 ainda n leu o EOF */
-	if (lex)
-		erroSintatico(ERRO_SINTATICO_EOF);
-
 	/* leu fim de arquivo mas nao em estado de aceitacao */
-	if (estado_sin != ACEITACAO_SIN)
+	if (lex || estado_sin != ACEITACAO_SIN)
 		erroSintatico(ERRO_SINTATICO_EOF);
 
 	sucesso();
@@ -230,6 +226,7 @@ void constante(void)
 	estado_sin = N_ACEITACAO_SIN;
 	casaToken(Identificador); lexan();
 	casaToken(Igual);         lexan();
+	if (tokenAtual.token == Menos) lexan(); /* literal negativo */
 	casaToken(Literal);       lexan();
 	casaToken(PtVirgula);
 	del(pilha);
@@ -291,6 +288,7 @@ void listaIds(void)
 	} else if (tokenAtual.token == Igual) {
 		/* lendo id=literal */
 		lexan();
+		if (tokenAtual.token == Menos) lexan(); /* literal negativo */
 		casaToken(Literal); lexan();
 		if (tokenAtual.token == Virgula) {
 			/* outro id */
@@ -348,7 +346,7 @@ void listaIds(void)
 
 
 /* Atribuicao
- * ID=literal;
+ * ID=expressao(1);
  */
 void atribuicao(void)
 {
@@ -367,9 +365,11 @@ void atribuicao(void)
 		}
 	}
 	casaToken(Igual); lexan();
+	expressao();
+	/*
 	if (tokenAtual.token == Identificador) {
 		lexan();
-		/* lendo array: id[i] */
+		/ * lendo array: id[i] * /
 		if (tokenAtual.token == A_Colchete) {
 			lexan();
 			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
@@ -385,6 +385,7 @@ void atribuicao(void)
 		lexan();
 		casaToken(PtVirgula); lexan();
 	}
+	*/
 	del(pilha);
 } 
 
@@ -624,7 +625,7 @@ void nulo(void)
 void escrita(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("escrita\n");
+	if (DEBUG_SIN) printf("SIN: escrita\n");
 	push("escrita",pilha);
 
 	casaToken(A_Parenteses); lexan();
@@ -644,7 +645,7 @@ void escrita(void)
 void escritaLn(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("escritaLn\n");
+	if (DEBUG_SIN) printf("SIN: escritaLn\n");
 	push("escritaLn",pilha);
 
 	escrita();
@@ -654,14 +655,14 @@ void escritaLn(void)
 void expressao(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("expressao\n");
+	if (DEBUG_SIN) printf("SIN: expressao\n");
 	push("expressao",pilha);
 
 	if (tokenAtual.token == A_Parenteses) {
 		lexan();
 		expressao();
-		lexan();
 		casaToken(F_Parenteses); lexan();
+		casaToken(PtVirgula); lexan();
 	} else if (tokenAtual.token == Identificador) {
 		 /* id */
 		lexan();
@@ -678,10 +679,12 @@ void expressao(void)
 		} else {
 			expressao1();
 		}
-	} else if (casaToken(Literal)) {
+	} else if (tokenAtual.token == Literal) {
 		lexan();
 		expressao1();
-	}
+	} 
+	/* else lambda */
+
 	del(pilha);
 }
 
