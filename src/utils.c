@@ -159,7 +159,7 @@ char getChar(void)
 {
 	int c = fgetc(progFonte);
 	char *l = (char *) &c;
-	lexemaLido = concatenar(lexemaLido,l);
+	if (!ehBranco(c)) lexemaLido = concatenar(lexemaLido,l);
 	return (char) c;
 }
 #endif

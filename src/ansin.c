@@ -203,7 +203,10 @@ void fimDeArquivo(void)
 
 	/* se lex nao for 0 ainda n leu o EOF */
 	/* leu fim de arquivo mas nao em estado de aceitacao */
-	if (lex || estado_sin != ACEITACAO_SIN)
+	if (lex)
+		erroSintatico(ERRO_SINTATICO);
+
+	if (estado_sin != ACEITACAO_SIN)
 		erroSintatico(ERRO_SINTATICO_EOF);
 
 	sucesso();

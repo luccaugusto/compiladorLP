@@ -205,6 +205,9 @@ void lexan(void)
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
 				estado = 0;
+			} else if (letra == '*') {
+				/* ** no comentario, espera pela barra */
+				estado = 3;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
 				erro = ERRO_LEXICO_EOF;
