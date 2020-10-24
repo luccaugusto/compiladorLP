@@ -1,3 +1,6 @@
+#ifndef _ANSIN_H
+#define _ANSIN_H
+
 #define ERRO_SINTATICO -4
 #define ERRO_SINTATICO_EOF -5
 #define ERRO_SINTATICO_N_DECL -6
@@ -44,4 +47,4 @@ void iniciarAnSin(void);
 void fimDeArquivo(void);
 void erroSintatico(int);
 int casaToken(Tokens);
-
+#endif
