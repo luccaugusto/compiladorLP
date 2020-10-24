@@ -45,12 +45,12 @@ typedef enum {
 } Tokens;
 
 typedef enum {
-	TP_Integer = 0,
+	TP_Integer = 1,
 	TP_Char,
 } Tipo;
 
 typedef enum {
-	CL_Const = 0,
+	CL_Const = 1,
 	CL_Var,
 } Classe;
 
