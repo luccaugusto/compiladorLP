@@ -9,6 +9,7 @@ int ehLetra(char l);
 int ehDigito(char l);
 int ehBranco(char l);
 char minusculo(char l);
+int identificaToken(char *);
 char *concatenar(char *, char *);
 unsigned int hash(unsigned char *, int);
 
@@ -61,7 +62,7 @@ int ehBranco(char l)
 	return retorno;
 }
 
-int identificaTipo(char *lex)
+int identificaToken(char *lex)
 {
 	int retorno = Identificador;
 
@@ -165,9 +166,9 @@ int str2int(char *str)
 	 * por val, que é multiplicado por 10 a cada iteração,
 	 * representando as posições mais significativas
 	 */
-	for (int i=l; i>0; --i) {
+	for (int i=l-1; i>=0; --i) {
 		ret += (str[i]-48) * val;
-		val * 10;
+		val*=10;
 	}
 	return ret;
 }
