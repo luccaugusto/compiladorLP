@@ -137,11 +137,7 @@ void lexan(void)
                 /*inicio palavra*/
                 tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 8;
-			} else if (ehDigito(letra)) {
-                /*inicio inteiro*/
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 10;
-			} else if ( ! letra) {
+			} else if (!letra) {
 				estado = ACEITACAO_LEX;
 			} else {
 				/* lexema nao identificado */
@@ -274,6 +270,7 @@ void lexan(void)
 
 		} else if (estado == 6) {
 			/* le ate encontrar diferente de numero */
+
 			if (ehDigito(letra)) {
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 			} else {
@@ -286,8 +283,6 @@ void lexan(void)
 				}
 
                 tokenAtual.token = Literal;
-				tokenAtual.tipo = TP_Integer;
-				tokenAtual.endereco = NULL;
 			}
 		} else if (estado == 7) {
             /*lexema identificador _ . 
@@ -312,12 +307,12 @@ void lexan(void)
 					lexemaLido = encurtar(lexemaLido);
 				}
 
-                tokenAtual.token = identificaTipo(tokenAtual.lexema);
+                tokenAtual.token = identificaToken(tokenAtual.lexema);
 				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-                if (tokenAtual.endereco == NULL) {
-                   //adicionar novo token (identificador)
-                    tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
-                }
+
+                //adicionar novo token (identificador)
+                if (tokenAtual.endereco == NULL)
+                   tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
 			} 
         } else if (estado == 9) {
             /*lexema de String
@@ -364,25 +359,6 @@ void lexan(void)
 				abortar();
 				
 			}
-        } else if (estado == 10) {
-            /*lexema de Inteiro
-            concatena até finalizar o numero */
-            if (ehDigito(letra)) {
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            } else {
-				estado = ACEITACAO_LEX;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema
-			 	 */
-				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
-					lexemaLido = encurtar(lexemaLido);
-				}
-
-				tokenAtual.token = Literal;
-				tokenAtual.tipo = TP_Integer;
-
-			} 
         }
 
 		posAtual = ftell(progFonte);
