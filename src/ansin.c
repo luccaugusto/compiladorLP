@@ -13,7 +13,6 @@
 /* TODO 
  * 
  * atribuicao - verificar se ta declarado e que nao eh constante
- * vetores - verificar tamanho
  * verificar compatibilidade de classes (char = int)
  * vetores so podem manipular elemento a elemento
  * comparacao resulta em 0 ou 1
