@@ -16,12 +16,9 @@ void lexan(void)
 	/* zera o lexemaLido */
 	lexemaLido = "";
 
-	/* zera o token atual */
+	/* zera o token e o lexema */
 	tokenAtual.lexema = "";
 	tokenAtual.token = 0;
-	tokenAtual.endereco = NULL;
-	tokenAtual.tipo = 0;
-	tokenAtual.tamanho = 0;
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = getChar()) != -1) { 
 		letra = minusculo(letra);

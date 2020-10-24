@@ -32,12 +32,18 @@ void abortar(void)
 			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
 			break;
 
-		case ERRO_SINTATICO:
+		case ERRO_SINTATICO:              /* Fallthrough */
+		case ERRO_SINTATICO_N_DECL:       /* Fallthrough */
+		case ERRO_SINTATICO_JA_DECL:      /* Fallthrough */
+		case ERRO_SINTATICO_CL_INCOMP:
 			printf("%d\n%s [%s].\n", linha+1, erroMsg, lexemaLido);
 			break;
-		case ERRO_LEXICO_INV:   /* Fallthrough */
-		case ERRO_LEXICO_EOF:   /* Fallthrough */
-		case ERRO_SINTATICO_EOF:
+
+		case ERRO_LEXICO_INV:             /* Fallthrough */
+		case ERRO_LEXICO_EOF:             /* Fallthrough */
+		case ERRO_SINTATICO_EOF:          /* Fallthrough */
+		case ERRO_SINTATICO_TAM_VET:      /* Fallthrough */
+		case ERRO_SINTATICO_TP_INCOMP:
 			printf("%d\n%s.\n", linha+1, erroMsg);
 			break;
 	}

@@ -53,6 +53,9 @@ struct Celula *adicionarRegistro(char *lexema, int token)
 	struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
 	simb->token = token;
 	simb->lexema = lexema;
+	simb->classe = 0;
+	simb->tipo = 0;
+	simb->tamanho=0;
 	cel->prox = NULL;
 	cel->simbolo = *simb;
 	
