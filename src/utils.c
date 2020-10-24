@@ -4,12 +4,13 @@
 #include "types.h"
 
 char getChar(void);
+int str2int(char*);
 int ehLetra(char l);
 int ehDigito(char l);
 int ehBranco(char l);
 char minusculo(char l);
-unsigned int hash(unsigned char *, int);
 char *concatenar(char *, char *);
+unsigned int hash(unsigned char *, int);
 
 extern FILE *progFonte;
 extern char *lexemaLido;
@@ -150,6 +151,25 @@ char minusculo(char l)
 	if (l >= 65 && l <=90)
 		l += 32; 
 	return l;
+}
+
+/* transforma uma string de numeros em um inteiro */
+int str2int(char *str)
+{
+	int l = strlen(str);
+	int val = 1; /* valor da casa (unidade, dezena, centena) */
+	int ret = 0;
+
+	/* comeca do fim da string (posição menos significativa), e multiplica 
+	 * cada posicao(valor ascii - 48 para encontrar o valor do numero de fato)
+	 * por val, que é multiplicado por 10 a cada iteração,
+	 * representando as posições mais significativas
+	 */
+	for (int i=l; i>0; --i) {
+		ret += (str[i]-48) * val;
+		val * 10;
+	}
+	return ret;
 }
 
 /* ************************** *

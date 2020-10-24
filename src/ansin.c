@@ -30,6 +30,7 @@
 #define _ANSIN
 
 #include "ansin.h"
+#include "semac.c"
 
 /* confere se o último token lido é esperado
  * Caso não seja o token esperado, aborta a
@@ -72,10 +73,21 @@ void erroSintatico(int tipo)
 		case ERRO_SINTATICO_EOF:
 			erroMsg = "fim de arquivo nao esperado";
 			break;
+		case ERRO_SINTATICO_N_DECL:
+			erroMsg = "identificador nao declarado";
+			break;
 		case ERRO_SINTATICO_JA_DECL:
 			erroMsg = "identificador ja declarado";
 			break;
-
+		case ERRO_SINTATICO_TAM_VET:
+			erroMsg = "tamanho do vetor excede o maximo permitido";
+			break;
+		case ERRO_SINTATICO_CL_INCOMP:
+			erroMsg = "classe de identificador incompativel";
+			break;
+		case ERRO_SINTATICO_TP_INCOMP :
+			erroMsg = "tipos incompativeis";
+			break;
 	}
 
 	/* Aborta a compilação */
@@ -247,6 +259,11 @@ void constante(void)
 	if (DEBUG_SIN) printf("SIN: constante\n");
 	push("constante",pilha);
 
+	/* Ação semantica */
+	defClasse(CL_Const);
+	/* Ação semantica */
+	verificaClasse();
+
 	estado_sin = N_ACEITACAO_SIN;
 	casaToken(Identificador); lexan();
 	casaToken(Igual);         lexan();
@@ -264,9 +281,8 @@ void variavel(void)
 	if (DEBUG_SIN) printf("SIN: variavel\n");
 	push("variavel",pilha);
 
-	/* Ação semantica
-	 * define a classe do token lido */
-	tokenAtual.classe = CL_Var;
+	/* Ação semantica */
+	defClasse(CL_Var);
 
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
@@ -296,16 +312,8 @@ void listaIds(void)
 	if (DEBUG_SIN) printf("SIN: listaIds\n");
 	push("listaIds",pilha);
 
-	/* Ação semantica
-	 * atualiza na tabela de simbolos o tipo e a classe do elemento */
-	tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-
-	if (tokenAtual.endereco->simbolo.classe == 0) {
-		tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
-		tokenAtual.endereco->simbolo.classe = tokenAtual.classe;
-	} else {
-		erroSintatico(ERRO_SINTATICO_JA_DECL);
-	}
+	/* acao semantica */
+	verificaClasse();
 
 	casaToken(Identificador); lexan();
 	if (tokenAtual.token == Virgula){
@@ -352,11 +360,15 @@ void listaIds(void)
 			 	* */
 				lido = 1;
 		}
-	} else if (casaToken(A_Colchete)) {
+	} else {
 		/* lendo id[expressao()] */
-		lexan();
-		/* TODO ver aula para implementar tamanho do array */
-		expressao();
+		casaToken(A_Colchete); lexan();
+		casaToken(Literal);
+
+		/* acao semantica */
+		verificaTam(tokenAtual.lexema, tokenAtual.tipo);
+
+ 		lexan();
 		casaToken(F_Colchete); lexan();
 
 		if (tokenAtual.token == Virgula) {
