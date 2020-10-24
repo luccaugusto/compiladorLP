@@ -6,9 +6,29 @@
 #include "types.h"
 #include "ansin.h"
 
+void defClasse(Classe);
+void verificaTam(void);
+void verificaClasee(void);
+
 void defClasse(Classe classe)
 {
 	tokenAtual.classe = classe;
+}
+
+/* verifica se o tamanho dos arrays eh valido */
+void verificaTam(void)
+{
+	int tam = str2int(tokenAtual.lexema);
+	/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
+	if (tokenAtual.tipo == TP_Char && tam > 4000) erroSintatico(ERRO_SINTATICO_TAM_VET);
+
+	/* tipo integer ocupa 2 bytes portanto o array pode ter 4k/2 posicoes */
+	if (tokenAtual.tipo == TP_Integer && tam > 2000) erroSintatico(ERRO_SINTATICO_TAM_VET);
+
+	/* else 
+	 * atualiza o registro lexico com o tamanho
+	 */
+	tokenAtual.tamanho = tam;
 }
 
 /* Verificacao de classe
@@ -16,7 +36,7 @@ void defClasse(Classe classe)
  * caso a classe ja esteja definida, significa que a variavel
  * ou constante ja foi declarada
  */
-void verificaClasse()
+void verificaClasse(void)
 {
 	tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 
@@ -28,18 +48,3 @@ void verificaClasse()
 	}
 }
 
-/* verifica se o tamanho dos arrays eh valido */
-void verificaTam()
-{
-	int tam = str2int(tokenAtual.lexema);
-	/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
-	if (tokenAtual.tipo == TP_Char && tam > 4000) erroSintatico(ERRO_SINTATICO_TAM_VET);
-
-	/* tipo integer ocupa 2 bytes portanto o array pode ter 4k/2 posicoes */
-	if (tokenAtual.tipo == TP_Char && tam > 2000) erroSintatico(ERRO_SINTATICO_TAM_VET);
-
-	/* else 
-	 * atualiza o registro lexico com o tamanho
-	 */
-	tokenAtual.tamanho = tam;
-}

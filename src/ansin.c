@@ -13,7 +13,6 @@
 /* TODO 
  * 
  * atribuicao - verificar se ta declarado e que nao eh constante
- * constante e variavel - verificar se nao ta declarado
  * vetores - verificar tamanho
  * verificar compatibilidade de classes (char = int)
  * vetores so podem manipular elemento a elemento
@@ -259,13 +258,16 @@ void constante(void)
 	if (DEBUG_SIN) printf("SIN: constante\n");
 	push("constante",pilha);
 
-	/* Ação semantica */
 	defClasse(CL_Const);
+
+
+	estado_sin = N_ACEITACAO_SIN;
+	casaToken(Identificador);
+
 	/* Ação semantica */
 	verificaClasse();
 
-	estado_sin = N_ACEITACAO_SIN;
-	casaToken(Identificador); lexan();
+	lexan();
 	casaToken(Igual);         lexan();
 	if (tokenAtual.token == Menos) lexan(); /* literal negativo */
 	casaToken(Literal);       lexan();
@@ -286,8 +288,6 @@ void variavel(void)
 
 	estado_sin = N_ACEITACAO_SIN;
 	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
-
-		/* define o tipo do token lido */
 		if (tokenAtual.token == Char) tokenAtual.tipo = TP_Char;
 		else tokenAtual.tipo = TP_Integer;
 
@@ -366,7 +366,7 @@ void listaIds(void)
 		casaToken(Literal);
 
 		/* acao semantica */
-		verificaTam(tokenAtual.lexema, tokenAtual.tipo);
+		verificaTam();
 
  		lexan();
 		casaToken(F_Colchete); lexan();
