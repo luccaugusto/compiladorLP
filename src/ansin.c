@@ -157,6 +157,9 @@ void blocoComandos()
 	switch(tokenAtual.token)
 	{
 		case Identificador:
+			/* acao semantica */
+			verificaDeclaracao();
+
 			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			atribuicao();
@@ -338,9 +341,13 @@ void listaIds(void)
 	} else if (tokenAtual.token == Igual) {
 		/* lendo id=literal */
 		lexan();
+
 		if (tokenAtual.token == Menos) lexan(); /* literal negativo */
 		casaToken(Literal); 
+
+		/* acao semantica */
 		verificaTipo();
+
 		lexan();
 		if (tokenAtual.token == Virgula) {
 			/* outro id */
@@ -362,7 +369,7 @@ void listaIds(void)
 				lido = 1;
 		}
 	} else {
-		/* lendo id[expressao()] */
+		/* lendo id[literal] */
 		casaToken(A_Colchete); lexan();
 		casaToken(Literal);
 
@@ -403,7 +410,7 @@ void listaIds(void)
 
 
 /* Atribuicao
- * ID=expressao(1);
+ * ID=expressao();
  */
 void atribuicao(void)
 {

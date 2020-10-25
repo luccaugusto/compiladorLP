@@ -9,7 +9,7 @@
 void defClasse(Classe);
 void verificaTam(void);
 void verificaTipo(void);
-void verificaClasee(void);
+void verificaClasse(void);
 
 void defClasse(Classe classe)
 {
@@ -60,4 +60,15 @@ void verificaClasse(void)
 	} else {
 		erroSintatico(ER_SIN_JADEC);
 	}
+}
+
+/* Verificacao de declaracao
+ * verifica se o identificador ja foi declarado
+ */
+void verificaDeclaracao(void)
+{
+	tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+
+	if (tokenAtual.endereco->simbolo.classe == 0)
+		erroSintatico(ER_SIN_NDEC);
 }

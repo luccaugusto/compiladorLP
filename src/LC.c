@@ -32,17 +32,17 @@ void abortar(void)
 			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
 			break;
 
-		case ER_SIN:              /* Fallthrough */
-		case ER_LEX_N_ID:         /* Fallthrough */
+		case ER_SIN:            /* Fallthrough */
+		case ER_LEX_N_ID:       /* Fallthrough */
 		case ER_SIN_NDEC:       /* Fallthrough */
 		case ER_SIN_JADEC:      /* Fallthrough */
 		case ER_SIN_C_INC:
-			printf("%d\n%s [%s].\n", linha+1, erroMsg, lexemaLido);
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeComentario(lexemaLido));
 			break;
 
-		case ER_LEX_INVD:             /* Fallthrough */
-		case ER_LEX_EOF:             /* Fallthrough */
-		case ER_SIN_EOF:          /* Fallthrough */
+		case ER_LEX_INVD:        /* Fallthrough */
+		case ER_LEX_EOF:         /* Fallthrough */
+		case ER_SIN_EOF:         /* Fallthrough */
 		case ER_SIN_TAMVET:      /* Fallthrough */
 		case ER_SIN_T_INC:
 			printf("%d\n%s.\n", linha+1, erroMsg);

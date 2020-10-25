@@ -2,6 +2,7 @@
 #ifndef _UTILS
 #define _UTILS
 #include "types.h"
+#include "lexan.h"
 
 char getChar(void);
 int str2int(char*);
@@ -175,6 +176,37 @@ int str2int(char *str)
 		ret += (str[i]-48) * val;
 		val*=10;
 	}
+	return ret;
+}
+
+/* remove comentarios do lexemaLido */
+char *removeComentario(char *str)
+{
+	char *ret;
+	int t = strlen(str);
+	int c = 0;
+	int concat = 1;
+
+	ret = (char *)malloc(sizeof(char));	
+
+	/* marca quais posicoes nao sao comentario */
+	for (int i=1; i<t; ++i) {
+		/* se eh inicio de comentario nao concatena ate o fim de comentario*/
+		if (str[i-1] == '/' && str[i] == '*') {
+			concat = 0;
+		} else if (str[i-1] == '*' && str[i] == '/') {
+			concat = 1; continue;
+		}
+
+		if (concat) {
+			c++;
+			ret = concatenar(ret,&str[i]);
+		}
+
+	}
+
+	ret = (char *)realloc(ret,c);
+
 	return ret;
 }
 

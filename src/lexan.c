@@ -8,6 +8,7 @@
  *         letra caso erro lexico
  */
 
+
 void lexan(void)
 {
 	int estado = 0;
@@ -372,7 +373,6 @@ void lexan(void)
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 11;
 			} else if (ehDigito(letra)) {   /* numero começando com 0 */ 
-				printf("NUMERO 0..\n");
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 6;
 			} else if (!ehLetra(letra) && !ehDigito(letra)) {

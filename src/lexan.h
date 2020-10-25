@@ -1,4 +1,5 @@
-#define _LEXAN
+#ifndef _LEXAN_H
+#define _LEXAN_H
 
 #define ER_LEX -11
 #define ER_LEX_EOF -12
@@ -15,3 +16,4 @@ extern int lex;
 
 /* Analisador léxico */
 void lexan(void);
+#endif
