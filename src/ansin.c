@@ -694,7 +694,10 @@ void expressao(void)
 	} else if (tokenAtual.token == Literal) {
 		lexan();
 		expressao1();
-	} 
+	} else if (tokenAtual.token == Menos) {
+		lexan();
+		expressao();
+	}
 	/* else lambda */
 
 	del(pilha);
