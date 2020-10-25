@@ -64,6 +64,7 @@ void verificaClasse(void)
 
 /* Verificacao de declaracao
  * verifica se o identificador ja foi declarado
+ * ou se é constante
  */
 void verificaDeclaracao(void)
 {
@@ -71,4 +72,8 @@ void verificaDeclaracao(void)
 
 	if (tokenAtual.endereco->simbolo.classe == 0)
 		erroSintatico(ER_SIN_NDEC);
+
+	if (tokenAtual.endereco->simbolo.classe == CL_Const)
+		erroSintatico(ER_SIN_C_INC);
+
 }
