@@ -145,7 +145,7 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 			} else {
 				/* lexema nao identificado */
-				erro = ERRO_LEXICO_N_ID;
+				erro = ER_LEX_N_ID;
 				erroMsg = "lexema nao identificado";
 				lexemaLido = encurtar(lexemaLido);
 				abortar();
@@ -165,7 +165,7 @@ void lexan(void)
 				estado = 3;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
+				erro = ER_LEX_EOF;
 				erroMsg = "fim de arquivo nao esperado";
 				abortar();
 			} else if (letra != '/' &&
@@ -194,7 +194,7 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				erro = ERRO_LEXICO_INV;
+				erro = ER_LEX_INVD;
 				erroMsg = "caractere invalido";
 				abortar();
 				
@@ -208,7 +208,7 @@ void lexan(void)
 				estado = 3;
 			} else if (letra == -1) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
+				erro = ER_LEX_EOF;
 				erroMsg = "fim de arquivo nao esperado";
 				abortar();
 			} else {
@@ -274,6 +274,7 @@ void lexan(void)
 			}
 
 		} else if (estado == 6) {
+			/* Inteiros */
 			/* le ate encontrar diferente de numero */
 
 			if (ehDigito(letra)) {
@@ -288,6 +289,7 @@ void lexan(void)
 				}
 
                 tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
 			}
 		} else if (estado == 7) {
             /*lexema identificador _ . 
@@ -330,7 +332,7 @@ void lexan(void)
                 estado = ACEITACAO_LEX;
             } else if (letra == EOF) {
 				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
+				erro = ER_LEX_EOF;
 				erroMsg = "fim de arquivo nao esperado.";
 				abortar();
 			} else if (letra != '/' &&
@@ -359,7 +361,7 @@ void lexan(void)
 					letra != '.'    )
 			{
 				/* caractere inválido */
-				erro = ERRO_LEXICO_INV;
+				erro = ER_LEX_INVD;
 				erroMsg = "caractere invalido";
 				abortar();
 				
@@ -373,8 +375,12 @@ void lexan(void)
 				printf("NUMERO 0..\n");
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 6;
-			} else if (!ehLetra(letra) && !ehDigito(letra)) {                       /* 0letra invalido */
-				estado = ACEITACAO_LEX;
+			} else if (!ehLetra(letra) && !ehDigito(letra)) {
+				/* valor 0 */
+
+				tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
+
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 			 	 */
@@ -382,10 +388,11 @@ void lexan(void)
 					fseek(progFonte, posAtual, SEEK_SET);
 					lexemaLido = encurtar(lexemaLido);
 				}
+
 				estado = ACEITACAO_LEX;
 				
 			} else {
-				erro = ERRO_LEXICO_N_ID;
+				erro = ER_LEX_N_ID;
 				erroMsg = "lexema nao identificado";
 				lexemaLido = encurtar(lexemaLido);
 				abortar();
@@ -399,7 +406,7 @@ void lexan(void)
 				estado = 12;
 			} else {
 				/* leu só 0x, invalido */
-				erro = ERRO_LEXICO_N_ID;
+				erro = ER_LEX_N_ID;
 				erroMsg = "lexema nao identificado";
 				lexemaLido = encurtar(lexemaLido);
 				abortar();
@@ -407,8 +414,14 @@ void lexan(void)
 		} else if (estado == 12) {
 			/* resto do valor hexadecimal */
 			if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+
 			} else {
+
+				tokenAtual.token = Literal;
+				tokenAtual.tipo = TP_Integer;
+
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema
 			 	 */
@@ -416,6 +429,7 @@ void lexan(void)
 					fseek(progFonte, posAtual, SEEK_SET);
 					lexemaLido = encurtar(lexemaLido);
 				}
+
 				estado = ACEITACAO_LEX;
 			}
 		}

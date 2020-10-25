@@ -47,8 +47,8 @@ int casaToken(Tokens esperado)
 	int retorno = 1;
 
 	if (esperado != tokenAtual.token){
-		if (lex) erroSintatico(ERRO_SINTATICO);
-		else erroSintatico(ERRO_SINTATICO_EOF);
+		if (lex) erroSintatico(ER_SIN);
+		else erroSintatico(ER_SIN_EOF);
 	}
 
 	return retorno;
@@ -65,25 +65,25 @@ void erroSintatico(int tipo)
 	erro = tipo;
 	switch (tipo)
 	{
-		case ERRO_SINTATICO:
+		case ER_SIN:
 			erroMsg = "token nao esperado";
 			break;
-		case ERRO_SINTATICO_EOF:
+		case ER_SIN_EOF:
 			erroMsg = "fim de arquivo nao esperado";
 			break;
-		case ERRO_SINTATICO_N_DECL:
+		case ER_SIN_NDEC:
 			erroMsg = "identificador nao declarado";
 			break;
-		case ERRO_SINTATICO_JA_DECL:
+		case ER_SIN_JADEC:
 			erroMsg = "identificador ja declarado";
 			break;
-		case ERRO_SINTATICO_TAM_VET:
+		case ER_SIN_TAMVET:
 			erroMsg = "tamanho do vetor excede o maximo permitido";
 			break;
-		case ERRO_SINTATICO_CL_INCOMP:
+		case ER_SIN_C_INC:
 			erroMsg = "classe de identificador incompativel";
 			break;
-		case ERRO_SINTATICO_TP_INCOMP :
+		case ER_SIN_T_INC :
 			erroMsg = "tipos incompativeis";
 			break;
 	}
@@ -235,10 +235,10 @@ void fimDeArquivo(void)
 	/* se lex nao for 0 ainda n leu o EOF */
 	/* leu fim de arquivo mas nao em estado de aceitacao */
 	if (lex)
-		erroSintatico(ERRO_SINTATICO);
+		erroSintatico(ER_SIN);
 
 	if (estado_sin != ACEITACAO_SIN)
-		erroSintatico(ERRO_SINTATICO_EOF);
+		erroSintatico(ER_SIN_EOF);
 
 	sucesso();
 	del(pilha);
@@ -293,7 +293,7 @@ void variavel(void)
 		lexan();
 		listaIds();
 	} else {
-		erroSintatico(ERRO_SINTATICO);
+		erroSintatico(ER_SIN);
 	}
 	estado_sin = ACEITACAO_SIN;
 	del(pilha);
@@ -550,8 +550,8 @@ void comandos2(void)
 			return;
 
 		default:
-			if (lex) erroSintatico(ERRO_SINTATICO);
-			else erroSintatico(ERRO_SINTATICO_EOF);
+			if (lex) erroSintatico(ER_SIN);
+			else erroSintatico(ER_SIN_EOF);
 	}
 	del(pilha);
 }
