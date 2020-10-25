@@ -4,6 +4,7 @@ make:
 
 clean:
 	rm -f LC.out
+	rm -f LC-mono.out
 	rm -f LCDEBUG.out
 	rm -f prog.asm
 
