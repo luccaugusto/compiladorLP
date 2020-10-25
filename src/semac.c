@@ -38,7 +38,6 @@ void verificaTam(void)
  */
 void verificaTipo(void)
 {
-	tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 
 	if (tokenAtual.endereco->simbolo.tipo != tokenAtual.tipo) {
 		erroSintatico(ER_SIN_T_INC);

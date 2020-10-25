@@ -1,6 +1,6 @@
 /* Exemplo de Programa na linguagem L */
 
-Var integer n;
+Var integer n="a";
 Char nome[40];
 Const MAXITER=10;
 
@@ -11,4 +11,3 @@ Const MAXITER=10;
   For n=1 to MAXITER do {
     writeln("Ola' ",nome);
   }
-

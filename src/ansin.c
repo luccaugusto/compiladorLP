@@ -339,7 +339,9 @@ void listaIds(void)
 		/* lendo id=literal */
 		lexan();
 		if (tokenAtual.token == Menos) lexan(); /* literal negativo */
-		casaToken(Literal); lexan();
+		casaToken(Literal); 
+		verificaTipo();
+		lexan();
 		if (tokenAtual.token == Virgula) {
 			/* outro id */
 			lexan();
