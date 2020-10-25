@@ -186,26 +186,39 @@ char *removeComentario(char *str)
 	int t = strlen(str);
 	int c = 0;
 	int concat = 1;
+	int remover = 0;
 
 	ret = (char *)malloc(sizeof(char));	
-
-	/* marca quais posicoes nao sao comentario */
+	/* se existe um comentario, remove, senao, retorna a string original */
 	for (int i=1; i<t; ++i) {
-		/* se eh inicio de comentario nao concatena ate o fim de comentario*/
 		if (str[i-1] == '/' && str[i] == '*') {
-			concat = 0;
-		} else if (str[i-1] == '*' && str[i] == '/') {
-			concat = 1; continue;
+			remover = 1;
+			break;
 		}
-
-		if (concat) {
-			c++;
-			ret = concatenar(ret,&str[i]);
-		}
-
 	}
 
-	ret = (char *)realloc(ret,c);
+	if (remover) {
+		/* marca quais posicoes nao sao comentario */
+		for (int i=1; i<t; ++i) {
+			/* se eh inicio de comentario nao concatena ate o fim de comentario*/
+			if (str[i-1] == '/' && str[i] == '*') {
+				concat = 0;
+			} else if (str[i-1] == '*' && str[i] == '/') {
+				concat = 1;
+				continue;
+			}
+	
+			if (concat) {
+				c++;
+				ret = concatenar(ret,&str[i]);
+				break;
+			}
+
+		}
+
+	} else {
+		ret = str;
+	}
 
 	return ret;
 }
