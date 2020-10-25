@@ -1,9 +1,10 @@
 #define _LEXAN
 
-#define ERRO_LEXICO -1
-#define ERRO_LEXICO_EOF -2
-#define ERRO_LEXICO_INV -3
-#define ACEITACAO_LEX 11
+#define ERRO_LEXICO -11
+#define ERRO_LEXICO_EOF -12
+#define ERRO_LEXICO_INV -13
+#define ERRO_LEXICO_N_ID -14
+#define ACEITACAO_LEX 13
 
 #define DEBUG_LEX 0
 

@@ -33,6 +33,7 @@ void abortar(void)
 			break;
 
 		case ERRO_SINTATICO:              /* Fallthrough */
+		case ERRO_LEXICO_N_ID:            /* Fallthrough */
 		case ERRO_SINTATICO_N_DECL:       /* Fallthrough */
 		case ERRO_SINTATICO_JA_DECL:      /* Fallthrough */
 		case ERRO_SINTATICO_CL_INCOMP:

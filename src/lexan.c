@@ -50,6 +50,10 @@ void lexan(void)
 				/* inicio de string */
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
 				estado = 9;
+			} else if (letra == '0') {
+				/* possivel hexadecimal */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 10;
 			} else if (ehDigito(letra)) {
 				/* inicio de literal */ 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -141,8 +145,9 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 			} else {
 				/* lexema nao identificado */
-				erro = ERRO_LEXICO;
+				erro = ERRO_LEXICO_N_ID;
 				erroMsg = "lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
 				abortar();
 			}
             
@@ -359,7 +364,61 @@ void lexan(void)
 				abortar();
 				
 			}
-        }
+        } else if (estado == 10) {
+			/* hexadecimal */
+			if (letra == 'x') {           /* de fato hexadecimal */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 11;
+			} else if (ehDigito(letra)) {   /* numero começando com 0 */ 
+				printf("NUMERO 0..\n");
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 6;
+			} else if (!ehLetra(letra) && !ehDigito(letra)) {                       /* 0letra invalido */
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+				estado = ACEITACAO_LEX;
+				
+			} else {
+				erro = ERRO_LEXICO_N_ID;
+				erroMsg = "lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
+				abortar();
+			}
+
+		} else if (estado == 11) {
+			/* parte numerica do hexadecimal deve conter pelo menos um numero ou A-F */
+			if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+				/* leu 0x[A-F0-9] */
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 12;
+			} else {
+				/* leu só 0x, invalido */
+				erro = ERRO_LEXICO_N_ID;
+				erroMsg = "lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
+				abortar();
+			}
+		} else if (estado == 12) {
+			/* resto do valor hexadecimal */
+			if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+			} else {
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+				estado = ACEITACAO_LEX;
+			}
+		}
 
 		posAtual = ftell(progFonte);
 	}

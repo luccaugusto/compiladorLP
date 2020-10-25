@@ -112,15 +112,20 @@ int identificaToken(char *lex)
 char *encurtar(char *str)
 {
 	char *retorno;
-	int tamstr = strlen(str)-1;
+	int tamstr = strlen(str);
+	/* nao encurta strings de tamanho 1 */
+	if (tamstr > 1) {
 
-	/* remove a ultima posicao e acrescenta a posicao do \0 */
-	retorno = (char *) malloc(tamstr);
-
-	for (int i=0; i<tamstr; ++i)
-		retorno[i] = str[i];
-
-	retorno[tamstr]='\0';
+		/* remove a ultima posicao e acrescenta a posicao do \0 */
+		retorno = (char *) malloc(tamstr);
+	
+		for (int i=0; i<tamstr-1; ++i)
+			retorno[i] = str[i];
+	
+		retorno[tamstr]='\0';
+	} else {
+		retorno = str;
+	}
 
 	return retorno;
 }
