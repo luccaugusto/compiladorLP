@@ -8,8 +8,9 @@
 
 void defClasse(Classe);
 void verificaTam(void);
-void verificaTipo(void);
+void verificaTipo(Tipo, Tipo);
 void verificaClasse(void);
+void verificaDeclaracao(char *);
 
 void defClasse(Classe classe)
 {
@@ -33,13 +34,12 @@ void verificaTam(void)
 }
 
 /* Verificacao de tipo
- * verifica se o valor atribuído é do mesmo
- * tipo da variável
+ * verifica se tipo A == tipo B
  */
-void verificaTipo(void)
+void verificaTipo(Tipo A, Tipo B)
 {
 
-	if (tokenAtual.endereco->simbolo.tipo != tokenAtual.tipo) {
+	if ( A != B) {
 		erroSintatico(ER_SIN_T_INC);
 	}
 	
@@ -66,9 +66,9 @@ void verificaClasse(void)
  * verifica se o identificador ja foi declarado
  * ou se é constante
  */
-void verificaDeclaracao(void)
+void verificaDeclaracao(char *identificador)
 {
-	tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+	tokenAtual.endereco = pesquisarRegistro(identificador);
 
 	if (tokenAtual.endereco->simbolo.classe == 0)
 		erroSintatico(ER_SIN_NDEC);

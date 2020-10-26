@@ -157,7 +157,7 @@ void blocoComandos()
 	{
 		case Identificador:
 			/* acao semantica */
-			verificaDeclaracao();
+			verificaDeclaracao(tokenAtual.lexema);
 
 			estado_sin = N_ACEITACAO_SIN;
 			lexan();
@@ -345,7 +345,7 @@ void listaIds(void)
 		casaToken(Literal); 
 
 		/* acao semantica */
-		verificaTipo();
+		verificaTipo(tokenAtual.endereco->simbolo.tipo, tokenAtual.tipo);
 
 		lexan();
 		if (tokenAtual.token == Virgula) {
