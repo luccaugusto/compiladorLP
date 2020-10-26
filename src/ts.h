@@ -1,4 +1,5 @@
 #define TAM_TBL 254
+#define DEBUG_TS 0
 
 #include "types.h"
 

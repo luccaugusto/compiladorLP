@@ -91,7 +91,7 @@ void mostrarTabelaSimbolos(void)
 	printf(SEPARADOR"TABELA DE SÍMBOLOS"SEPARADOR"\n");
 	for (int i=0; i<TAM_TBL; ++i) {
 		if (tabelaSimbolos[i] != NULL) {
-			printf("|\t%d\t|-> %s", i, tabelaSimbolos[i]->simbolo.lexema);
+			printf("|\t%d\t|-> %s[%d]", i, tabelaSimbolos[i]->simbolo.lexema,tabelaSimbolos[i]->simbolo.tamanho);
 			struct Celula *prox = tabelaSimbolos[i]->prox;
 			while (prox != NULL){
 				printf(" -> %s",prox->simbolo.lexema);
