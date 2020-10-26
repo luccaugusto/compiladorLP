@@ -352,9 +352,9 @@ void listaIds(void)
 			/* outro id */
 			lexan();
 			listaIds();
-		} else if (casaToken(PtVirgula)) {
+		} else {
 			/* terminou de ler o comando */
-			lexan();
+			casaToken(PtVirgula); lexan();
 			/* Lista de declaracoes tipo Var integer c; char d; */
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
 				variavel();
@@ -382,9 +382,9 @@ void listaIds(void)
 			/* outro id */
 			lexan();
 			listaIds();
-		} else if (casaToken(PtVirgula)) {
+		} else {
 			/* terminou de ler o comando */
-			lexan();
+			casaToken(PtVirgula); lexan();
 			/* Lista de declaracoes tipo Var integer c; char d; */
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
 				variavel();
@@ -487,8 +487,8 @@ void repeticao1(void)
 		casaToken(Literal); lexan();
 		casaToken(Do);      lexan();
 		comandos2();
-	} else if (casaToken(Do)) {
-		lexan();
+	} else {
+		casaToken(Do); lexan();
 		comandos2();
 	}
 	del(pilha);
@@ -546,9 +546,7 @@ void comandos2(void)
 			lexan();
 			blocoComandos();
 			/* o } ja foi lido por alguem na chamada antiga chamou */
-			if (casaToken(F_Chaves)) {
-				lexan();
-			}
+			casaToken(F_Chaves); lexan();
 			break;
 
 		case F_Chaves:
@@ -622,11 +620,11 @@ void leitura(void)
 		expressao();
 		casaToken(F_Colchete); lexan();
 	}
+
 	/* ja leu ( id|id[i] ) e pode fechar o comando */
-	if (casaToken(F_Parenteses)) {
-		lexan();
-		casaToken(PtVirgula); lexan();
-	}
+	casaToken(F_Parenteses); lexan();
+	casaToken(PtVirgula); lexan();
+
 	del(pilha);
 }
 
