@@ -13,7 +13,6 @@
 /* TODO 
  * 
  * verificar compatibilidade de classes (char = int)
- * vetores so podem manipular elemento a elemento
  * comparacao resulta em 0 ou 1
  * operacoes `or` `and` e `not` so operam tipo logico
  * string so podem ser atribuito a vetores de caracteres de tamanho igual+1 ($)
@@ -28,6 +27,12 @@
 
 #include "ansin.h"
 #include "semac.c"
+
+/* atribui posicao de acesso ao vetor no registro lexico */
+void atrPos(int pos)
+{
+	tokenAtual.pos = pos;
+}
 
 /* confere se o último token lido é esperado
  * Caso não seja o token esperado, aborta a
@@ -184,7 +189,6 @@ void blocoComandos()
 
 		case PtVirgula:
 			estado_sin = N_ACEITACAO_SIN;
-			lexan();
 			nulo();
 			blocoComandos();
 			estado_sin = ACEITACAO_SIN;
@@ -420,11 +424,15 @@ void atribuicao(void)
 	/* lendo array: id[expressao()] */
 	if (tokenAtual.token == A_Colchete) {
 		lexan();
-		expressao();
+		verificaTipo(expressao(), TP_Integer);
+		atrPos(1);
 		casaToken(F_Colchete); lexan();
 	}
 	casaToken(Igual); lexan();
-	expressao();
+
+	/* acao semantica */
+	verificaTipo(expressao(), tokenAtual.tipo);
+	verificaAtrVetor();
 
 	del(pilha);
 } 
@@ -674,7 +682,7 @@ void escritaLn(void)
 	del(pilha);
 }
 
-void expressao(void)
+Tipo expressao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao\n");
@@ -693,10 +701,8 @@ void expressao(void)
 			lexan();
 			expressao();
 			casaToken(F_Colchete); lexan();
-			expressao1();
-		} else {
-			expressao1();
 		}
+		expressao1();
 	} else if (tokenAtual.token == Literal) {
 		lexan();
 		expressao1();
@@ -707,6 +713,8 @@ void expressao(void)
 	/* else lambda */
 
 	del(pilha);
+	/* TODO verificar tipo da expressao a partir das folhas */
+	return TP_Integer;
 }
 
 void expressao1(void)

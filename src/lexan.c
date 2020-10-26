@@ -62,78 +62,65 @@ void lexan(void)
 			} else if (letra == ',') {
 				tokenAtual.token = Virgula;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 			} else if (letra == ';') {
 				tokenAtual.token = PtVirgula;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '+') {
 				tokenAtual.token = Mais;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '-') {
 				tokenAtual.token = Menos;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '*') {
 				tokenAtual.token = Vezes;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '(') {
 				tokenAtual.token = A_Parenteses;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == ')') {
 				tokenAtual.token = F_Parenteses;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '{') {
 				tokenAtual.token = A_Chaves;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '}') {
 				tokenAtual.token = F_Chaves;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '[') {
 				tokenAtual.token = A_Colchete;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == ']') {
 				tokenAtual.token = F_Colchete;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '%') {
 				tokenAtual.token = Porcento;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 				
 			} else if (letra == '=') {
 				tokenAtual.token = Igual;
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
 				estado = ACEITACAO_LEX;
 			} else if (letra == '_' || letra == '.') {
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -222,7 +209,6 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 
 				if (letra == '=')
 					tokenAtual.token = MenorIgual;
@@ -242,7 +228,6 @@ void lexan(void)
 				}
 
 				tokenAtual.token = Menor;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou <*/
 				estado = ACEITACAO_LEX;
@@ -253,8 +238,7 @@ void lexan(void)
 				estado = ACEITACAO_LEX;
 
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.token = Identificador;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+				tokenAtual.token = MaiorIgual;
 
 			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 				/* lexema de comparacao > */
@@ -268,7 +252,6 @@ void lexan(void)
 				}
 
 				tokenAtual.token = Maior;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 			} else if (letra == -1) {
 				/*EOF encontrado, assume que encontrou >*/
 				estado = ACEITACAO_LEX;
@@ -315,11 +298,12 @@ void lexan(void)
 					lexemaLido = encurtar(lexemaLido);
 				}
 
+				tokenAtual.tamanho = 0;
+				tokenAtual.pos = -1;
                 tokenAtual.token = identificaToken(tokenAtual.lexema);
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
 
                 //adicionar novo token (identificador)
-                if (tokenAtual.endereco == NULL)
+                if (pesquisarRegistro(tokenAtual.lexema) == NULL)
                    tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
 			} 
         } else if (estado == 9) {

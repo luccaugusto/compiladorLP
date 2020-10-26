@@ -22,6 +22,9 @@ extern int lex;
 extern int lido;
 extern struct pilha_d *pilha;
 
+/* manipulacao do registro lexico */
+void atrPos(int);
+
 /* Analisador Sintatico */
 void nulo(void);
 void teste(void);
@@ -31,7 +34,7 @@ void leitura(void);
 void escrita(void);
 void variavel(void);
 void listaIds(void);
-void expressao(void);
+Tipo expressao(void);
 void escritaLn(void);
 void constante(void);
 void comandos2(void);

@@ -28,9 +28,10 @@ void verificaTam(void)
 	if (tokenAtual.tipo == TP_Integer && tam > 2000) erroSintatico(ER_SIN_TAMVET);
 
 	/* else 
-	 * atualiza o registro lexico com o tamanho
+	 * atualiza o registro lexico e tabela de simbolos com o tamanho
 	 */
 	tokenAtual.tamanho = tam;
+	tokenAtual.endereco->simbolo.tamanho = tam;
 }
 
 /* Verificacao de tipo
@@ -76,4 +77,14 @@ void verificaDeclaracao(char *identificador)
 	if (tokenAtual.endereco->simbolo.classe == CL_Const)
 		erroSintatico(ER_SIN_C_INC);
 
+}
+
+/* Verificacao de atribuicao a vetor 
+ * operacoes sobre vetores so podem acontecer posicao a posicao
+ * operacoes na forma vet1 = vet2 nao sao permitidas
+ */
+void verificaAtrVetor(void)
+{
+	if (tokenAtual.endereco->simbolo.tamanho > 0 && tokenAtual.pos == -1)
+		erroSintatico(ER_SIN_T_INC);
 }

@@ -47,6 +47,7 @@ typedef enum {
 typedef enum {
 	TP_Integer = 1,
 	TP_Char,
+	TP_Logico,
 } Tipo;
 
 typedef enum {
@@ -56,11 +57,11 @@ typedef enum {
 
 /*registro na tabela de símbolos*/
 struct Simbolo {
-	Tokens token;
+	int tamanho;
 	char *lexema;
 	Tipo tipo;
+	Tokens token;
 	Classe classe;
-	int tamanho;
 };
 
 /* Celulas da lista encadeada */
@@ -69,13 +70,19 @@ struct Celula {
 	struct Simbolo simbolo;
 };
 
-/* Registro léxico */
+/* Registro léxico 
+ * O registro lexico eh mantido para cada comando
+ * token,lexema, pos e tamanho se alteram a cada chamada do lexan()
+ * os demais atributos se alteram conforme o comando 
+ * vai sendo identificado pelo analisador sintatico
+ */
 struct registroLex {
-	Tokens token;
-	char *lexema;
-	struct Celula *endereco;
-	Tipo tipo;
-	Classe classe;
-	int tamanho;
+	int pos;                     /* posicao a ser acessada no array, 0 se qualquer outra coisa */
+	int tamanho;                 /* tamanho do array, 0 se qualquer outra coisa                */
+	char *lexema;                /* lexema atual do registro do comando atual                  */
+	Tipo tipo;                   /* Tipo atual da expressao ,identificador ou constante atual  */
+	Tokens token;                /* token atual do registro do comando atual                   */
+	Classe classe;               /* Classe atual da expressao ,identificador ou constante      */
+	struct Celula *endereco;     /* endereco na tabela de simbolos do identificador atual      */
 };
 #endif
