@@ -27,6 +27,7 @@
 void abortar(void)
 {
 	if (DEBUG_SIN) printPilha(pilha);
+	if (DEBUG_TS) mostrarTabelaSimbolos();
 	switch(erro) {
 		case ER_LEX:
 			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
