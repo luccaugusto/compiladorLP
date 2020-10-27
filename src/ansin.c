@@ -682,19 +682,28 @@ void escritaLn(void)
 	del(pilha);
 }
 
+/* le uma expressao e retorna o tipo final */
 Tipo expressao(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao\n");
 	push("expressao",pilha);
 
+	/* verifica o tipo do valor atual com o tipo da expressao a direita */
+	Tipo ret = tokenAtual.tipo;
+
 	if (tokenAtual.token == A_Parenteses) {
+
 		lexan();
-		expressao();
+		ret = expressao();
 		casaToken(F_Parenteses); lexan();
 		casaToken(PtVirgula); lexan();
+
 	} else if (tokenAtual.token == Identificador) {
+
 		 /* id */
+		/* pega o tipo do id em questao */
+		ret = buscaTipo(tokenAtual.lexema);
 		lexan();
 		/* lendo array: id[i] */
 		if (tokenAtual.token == A_Colchete) {
@@ -702,49 +711,98 @@ Tipo expressao(void)
 			expressao();
 			casaToken(F_Colchete); lexan();
 		}
-		expressao1();
+
+		/* acao semantica */
+		verificaTipo(ret,expressao1());
+
 	} else if (tokenAtual.token == Literal) {
+
+		ret = tokenAtual.tipo;
 		lexan();
-		expressao1();
+
+		/* acao semantica */
+		verificaTipo(ret, expressao1());
+
 	} else if (tokenAtual.token == Menos) {
 		lexan();
-		expressao();
+		/* inverte o sinal da expressao */
+		verificaTipo(expressao(), TP_Integer);
 	}
 	/* else lambda */
 
 	del(pilha);
-	/* TODO verificar tipo da expressao a partir das folhas */
-	return TP_Integer;
+	return ret;
 }
 
-void expressao1(void)
+/* operadores expressao();
+ * retorna o tipo da expressao do lado direito do operador
+ */
+Tipo expressao1(void)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao1\n");
 	push("expressao1",pilha);
 
+	Tipo ret = tokenAtual.tipo;
+
 	/* op id|literal */
+	/* operadores exclusivos de inteiros que avaliam para logicos */
 	if (tokenAtual.token == MaiorIgual ||
 		tokenAtual.token == MenorIgual ||
 		tokenAtual.token == Maior      ||
-		tokenAtual.token == Menor      ||
-		tokenAtual.token == Diferente  ||
-		tokenAtual.token == Or         ||
+		tokenAtual.token == Menor)
+	{
+		lexan();
+		
+		/* acao semantica */
+		verificaTipo(expressao(),TP_Integer);
+		ret = TP_Logico;
+
+	/* operadores exclusivos de inteiros que avaliam para inteiros */
+	} else if (
 		tokenAtual.token == Mais       ||
 		tokenAtual.token == Menos      ||
 		tokenAtual.token == Porcento   ||
 		tokenAtual.token == Barra      ||
-		tokenAtual.token == And        ||
-		tokenAtual.token == Vezes      ||
-		tokenAtual.token == Not        ||
-		tokenAtual.token == Igual)
+		tokenAtual.token == Vezes)
 	{
 		lexan();
-		expressao(); 
+		ret = expressao();
+		
+		/* acao semantica */
+		verificaTipo(ret,TP_Integer);
+
+	/* operadores exclusivos de tipo logico que avaliam para logicos*/
+	} else if (
+		tokenAtual.token == Or         ||
+		tokenAtual.token == And        ||
+		tokenAtual.token == Not) 
+	{
+		lexan();
+		ret = expressao();
+		
+		/* acao semantica */
+		verificaTipo(ehLogico(ret),TP_Logico);
+		ret = TP_Logico;
+
+	/* Operadores sobre todos os tipos, avaliam para logicos */
+	} else if (
+		tokenAtual.token == Diferente  ||
+		tokenAtual.token == Igual)
+	{
+
+		lexan();
+		
+		/* acao semantica */
+		verificaTipo(expressao(),tokenAtual.tipo);
+		ret = TP_Logico;
 	}
+
 	/* leu lambda */
 	/* id sozinho, retorna (lambda) */
+
 	del(pilha);
+	return ret;
 }
 
 /* lista de expressoes */

@@ -6,6 +6,12 @@
 #include "ts.h"
 #include "utils.h"
 
+/* retorna o tipo do identificador */
+Tipo buscaTipo(char *identificador)
+{
+	return pesquisarRegistro(identificador)->simbolo.tipo;
+}
+
 void adicionarReservados(void)
 {
 	adicionarRegistro("const",Const);
@@ -131,4 +137,5 @@ void limparTabela(void)
 		}
 	}
 }
+
 #endif

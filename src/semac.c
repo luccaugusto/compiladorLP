@@ -6,15 +6,34 @@
 #include "types.h"
 #include "ansin.h"
 
+void defTipo(Tipo);
+Tipo ehLogico(Tipo);
 void defClasse(Classe);
 void verificaTam(void);
 void verificaTipo(Tipo, Tipo);
 void verificaClasse(void);
 void verificaDeclaracao(char *);
 
+void defTipo(Tipo tipo)
+{
+	tokenAtual.tipo = tipo;
+}
+
 void defClasse(Classe classe)
 {
 	tokenAtual.classe = classe;
+}
+
+/* converte tipo integer para logico 
+ * tipo logico é implicito, 0 é falso,
+ * diferente de 0 é verdadeiro.
+ * caracteres não são válidos
+ */
+Tipo ehLogico(Tipo tipo)
+{
+	Tipo t = tipo;
+	if (tipo == TP_Integer) t = TP_Logico;
+	return t;
 }
 
 /* verifica se o tamanho dos arrays eh valido */

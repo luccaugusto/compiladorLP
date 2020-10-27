@@ -4,6 +4,7 @@
 #include "types.h"
 
 /* Tabela de símbolos */
+Tipo buscaTipo(char *);
 void limparTabela(void);
 void inicializarTabela(void);
 void adicionarReservados(void);
