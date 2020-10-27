@@ -15,7 +15,6 @@
  * string so podem ser atribuito a vetores de caracteres de tamanho igual+1 ($)
  * vetores de caracteres pode ser atribuido a um de tamanho maior ou igual
  * comandos de testes exigem expressoes logicas (precisa de =, > ,<) 
- * comandos de repeticao exigem tipos inteiros
  */
 
 #ifndef _ANSIN
@@ -28,6 +27,12 @@
 void atrPos(int pos)
 {
 	tokenAtual.pos = pos;
+}
+
+/* atribui tipo à constante na tabela de simbolos */
+void atrTipo()
+{
+	tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
 }
 
 /* confere se o último token lido é esperado
@@ -261,7 +266,6 @@ void constante(void)
 
 	defClasse(CL_Const);
 
-
 	estado_sin = N_ACEITACAO_SIN;
 	casaToken(Identificador);
 
@@ -271,6 +275,8 @@ void constante(void)
 	lexan();
 	casaToken(Igual);         lexan();
 	if (tokenAtual.token == Menos) lexan(); /* literal negativo */
+	/* atribui tipo a constante */
+	atrTipo();
 	casaToken(Literal);       lexan();
 	casaToken(PtVirgula);     lexan(); lido = 1;
 	del(pilha);
@@ -442,34 +448,60 @@ void repeticao(void)
 	if (DEBUG_SIN) printf("SIN: repeticao\n");
 	push("repeticao",pilha);
 
-	casaToken(Identificador); lexan();
+	casaToken(Identificador);
+
+	/* acao semantica */
+	verificaTipo(buscaTipo(tokenAtual.lexema),TP_Integer);
+
+	lexan();
+
+	/* lendo array: id[i] */
 	if (tokenAtual.token == A_Colchete) {
-		/* lendo array: id[i] */
 		lexan();
-		expressao();
+
+		/* acao semantica */
+		verificaTipo(expressao(),TP_Integer);
+
 		casaToken(F_Colchete); lexan();
 	}
 
 	/* ja leu ( id|id[i] ) e pode fechar o comando */
 	casaToken(Igual);   lexan();
-	casaToken(Literal); lexan();
+	casaToken(Literal);
+
+	/* acao semantica */
+	verificaTipo(tokenAtual.tipo,TP_Integer);
+
+ 	lexan();
 	casaToken(To);      lexan();
 
 	if (tokenAtual.token == Literal) {
+		/* acao semantica */
+		verificaTipo(tokenAtual.tipo, TP_Integer);
+
 		lexan();
-		repeticao1();
+
 	} else if (tokenAtual.token == Identificador) {
+		/* acao semantica */
+		verificaTipo(buscaTipo(tokenAtual.lexema), TP_Integer);
+
 		lexan();
+
 		if (tokenAtual.token == A_Colchete) {
 			/* lendo array: id[i] */
 			lexan();
-			expressao();
+
+			/* acao semantica */
+			verificaTipo(expressao(),TP_Integer);
+
 			casaToken(F_Colchete); lexan();
 		}
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
-		repeticao1();
-
 	}
+
+	repeticao1();
+	
+
 	del(pilha);
 }
 
@@ -489,6 +521,10 @@ void repeticao1(void)
 	if (tokenAtual.token == Step) {
 		lexan();
 		casaToken(Literal); lexan();
+		
+		/* acao semantica */
+		verificaTipo(tokenAtual.tipo, TP_Integer);
+
 		casaToken(Do);      lexan();
 		comandos2();
 	} else {
@@ -575,7 +611,9 @@ void teste(void)
 	if (DEBUG_SIN) printf("SIN: teste\n");
 	push("teste",pilha);
 
-	expressao();
+	/* acao semantica */
+	verificaTipo(expressao(),TP_Logico);
+
 	/* then foi lido antes de retornar de expressao() */
 	casaToken(Then);
 	lexan();

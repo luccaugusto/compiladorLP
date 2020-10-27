@@ -303,8 +303,19 @@ void lexan(void)
                 tokenAtual.token = identificaToken(tokenAtual.lexema);
 
                 //adicionar novo token (identificador)
-                if (pesquisarRegistro(tokenAtual.lexema) == NULL)
+				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+                if (tokenAtual.endereco == NULL) {
                    tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
+				   tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
+				} else {
+					/* palavras reservadas nao possuem tipo,
+					 * portanto nao atualiza o tipo do registro
+					 * lexico se nao tem tipo
+					 */
+					if (tokenAtual.tipo != 0)
+						tokenAtual.tipo = tokenAtual.endereco->simbolo.tipo;
+					tokenAtual.tamanho = tokenAtual.endereco->simbolo.tamanho;
+				}
 			} 
         } else if (estado == 9) {
             /*lexema de String
