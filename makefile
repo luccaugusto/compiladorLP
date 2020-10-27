@@ -22,6 +22,10 @@ no_debug:
 debug:
 	sed -i "s/DEBUG_LEX 0/DEBUG_LEX 1/g" src/lexan.h
 	sed -i "s/DEBUG_SIN 0/DEBUG_SIN 1/g" src/ansin.h
+
+debug_full:
+	sed -i "s/DEBUG_LEX 0/DEBUG_LEX 1/g" src/lexan.h
+	sed -i "s/DEBUG_SIN 0/DEBUG_SIN 1/g" src/ansin.h
 	sed -i "s/DEBUG_TS 0/DEBUG_TS 1/g"   src/ts.h
 
 debug_gdb:
