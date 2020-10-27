@@ -12,12 +12,8 @@
 
 /* TODO 
  * 
- * verificar compatibilidade de classes (char = int)
- * comparacao resulta em 0 ou 1
- * operacoes `or` `and` e `not` so operam tipo logico
  * string so podem ser atribuito a vetores de caracteres de tamanho igual+1 ($)
  * vetores de caracteres pode ser atribuido a um de tamanho maior ou igual
- * string e vetor so podem ser comparados quanto a igualdade (nao pode ser maior por exemplo)
  * comandos de testes exigem expressoes logicas (precisa de =, > ,<) 
  * comandos de repeticao exigem tipos inteiros
  */
@@ -697,7 +693,6 @@ Tipo expressao(void)
 		lexan();
 		ret = expressao();
 		casaToken(F_Parenteses); lexan();
-		casaToken(PtVirgula); lexan();
 
 	} else if (tokenAtual.token == Identificador) {
 
