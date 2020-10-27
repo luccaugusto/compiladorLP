@@ -1,7 +1,8 @@
 /* Exemplo de Programa na linguagem L */
 
-Var integer n="a";
+Var integer n;
 Char nome[40];
+Char b;
 Const MAXITER=10;
 
 /* Programa Principal */
