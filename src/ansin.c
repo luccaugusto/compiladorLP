@@ -14,7 +14,6 @@
  * 
  * string so podem ser atribuito a vetores de caracteres de tamanho igual+1 ($)
  * vetores de caracteres pode ser atribuido a um de tamanho maior ou igual
- * comandos de testes exigem expressoes logicas (precisa de =, > ,<) 
  */
 
 #ifndef _ANSIN
@@ -636,7 +635,6 @@ void teste1(void)
 	if (DEBUG_SIN) printf("SIN: teste1\n");
 	push("teste1",pilha);
 
-	lexan();
 	if (tokenAtual.token == Else) {
 		lexan();
 		comandos2();
@@ -724,19 +722,21 @@ Tipo expressao(void)
 	push("expressao",pilha);
 
 	/* verifica o tipo do valor atual com o tipo da expressao a direita */
-	Tipo ret = tokenAtual.tipo;
+	Tipo esq;
+	Tipo ret;
 
 	if (tokenAtual.token == A_Parenteses) {
+		/* (expressao()) */
 
 		lexan();
 		ret = expressao();
 		casaToken(F_Parenteses); lexan();
 
 	} else if (tokenAtual.token == Identificador) {
+		/* id */
 
-		 /* id */
 		/* pega o tipo do id em questao */
-		ret = buscaTipo(tokenAtual.lexema);
+		esq = buscaTipo(tokenAtual.lexema);
 		lexan();
 		/* lendo array: id[i] */
 		if (tokenAtual.token == A_Colchete) {
@@ -745,16 +745,15 @@ Tipo expressao(void)
 			casaToken(F_Colchete); lexan();
 		}
 
-		/* acao semantica */
-		verificaTipo(ret,expressao1());
+		ret = expressao1(esq);
 
 	} else if (tokenAtual.token == Literal) {
+		/* literal */
 
-		ret = tokenAtual.tipo;
+		esq = tokenAtual.tipo;
 		lexan();
 
-		/* acao semantica */
-		verificaTipo(ret, expressao1());
+		ret = expressao1(esq);
 
 	} else if (tokenAtual.token == Menos) {
 		lexan();
@@ -768,15 +767,16 @@ Tipo expressao(void)
 }
 
 /* operadores expressao();
+ * parametro esq: tipo da espressao do lado esquerdo
  * retorna o tipo da expressao do lado direito do operador
  */
-Tipo expressao1(void)
+Tipo expressao1(Tipo esq)
 {
 	/* DEBUGGER E PILHA */
 	if (DEBUG_SIN) printf("SIN: expressao1\n");
 	push("expressao1",pilha);
 
-	Tipo ret = tokenAtual.tipo;
+	Tipo ret = esq;
 
 	/* op id|literal */
 	/* operadores exclusivos de inteiros que avaliam para logicos */
@@ -788,7 +788,9 @@ Tipo expressao1(void)
 		lexan();
 		
 		/* acao semantica */
+		verificaTipo(esq,TP_Integer);
 		verificaTipo(expressao(),TP_Integer);
+
 		ret = TP_Logico;
 
 	/* operadores exclusivos de inteiros que avaliam para inteiros */
@@ -800,9 +802,11 @@ Tipo expressao1(void)
 		tokenAtual.token == Vezes)
 	{
 		lexan();
+
 		ret = expressao();
 		
 		/* acao semantica */
+		verificaTipo(esq,TP_Integer);
 		verificaTipo(ret,TP_Integer);
 
 	/* operadores exclusivos de tipo logico que avaliam para logicos*/
@@ -815,7 +819,7 @@ Tipo expressao1(void)
 		ret = expressao();
 		
 		/* acao semantica */
-		verificaTipo(ehLogico(ret),TP_Logico);
+		verificaTipo(toLogico(ret),TP_Logico);
 		ret = TP_Logico;
 
 	/* Operadores sobre todos os tipos, avaliam para logicos */
@@ -827,7 +831,7 @@ Tipo expressao1(void)
 		lexan();
 		
 		/* acao semantica */
-		verificaTipo(expressao(),tokenAtual.tipo);
+		verificaTipo(expressao(),esq);
 		ret = TP_Logico;
 	}
 

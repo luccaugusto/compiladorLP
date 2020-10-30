@@ -39,7 +39,7 @@ void escritaLn(void);
 void constante(void);
 void comandos2(void);
 void repeticao(void);
-Tipo expressao1(void);
+Tipo expressao1(Tipo);
 void expressao2(void);
 void expressao3(void);
 void repeticao1(void);

@@ -7,7 +7,7 @@
 #include "ansin.h"
 
 void defTipo(Tipo);
-Tipo ehLogico(Tipo);
+Tipo toLogico(Tipo);
 void defClasse(Classe);
 void verificaTam(void);
 void verificaTipo(Tipo, Tipo);
@@ -29,7 +29,7 @@ void defClasse(Classe classe)
  * diferente de 0 é verdadeiro.
  * caracteres não são válidos
  */
-Tipo ehLogico(Tipo tipo)
+Tipo toLogico(Tipo tipo)
 {
 	Tipo t = tipo;
 	if (tipo == TP_Integer) t = TP_Logico;
