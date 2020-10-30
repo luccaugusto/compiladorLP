@@ -30,11 +30,12 @@ void lexan(void)
 		} 
 
 		if (estado == 0) {
-			if (letra == '/') {
-				/* comentário ou divisão */ 
-				estado = 1;
-			} else if (ehBranco(letra)) {
+			if (ehBranco(letra)) {
 				continue;
+			} else if (letra == '/') {
+				/* comentário ou divisão */ 
+				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				estado = 1;
 			} else if (letra == '_' || letra == '.') {
 				/* inicio de identificador */
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
@@ -146,6 +147,7 @@ void lexan(void)
 			} else {
 				/* simbolo '/' encontrado */
 				estado = ACEITACAO_LEX;
+				tokenAtual.token = Barra;
 			}
 		} else if (estado == 2) {
 			if (letra == '*') {
@@ -191,6 +193,7 @@ void lexan(void)
 			if (letra == '/') {
 				/* de fato fim de comentario volta ao inicio para ignorar*/
 				estado = 0;
+				tokenAtual.lexema = "";
 			} else if (letra == '*') {
 				/* ** no comentario, espera pela barra */
 				estado = 3;
@@ -435,6 +438,6 @@ void lexan(void)
 	/* leu EOF */
 	if (letra == -1) lex = 0;
 
-	if (DEBUG_LEX) printf("LEX: lexema:%s token:%d\n",tokenAtual.lexema,tokenAtual.token);
+	if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d\n",tokenAtual.lexema,tokenAtual.token,tokenAtual.tipo);
 }
 #endif
