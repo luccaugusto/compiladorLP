@@ -104,6 +104,16 @@ void verificaDeclaracao(char *identificador)
  */
 void verificaAtrVetor(void)
 {
-	if (tokenAtual.endereco->simbolo.tamanho > 0 && tokenAtual.pos == -1)
+	/* atribuicao de strings 
+	 * a string deve ter tamanho menor que o tamanho do vetor -1
+	 * pois ainda deve ser acrescentado o $ para encerrar a string
+	 */
+	if (tokenAtual.tipo == TP_Char) {
+		if (tokenAtual.endereco->simbolo.tamanho < tokenAtual.tamanho+1)
+			erroSintatico(ER_SIN_T_INC);
+
+	/* atribuicoes a vetores nao string */
+	} else if (tokenAtual.endereco->simbolo.tamanho > 0 && tokenAtual.pos == -1) {
 		erroSintatico(ER_SIN_T_INC);
+	}
 }

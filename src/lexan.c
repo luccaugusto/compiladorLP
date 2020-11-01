@@ -51,6 +51,7 @@ void lexan(void)
 			} else if (letra == '"') {
 				/* inicio de string */
 				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+				tokenAtual.tamanho = 1;
 				estado = 9;
 			} else if (letra == '0') {
 				/* possivel hexadecimal */
@@ -325,6 +326,7 @@ void lexan(void)
             concatena até encontrar o fechamento das aspas */
 
 			tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+			tokenAtual.tamanho++;
             if (letra == '"') {
             	tokenAtual.token = Literal;
 				tokenAtual.tipo = TP_Char;
@@ -438,6 +440,6 @@ void lexan(void)
 	/* leu EOF */
 	if (letra == -1) lex = 0;
 
-	if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d\n",tokenAtual.lexema,tokenAtual.token,tokenAtual.tipo);
+	if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d tam: %d\n",tokenAtual.lexema,tokenAtual.token,tokenAtual.tipo,tokenAtual.tamanho);
 }
 #endif

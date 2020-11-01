@@ -11,9 +11,6 @@
  */
 
 /* TODO 
- * 
- * string so podem ser atribuito a vetores de caracteres de tamanho igual+1 ($)
- * vetores de caracteres pode ser atribuido a um de tamanho maior ou igual
  */
 
 #ifndef _ANSIN
