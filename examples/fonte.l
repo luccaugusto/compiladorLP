@@ -2,13 +2,13 @@
 
 Var integer n;
 Char nome[40];
-Char b;
 Const MAXITER=10;
 
 /* Programa Principal */
 
   write("Digite seu nome: ");
   readln(nome);
-  For n=1 to MAXITER do {
+  For n=1 to MAXITER step 2 do {
     writeln("Ola' ",nome);
   }
+
