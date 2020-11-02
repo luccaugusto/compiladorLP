@@ -7,10 +7,10 @@ Const MAXITER=10;
 
 /* Programa Principal */
 
-/* invalido, string maior que vetor-1 */
-nome = "12345678901234567890123456789012345678";
+/* identificador ja declarado */
+Var integer n;
 
-  if MAXITER = 10 then
+  if MAXITER = b then
 	  write("MAIOR QUE 10");
 
   write("Digite seu nome: ");

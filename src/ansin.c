@@ -422,7 +422,10 @@ void atribuicao(void)
 	/* lendo array: id[expressao()] */
 	if (tokenAtual.token == A_Colchete) {
 		lexan();
+
+		/* acao semantica */
 		verificaTipo(expressao(), TP_Integer);
+
 		atrPos(1);
 		casaToken(F_Colchete); lexan();
 	}
@@ -754,7 +757,9 @@ Tipo expressao(void)
 
 	} else if (tokenAtual.token == Menos) {
 		lexan();
-		/* inverte o sinal da expressao */
+		/* TODO inverter o sinal da expressao */
+
+		/*acao semantica */
 		verificaTipo(expressao(), TP_Integer);
 	}
 	/* else lambda */

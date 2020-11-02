@@ -1,0 +1,2 @@
+11
+identificador ja declarado [n].

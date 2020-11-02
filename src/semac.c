@@ -110,7 +110,7 @@ void verificaAtrVetor(void)
 	 */
 	if (tokenAtual.endereco->simbolo.tipo == TP_Char) {
 		if (tokenAtual.endereco->simbolo.tamanho < tokenAtual.tamanho+1)
-			erroSintatico(ER_SIN_T_INC);
+			erroSintatico(ER_SIN_TAMVET);
 
 	/* atribuicoes a vetores nao string */
 	} else if (tokenAtual.endereco->simbolo.tamanho > 0 && tokenAtual.pos == -1) {
