@@ -429,7 +429,7 @@ void atribuicao(void)
 	casaToken(Igual); lexan();
 
 	/* acao semantica */
-	verificaTipo(expressao(), tokenAtual.tipo);
+	verificaTipo(expressao(), tokenAtual.endereco->simbolo.tipo);
 	verificaAtrVetor();
 
 	del(pilha);
@@ -516,17 +516,17 @@ void repeticao1(void)
 
 	if (tokenAtual.token == Step) {
 		lexan();
-		casaToken(Literal); lexan();
-		
+		casaToken(Literal); 
+
 		/* acao semantica */
 		verificaTipo(tokenAtual.tipo, TP_Integer);
 
-		casaToken(Do);      lexan();
-		comandos2();
-	} else {
-		casaToken(Do); lexan();
-		comandos2();
+		lexan();
+
 	}
+
+	casaToken(Do); lexan();
+	comandos2();
 	del(pilha);
 }
 

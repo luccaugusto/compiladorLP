@@ -206,19 +206,19 @@ char *removeComentario(char *str)
 			} else if (str[i-1] == '*' && str[i] == '/') {
 				concat = 1;
 				continue;
+			} else if ( i<t && str[i] == '/' && str[i+1] == '*') {
+				concat = 0;
 			}
 	
-			if (concat) {
-				c++;
-				ret = concatenar(ret,&str[i]);
-				break;
-			}
+			if (concat)
+				ret[c++] = str[i];
 
 		}
 
 	} else {
 		ret = str;
 	}
+
 
 	return ret;
 }

@@ -108,7 +108,7 @@ void verificaAtrVetor(void)
 	 * a string deve ter tamanho menor que o tamanho do vetor -1
 	 * pois ainda deve ser acrescentado o $ para encerrar a string
 	 */
-	if (tokenAtual.tipo == TP_Char) {
+	if (tokenAtual.endereco->simbolo.tipo == TP_Char) {
 		if (tokenAtual.endereco->simbolo.tamanho < tokenAtual.tamanho+1)
 			erroSintatico(ER_SIN_T_INC);
 
