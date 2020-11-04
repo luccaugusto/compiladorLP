@@ -1,29 +1,38 @@
-/* MACROS */
-#define SUCESSO 0
+#ifndef __LC_H
+#define __LC_H
 
-#include "pilha.c"
+	/* MACROS */
+	#define SUCESSO 0
+	
+	
+	/* VARIÁVEIS GLOBAIS */
+	
+	/* parametros da linha de comando */
+	extern FILE *progFonte;
+	extern FILE *progAsm;
+	
+	extern int lex;
+	extern int erro;
+	extern int lido;
+	extern int linha; /*linha do arquivo*/
+	extern int estado_sin; /* estado de aceitacao ou nao do analisador sintatico */
+	
+	extern char letra; /*posicao da proxima letra a ser lida no arquivo*/
+	extern char *erroMsg; /*Mensagem de erro a ser exibida*/
+	extern char *lexemaLido; /* lexema lido sem transformar em minusculo */
+	
+	extern struct pilha_d *pilha;
+	extern struct registroLex tokenAtual; 
+	extern struct Celula *tabelaSimbolos[TAM_TBL];
 
-/* VARIÁVEIS GLOBAIS */
+	extern int md; /* memoria de dados */
 
-/* parametros da linha de comando */
-FILE *progFonte;
-FILE *progAsm;
+	extern int rotulo; /* rotulos do asm */
+	extern int temporario; /* temporarios do asm */
+	
+	/*DECLARAÇÕES DE FUNÇÕES*/
+	/* Fluxo de execução geral */
+	void abortar(void);
+	void sucesso(void);
 
-int lex = 1;
-int erro = 0;
-int lido = 0;
-int linha = 0; /*linha do arquivo*/
-int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
-
-char letra; /*posicao da proxima letra a ser lida no arquivo*/
-char *erroMsg; /*Mensagem de erro a ser exibida*/
-char *lexemaLido; /* lexema lido sem transformar em minusculo */
-
-struct pilha_d *pilha;
-struct registroLex tokenAtual; 
-struct Celula *tabelaSimbolos[TAM_TBL];
-
-/*DECLARAÇÕES DE FUNÇÕES*/
-/* Fluxo de execução geral */
-void abortar(void);
-void sucesso(void);
+#endif

@@ -12,12 +12,36 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "pilha.c"
 #include "utils.c"
 #include "ts.c"
 #include "LC.h"
 #include "testes.c"
 #include "lexan.c"
 #include "ansin.c"
+#include "codegen.c"
+
+FILE *progFonte;
+FILE *progAsm;
+
+/* VARIAVEIS GLOBAIS */
+int lex = 1;
+int erro = 0;
+int lido = 0;
+int linha = 0; /*linha do arquivo*/
+int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
+
+char letra; /*posicao da proxima letra a ser lida no arquivo*/
+char *erroMsg; /*Mensagem de erro a ser exibida*/
+char *lexemaLido; /* lexema lido sem transformar em minusculo */
+
+struct pilha_d *pilha;
+struct registroLex tokenAtual; 
+struct Celula *tabelaSimbolos[TAM_TBL];
+
+int md = 0;         /* memoria de dados */
+int rotulo = 0;     /* rotulos do asm */
+int temporario = 0; /* temporarios do asm */
 
 /* DEFINIÇÃO DE FUNÇÕES */
 
@@ -52,11 +76,10 @@ void abortar(void)
 	exit(erro);
 }
 
-/* pára o programa e reporta linhas compiladas */
+/* reporta linhas compiladas */
 void sucesso(void)
 {
 	printf("%d linhas compiladas.\n", linha-1);
-	exit(SUCESSO);
 }
 
 
@@ -100,7 +123,8 @@ int main(int argc, char *argv[])
 
 	iniciarAnSin();
 
+	initDeclaracao();
+	fimDeclaracao();
 
-	return 0;
-
+	return SUCESSO;
 }
