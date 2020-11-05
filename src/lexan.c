@@ -302,7 +302,7 @@
 						lexemaLido = encurtar(lexemaLido);
 					}
 	
-					tokenAtual.tamanho = 0;
+					tokenAtual.tamanho = 1;
 					tokenAtual.pos = -1;
 	                tokenAtual.token = identificaToken(tokenAtual.lexema);
 	

@@ -19,7 +19,6 @@
 #include "testes.c"
 #include "lexan.c"
 #include "ansin.c"
-#include "codegen.c"
 
 FILE *progFonte;
 FILE *progAsm;
@@ -39,7 +38,7 @@ struct pilha_d *pilha;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
-int md = 0;         /* memoria de dados */
+int MD = 4000;         /* memoria de dados */
 int rotulo = 0;     /* rotulos do asm */
 int temporario = 0; /* temporarios do asm */
 
@@ -122,9 +121,6 @@ int main(int argc, char *argv[])
 	pilha = initPilha();
 
 	iniciarAnSin();
-
-	initDeclaracao();
-	fimDeclaracao();
 
 	return SUCESSO;
 }

@@ -25,7 +25,7 @@
 	extern struct registroLex tokenAtual; 
 	extern struct Celula *tabelaSimbolos[TAM_TBL];
 
-	extern int md; /* memoria de dados */
+	extern int MD; /* memoria de dados */
 
 	extern int rotulo; /* rotulos do asm */
 	extern int temporario; /* temporarios do asm */

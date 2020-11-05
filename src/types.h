@@ -79,7 +79,7 @@
 	 */
 	struct registroLex {
 		int pos;                     /* posicao a ser acessada no array, 0 se qualquer outra coisa */
-		int tamanho;                 /* tamanho do array, 0 se qualquer outra coisa                */
+		int tamanho;                 /* tamanho do array, arrays de tamanho 1 sao variaveis        */
 		char *lexema;                /* lexema atual do registro do comando atual                  */
 		Tipo tipo;                   /* Tipo atual da expressao ,identificador ou constante atual  */
 		Tokens token;                /* token atual do registro do comando atual                   */

@@ -19,6 +19,7 @@
 
 	#include "ansin.h"
 	#include "semac.c"
+	#include "codegen.c"
 	
 	/* atribui posicao de acesso ao vetor no registro lexico */
 	void atrPos(int pos)
@@ -102,6 +103,7 @@
 		/* consome o primeiro token */
 		lexan();
 		/* inicia pelo primeiro simbolo da gramatica */
+		initDeclaracao();
 		declaracao();
 	}
 	
@@ -140,6 +142,7 @@
 			if (!lido) lexan();
 			else lido = 0;
 	
+			fimDeclaracao();
 			blocoComandos();
 			fimDeArquivo();
 		}

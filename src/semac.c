@@ -115,7 +115,7 @@
 				erroSintatico(ER_SIN_TAMVET);
 	
 		/* atribuicoes a vetores nao string */
-		} else if (tokenAtual.endereco->simbolo.tamanho > 0 && tokenAtual.pos == -1) {
+		} else if (tokenAtual.endereco->simbolo.tamanho > 1 && tokenAtual.pos == -1) {
 			erroSintatico(ER_SIN_T_INC);
 		}
 	}
