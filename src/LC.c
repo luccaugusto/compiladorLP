@@ -75,9 +75,12 @@ void abortar(void)
 	exit(erro);
 }
 
-/* reporta linhas compiladas */
+/* escreve o que estiver no buffer em progAsm e
+ * reporta linhas compiladas
+ */
 void sucesso(void)
 {
+	flush();
 	printf("%d linhas compiladas.\n", linha-1);
 }
 
@@ -112,14 +115,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/*testesTabelaSimbolos();*/
-	inicializarTabela();
 
-    /*mostrarTabelaSimbolos();*/
-	/* testeLexan();*/
-    
 	pilha = initPilha();
 
+	inicializarTabela();
+	iniciarCodegen();
 	iniciarAnSin();
 
 	return SUCESSO;

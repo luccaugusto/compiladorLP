@@ -2,15 +2,19 @@
 #define __CODEGEN
 
 	#define DEBUG_GEN 0 
-	#define CONCAT_BUF sprintf(aux,
-	#define END_CONCAT_BUF ); buf_concatenar();
-	#define ESCREVE escreve(buffer)
+	#define CONCAT_BUF(s,...) sprintf(aux, s ); buf_concatenar();
+	#define MAX_BUF_SIZE 2048
 
 	/* Geração de código */
-	void escreve(char *);
+	void flush(void);
 	void fimDeclaracao(void);
 	void initDeclaracao(void);
 	void buf_concatenar(void);
+	void iniciarCodegen(void);
 	void genDeclaracao(Tipo, Classe, int, char*);
+
+	extern char *aux;
+	extern char *buffer;
+	extern int iniciouDec;
 
 #endif

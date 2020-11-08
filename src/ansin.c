@@ -119,11 +119,21 @@
 	
 		/* var ou const */
 		if (tokenAtual.token == Var) {
+
+			/* inicia bloco de declaracoes */
+			if (!iniciouDec)
+				initDeclaracao();
+
 			lido=0;
 			lexan();
 			variavel();
 			declaracao();
 		} else if (tokenAtual.token == Const) {
+
+			/* inicia bloco de declaracoes */
+			if (!iniciouDec)
+				initDeclaracao();
+
 			lido=0;
 			lexan();
 			constante();
