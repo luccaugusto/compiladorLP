@@ -2,7 +2,7 @@
 #define __CODEGEN
 
 	#define DEBUG_GEN 0 
-	#define CONCAT_BUF(s,...) sprintf(aux, s ); buf_concatenar();
+	#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
 	#define MAX_BUF_SIZE 2048
 
 	/* Geração de código */
@@ -16,5 +16,6 @@
 	extern char *aux;
 	extern char *buffer;
 	extern int iniciouDec;
+	extern int MD;
 
 #endif

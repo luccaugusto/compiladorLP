@@ -21,7 +21,9 @@
 #include "ansin.c"
 
 FILE *progFonte;
+char *fonteNome;
 FILE *progAsm;
+char *asmNome;
 
 /* VARIAVEIS GLOBAIS */
 int lex = 1;
@@ -38,7 +40,6 @@ struct pilha_d *pilha;
 struct registroLex tokenAtual; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
-int MD = 4000;         /* memoria de dados */
 int rotulo = 0;     /* rotulos do asm */
 int temporario = 0; /* temporarios do asm */
 
@@ -51,6 +52,10 @@ void abortar(void)
 {
 	if (DEBUG_SIN) printPilha(pilha);
 	if (DEBUG_TS) mostrarTabelaSimbolos();
+
+	/* remove o arquivo pois o codigo gerado eh invalido */
+	remove(asmNome);
+
 	switch(erro) {
 		case ER_LEX:
 			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
@@ -92,10 +97,12 @@ int main(int argc, char *argv[])
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
 			case 'f':
-				progFonte = fopen(optarg, "r");
+				fonteNome = optarg;
+				progFonte = fopen(fonteNome, "r");
 				break;
 			case 'o':
-				progAsm = fopen(optarg,"w");
+				asmNome = optarg;
+				progAsm = fopen(asmNome,"w");
 				break;
 			case '?':
 				if (optopt == 'f')

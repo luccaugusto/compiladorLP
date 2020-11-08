@@ -5,13 +5,13 @@
 
 /*
  * TODO
- * concatenar strings no buffer e escrever uma vez so em cada funcao
  * aumentar MD com o numero de bytes da variavel
  */
 
 char *aux;    /* buffer auxiliar para criacao do asm */
 char *buffer; /* buffer de criacao do codigo asm     */
 int iniciouDec = 0;
+int MD = 4000;      /* memoria de dados */
 
 /* inicia o buffer */
 void iniciarCodegen()
@@ -25,15 +25,18 @@ void iniciarCodegen()
 void buf_concatenar()
 {
 	int buf_size = strlen(buffer);
+
 	/* se o buffer vai encher, escreve no arquivo e esvazia */
 	if ((buf_size+strlen(aux)) >= MAX_BUF_SIZE)
 		flush();
 
-	/* verifica se buffer termina em \n se nao estiver vazio*/
-	else if (buf_size > 1 && buffer[buf_size-1] != '\n')
-		buffer = concatenar(buffer,"\n");
-
 	buffer = concatenar(buffer, aux);
+
+	buf_size += strlen(aux);
+
+	/* verifica se buffer termina em \n se nao estiver vazio*/
+	if (buf_size > 1 && buffer[buf_size-1] != '\n')
+		buffer = concatenar(buffer,"\n");
 }
 
 /* escreve buffer no arquivo progAsm 
@@ -56,14 +59,14 @@ void initDeclaracao(void)
 	
 	CONCAT_BUF("dseg SEGMENT PUBLIC\t\t;inicio seg. dados");
 	
-	CONCAT_BUF("byte %dh DUP(?)\t\t\t; temporarios",MD);
+	CONCAT_BUF("byte %dh DUP(?)\t\t\t;temporarios",MD);
 }
 
 /* finaliza o bloco de declaracoes asm */
 void fimDeclaracao(void)
 {
 	if (DEBUG_GEN) printf("CODEGEN: fiMDeclaracao\n");
-		CONCAT_BUF("dseg ENDS\t\t\t\t;fim seg. dados");
+		CONCAT_BUF("dseg ENDS\t\t\t;fim seg. dados");
 }
 
 /* gera o asm da declaracao de uma variavel ou constante */
