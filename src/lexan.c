@@ -21,8 +21,7 @@
 		tokenAtual.lexema = "";
 		tokenAtual.token = 0;
 	
-		while (estado != ACEITACAO_LEX && !erro && (letra = getChar()) != -1) { 
-			letra = minusculo(letra);
+		while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(getChar())) != -1) { 
 	
 	        /* \n é contabilizado sempre */
 			if (letra == '\n') {
@@ -436,7 +435,7 @@
 	
 			posAtual = ftell(progFonte);
 		}
-	
+
 		/* leu EOF */
 		if (letra == -1) lex = 0;
 	

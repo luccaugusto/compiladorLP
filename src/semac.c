@@ -106,16 +106,21 @@
 	 */
 	void verificaAtrVetor(void)
 	{
-		/* atribuicao de strings 
+		/* ATENCAO:
+		 * Este erro foi deixado para tempo de execucao
+		 *
+		 * atribuicao de strings 
 		 * a string deve ter tamanho menor que o tamanho do vetor -1
 		 * pois ainda deve ser acrescentado o $ para encerrar a string
-		 */
+		 
 		if (tokenAtual.endereco->simbolo.tipo == TP_Char) {
 			if (tokenAtual.endereco->simbolo.tamanho < tokenAtual.tamanho+1)
 				erroSintatico(ER_SIN_TAMVET);
 	
+		} else*/
+
 		/* atribuicoes a vetores nao string */
-		} else if (tokenAtual.endereco->simbolo.tamanho > 1 && tokenAtual.pos == -1) {
+		if (tokenAtual.endereco->simbolo.tamanho > 1 && tokenAtual.pos == -1) {
 			erroSintatico(ER_SIN_T_INC);
 		}
 	}

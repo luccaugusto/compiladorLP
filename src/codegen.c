@@ -27,7 +27,7 @@ void buf_concatenar()
 	int buf_size = strlen(buffer);
 
 	/* impede strings invalidas */
-	if (strlen(aux) <= 1) return;
+	if (strlen(aux) < 4) return;
 
 	/* se o buffer vai encher, escreve no arquivo e esvazia */
 	if ((buf_size+strlen(aux)) >= MAX_BUF_SIZE)
