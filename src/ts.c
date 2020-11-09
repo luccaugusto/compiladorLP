@@ -61,7 +61,7 @@
 		simb->lexema = lexema;
 		simb->classe = 0;
 		simb->tipo = 0;
-		simb->tamanho=0;
+		simb->tamanho=1;
 		cel->prox = NULL;
 		cel->simbolo = *simb;
 		

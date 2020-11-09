@@ -1,6 +1,9 @@
 /* Exemplo de Programa na linguagem L */
 
-Var integer n;
+Var integer n,m;
+Char x;
+integer b=11;
+integer a[10];
 Const MAXITER=-10;
 
 /* Programa Principal */

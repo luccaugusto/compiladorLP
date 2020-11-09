@@ -26,19 +26,21 @@ void buf_concatenar()
 
 	int buf_size = strlen(buffer);
 
+	/* impede strings invalidas */
+	if (strlen(aux) <= 1) return;
+
 	/* se o buffer vai encher, escreve no arquivo e esvazia */
 	if ((buf_size+strlen(aux)) >= MAX_BUF_SIZE)
 		flush();
 
 	buffer = concatenar(buffer, aux);
-
-	free(aux);
-
 	buf_size = strlen(buffer);
 
 	/* verifica se buffer termina em \n se nao estiver vazio*/
 	if (buf_size > 1 && buffer[buf_size-1] != '\n')
 		buffer = concatenar(buffer,"\n");
+
+	free(aux);
 }
 
 /* escreve buffer no arquivo progAsm 
