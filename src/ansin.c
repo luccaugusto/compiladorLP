@@ -273,6 +273,8 @@
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: constante\n");
 		push("constante",pilha);
+
+		int negativo = 0;
 	
 		defClasse(CL_Const);
 	
@@ -284,10 +286,26 @@
 	
 		lexan();
 		casaToken(Igual);         lexan();
-		if (tokenAtual.token == Menos) lexan(); /* literal negativo */
+
+		/* literal negativo */
+		if (tokenAtual.token == Menos) {
+			negativo = 1;
+			lexan(); 
+		}
+
 		/* atribui tipo a constante */
 		atrTipo();
-		casaToken(Literal);       lexan();
+		casaToken(Literal);
+
+		/* codegen */
+		genDeclaracao(tokenAtual.tipo,
+				tokenAtual.classe,
+				tokenAtual.tamanho,
+				tokenAtual.lexema,
+				negativo
+				);
+
+       	lexan();
 		casaToken(PtVirgula);     lexan(); lido = 1;
 		del(pilha);
 	}
@@ -328,6 +346,8 @@
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: listaIds\n");
 		push("listaIds",pilha);
+
+		int negativo = 0;
 	
 		/* acao semantica */
 		verificaClasse();
@@ -335,11 +355,29 @@
 		casaToken(Identificador); lexan();
 		if (tokenAtual.token == Virgula){
 			/* Lendo id,id */
+
+			/* codegen */
+			genDeclaracao(tokenAtual.tipo,
+					tokenAtual.classe,
+					tokenAtual.endereco->simbolo.tamanho,
+					NULL,
+					negativo
+			);
+
 			lexan();
 			listaIds();
 	
 		} else if (tokenAtual.token == PtVirgula) {
 			/* lendo fim de um comando */
+
+			/* codegen */
+			genDeclaracao(tokenAtual.tipo,
+					tokenAtual.classe,
+					tokenAtual.endereco->simbolo.tamanho,
+					NULL,
+					negativo
+			);
+
 			lexan();
 			/* Lista de declaracoes tipo Var integer c; char d; */
 			if (tokenAtual.token == Integer || tokenAtual.token == Char)
@@ -356,12 +394,24 @@
 		} else if (tokenAtual.token == Igual) {
 			/* lendo id=literal */
 			lexan();
-	
-			if (tokenAtual.token == Menos) lexan(); /* literal negativo */
+
+	 		/* literal negativo */
+			if (tokenAtual.token == Menos) {
+				negativo = 1;
+				lexan();
+			}
 			casaToken(Literal); 
 	
 			/* acao semantica */
 			verificaTipo(tokenAtual.endereco->simbolo.tipo, tokenAtual.tipo);
+
+			/* codegen */
+			genDeclaracao(tokenAtual.tipo,
+					tokenAtual.classe,
+					tokenAtual.endereco->simbolo.tamanho,
+					tokenAtual.lexema,
+					negativo
+			);
 	
 			lexan();
 			if (tokenAtual.token == Virgula) {
@@ -390,9 +440,18 @@
 	
 			/* acao semantica */
 			verificaTam();
-	
+
 	 		lexan();
 			casaToken(F_Colchete); lexan();
+
+			/* codegen */
+			genDeclaracao(tokenAtual.tipo,
+					tokenAtual.classe,
+					tokenAtual.endereco->simbolo.tamanho,
+					NULL,
+					negativo
+			);
+	
 	
 			if (tokenAtual.token == Virgula) {
 				/* outro id */

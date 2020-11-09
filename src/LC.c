@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
 
 	pilha = initPilha();
 
-	inicializarTabela();
 	iniciarCodegen();
+	inicializarTabela();
 	iniciarAnSin();
 
 	return SUCESSO;

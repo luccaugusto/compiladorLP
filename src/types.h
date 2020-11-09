@@ -59,7 +59,7 @@
 	struct Simbolo {
 		int tamanho;    /* tamanho do array    */
 		char *lexema;   /* lexema              */
-		int endereco;   /* endereco na memoria */
+		int memoria;    /* endereco na memoria */
 		Tipo tipo;      /* int char ou logico  */
 		Tokens token;   /* token do simbolo    */
 		Classe classe;  /* const ou var        */

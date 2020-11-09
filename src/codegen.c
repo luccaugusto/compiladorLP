@@ -8,22 +8,22 @@
  * aumentar MD com o numero de bytes da variavel
  */
 
-char *aux;    /* buffer auxiliar para criacao do asm */
-char *buffer; /* buffer de criacao do codigo asm     */
-int iniciouDec = 0;
-int MD = 4000;      /* memoria de dados */
+char *buffer;       /* buffer de criacao do codigo asm     */
+char *aux;          /* buffer auxiliar para criacao do asm */
+int MD = 4000;      /* memoria de dados                    */
+int iniciouDec = 0; /* indica se ja iniciou a declaracao   */ 
 
 /* inicia o buffer */
 void iniciarCodegen()
 {
 	buffer = malloc(sizeof(char));
 	aux = malloc(sizeof(char));
-
 }
 
 /* concatena garantindo que o ultimo caractere eh o \n */
 void buf_concatenar()
 {
+
 	int buf_size = strlen(buffer);
 
 	/* se o buffer vai encher, escreve no arquivo e esvazia */
@@ -32,7 +32,9 @@ void buf_concatenar()
 
 	buffer = concatenar(buffer, aux);
 
-	buf_size += strlen(aux);
+	free(aux);
+
+	buf_size = strlen(buffer);
 
 	/* verifica se buffer termina em \n se nao estiver vazio*/
 	if (buf_size > 1 && buffer[buf_size-1] != '\n')
@@ -48,7 +50,7 @@ void flush()
 	fprintf(progAsm, "%s",buffer);
 
 	/* limpa o buffer */
-	buffer = realloc(buffer, sizeof(char));
+	free(buffer);
 }
 
 /* inicia o bloco de declaracoes asm */
@@ -58,24 +60,28 @@ void initDeclaracao(void)
 	if (DEBUG_GEN) printf("CODEGEN: initDeclaracao\n");
 	
 	CONCAT_BUF("dseg SEGMENT PUBLIC\t\t;inicio seg. dados");
-	
 	CONCAT_BUF("byte %dh DUP(?)\t\t\t;temporarios",MD);
 }
 
 /* finaliza o bloco de declaracoes asm */
 void fimDeclaracao(void)
 {
-	if (DEBUG_GEN) printf("CODEGEN: fiMDeclaracao\n");
-		CONCAT_BUF("dseg ENDS\t\t\t;fim seg. dados");
+	if (DEBUG_GEN) printf("CODEGEN: fimDeclaracao\n");
+	CONCAT_BUF("dseg ENDS\t\t\t;fim seg. dados");
 }
 
-/* gera o asm da declaracao de uma variavel ou constante */
-void genDeclaracao(Tipo t, Classe classe, int tam, char *val)
+/* gera o asm da declaracao de uma variavel ou constante 
+ * e retorna o endereco que foi alocado 
+ */
+void genDeclaracao(Tipo t, Classe classe, int tam, char *val, int negativo)
 {
 	char *tipo;  /* string de tipo        */
 	char *nome;  /* string sword ou byte  */
 	char *valor; /* string de valor ou ?  */
 	int n_bytes; /* numero de bytes usado */
+
+	/* marca o endereco de memoria na tabela de simbolos */
+	tokenAtual.endereco->simbolo.memoria = MD;
 
 	/* string de tipo para o comentario */
 	if (t == TP_Integer) {
@@ -97,25 +103,28 @@ void genDeclaracao(Tipo t, Classe classe, int tam, char *val)
 	}
 
 	/* string de valor se existir */
-	if (val != NULL)
+	if (val != NULL) {
 		valor = val;
-	else
+		if (negativo)
+			valor = concatenar("-",valor);
+	} else {
 		valor = "?";
+	}
 
 	/* constantes */
 	if (classe == CL_Const) {
 
-		CONCAT_BUF("sword %s\t\t\t; const. %s. em %dh", val, tipo, MD);
+		CONCAT_BUF("sword %s\t\t\t; const. %s. em %dh", valor, tipo, MD);
 
 	} else {
 	/* variaveis */
 
 		/* arrays */
-		if (tam > 0)
+		if (tam > 1)
 			CONCAT_BUF("%s %d DUP(?)\t\t;var. %s. em %dh", nome, tam, tipo, MD);
 		
 
-		CONCAT_BUF(aux, "%s %s\t\t\t; var. %s. em %dh", nome, valor, tipo, MD);
+		CONCAT_BUF("%s %s\t\t\t; var. %s. em %dh", nome, valor, tipo, MD);
 
 	}
 
