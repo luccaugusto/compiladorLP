@@ -7,9 +7,11 @@ clean:
 	rm -f LC-mono.out
 	rm -f LCDEBUG.out
 	rm -f prog.asm
+	rm -f 8086/prog.asm
 
 run:
 	./LC.out -f examples/fonte.l -o prog.asm
+	cp prog.asm 8086/prog.asm
 
 runm:
 	./LC-mono.out < examples/fonte.l
@@ -37,3 +39,6 @@ debug_gdb:
 teste:
 	make
 	./LC.out -f examples/testes/fonte.l -o prog.asm
+
+dosbox:
+	cd 8086/ && dosbox .

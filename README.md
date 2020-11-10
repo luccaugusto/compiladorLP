@@ -6,6 +6,7 @@ A estrutura de arquivos se configura da seguinte maneira:
 + monolitico
 + src
 + exemplos
++ 8086
 
 ## Docs
 Contém as especificações da linguagem, automato do analisador léxico e a gramática. A linguagem foi baseada no documento especificacoes.pdf. A partir dessa especificação criamos o automato do analisador léxico e a gramática.
@@ -20,3 +21,6 @@ Esta pasta contém todos os arquivos de headers e funções do compilador organi
 
 ## Exemplos
 Esta pasta contém arquivos de exemplo de códigos na linguagem L. Estes arquivos foram utilizados para testar o compilador.
+
+## 8086
+Esta pasta contem arquivos do MASM para ser executado pelo dosbox, simulando o ambiente DOS, já que o programa gera código para este ambiente.

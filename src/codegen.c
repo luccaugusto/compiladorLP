@@ -60,8 +60,13 @@ void initDeclaracao(void)
 {
 	iniciouDec = 1;
 	if (DEBUG_GEN) printf("CODEGEN: initDeclaracao\n");
+	/* Pilha */
+	CONCAT_BUF("sseg SEGMENT STACK\t\t\t;inicio seg. pilha");
+	CONCAT_BUF("byte 4000h DUP(?)\t\t\t;dimensiona pilha");
+	CONCAT_BUF("sseg ENDS\t\t\t\t\t;fim seg. pilha");
 	
-	CONCAT_BUF("dseg SEGMENT PUBLIC\t\t;inicio seg. dados");
+	/* dados */
+	CONCAT_BUF("dseg SEGMENT PUBLIC\t\t\t;inicio seg. dados");
 	CONCAT_BUF("byte %dh DUP(?)\t\t\t;temporarios",MD);
 }
 
@@ -69,7 +74,15 @@ void initDeclaracao(void)
 void fimDeclaracao(void)
 {
 	if (DEBUG_GEN) printf("CODEGEN: fimDeclaracao\n");
-	CONCAT_BUF("dseg ENDS\t\t\t;fim seg. dados");
+	CONCAT_BUF("dseg ENDS\t\t\t\t\t;fim seg. dados");
+
+	/* comandos */
+	CONCAT_BUF("cseg SEGMENT PUBLIC\t\t\t;inicio seg. codigo");
+	CONCAT_BUF("     ASSUME CS:cseg, DS: dseg");
+	CONCAT_BUF("strt:\t\t\t\t\t\t;inicio do programa");
+	CONCAT_BUF("    ;comandos ");
+	CONCAT_BUF("cseg ENDS\t\t\t\t\t;fim seg. codigo");
+	CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
 }
 
 /* gera o asm da declaracao de uma variavel ou constante 
@@ -116,17 +129,17 @@ void genDeclaracao(Tipo t, Classe classe, int tam, char *val, int negativo)
 	/* constantes */
 	if (classe == CL_Const) {
 
-		CONCAT_BUF("sword %s\t\t\t; const. %s. em %dh", valor, tipo, MD);
+		CONCAT_BUF("sword %s\t\t\t\t\t; const. %s. em %dh", valor, tipo, MD);
 
 	} else {
 	/* variaveis */
 
 		/* arrays */
 		if (tam > 1)
-			CONCAT_BUF("%s %d DUP(?)\t\t;var. %s. em %dh", nome, tam, tipo, MD);
+			CONCAT_BUF("%s %d DUP(?)\t\t\t;var. %s. em %dh", nome, tam, tipo, MD);
 		
 
-		CONCAT_BUF("%s %s\t\t\t; var. %s. em %dh", nome, valor, tipo, MD);
+		CONCAT_BUF("%s %s\t\t\t\t\t\t; var. %s. em %dh", nome, valor, tipo, MD);
 
 	}
 
