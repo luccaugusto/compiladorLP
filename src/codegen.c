@@ -16,8 +16,8 @@ int iniciouDec = 0; /* indica se ja iniciou a declaracao   */
 /* inicia o buffer */
 void iniciarCodegen()
 {
-	buffer = malloc(sizeof(char));
-	aux = malloc(sizeof(char));
+	buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
+	aux = malloc(sizeof(char) * MAX_AUX_SIZE);
 }
 
 /* concatena garantindo que o ultimo caractere eh o \n */
@@ -40,7 +40,7 @@ void buf_concatenar()
 	if (buf_size > 1 && buffer[buf_size-1] != '\n')
 		buffer = concatenar(buffer,"\n");
 
-	free(aux);
+	aux[0] = '\0';
 }
 
 /* escreve buffer no arquivo progAsm 
@@ -52,7 +52,7 @@ void flush()
 	fprintf(progAsm, "%s",buffer);
 
 	/* limpa o buffer */
-	free(buffer);
+	buffer[0] = '\0';
 }
 
 /* inicia o bloco de declaracoes asm */
