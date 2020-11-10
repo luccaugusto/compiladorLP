@@ -8,6 +8,8 @@
 
 	/* Geração de código */
 	void flush(void);
+	void fimComandos(void);
+	void initComandos(void);
 	void fimDeclaracao(void);
 	void initDeclaracao(void);
 	void buf_concatenar(void);
@@ -17,7 +19,6 @@
 	extern char *buffer;
 	extern char *aux;
 
-	extern int iniciouDec;
 	extern int MD;
 
 #endif

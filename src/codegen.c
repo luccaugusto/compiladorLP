@@ -11,13 +11,18 @@
 char *buffer;       /* buffer de criacao do codigo asm     */
 char *aux;          /* buffer auxiliar para criacao do asm */
 int MD = 4000;      /* memoria de dados                    */
-int iniciouDec = 0; /* indica se ja iniciou a declaracao   */ 
 
 /* inicia o buffer */
 void iniciarCodegen()
 {
 	buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
 	aux = malloc(sizeof(char) * MAX_AUX_SIZE);
+
+	/* Pilha */
+	CONCAT_BUF("sseg SEGMENT STACK\t\t\t;inicio seg. pilha");
+	CONCAT_BUF("byte 4000h DUP(?)\t\t\t;dimensiona pilha");
+	CONCAT_BUF("sseg ENDS\t\t\t\t\t;fim seg. pilha");
+	
 }
 
 /* concatena garantindo que o ultimo caractere eh o \n */
@@ -58,13 +63,7 @@ void flush()
 /* inicia o bloco de declaracoes asm */
 void initDeclaracao(void)
 {
-	iniciouDec = 1;
 	if (DEBUG_GEN) printf("CODEGEN: initDeclaracao\n");
-	/* Pilha */
-	CONCAT_BUF("sseg SEGMENT STACK\t\t\t;inicio seg. pilha");
-	CONCAT_BUF("byte 4000h DUP(?)\t\t\t;dimensiona pilha");
-	CONCAT_BUF("sseg ENDS\t\t\t\t\t;fim seg. pilha");
-	
 	/* dados */
 	CONCAT_BUF("dseg SEGMENT PUBLIC\t\t\t;inicio seg. dados");
 	CONCAT_BUF("byte %dh DUP(?)\t\t\t;temporarios",MD);
@@ -74,15 +73,30 @@ void initDeclaracao(void)
 void fimDeclaracao(void)
 {
 	if (DEBUG_GEN) printf("CODEGEN: fimDeclaracao\n");
+
+	/* fim declaracao */
 	CONCAT_BUF("dseg ENDS\t\t\t\t\t;fim seg. dados");
 
+}
+
+void initComandos(void)
+{
+	if (DEBUG_GEN) printf("CODEGEN: initComandos\n");
+	
 	/* comandos */
 	CONCAT_BUF("cseg SEGMENT PUBLIC\t\t\t;inicio seg. codigo");
 	CONCAT_BUF("     ASSUME CS:cseg, DS: dseg");
 	CONCAT_BUF("strt:\t\t\t\t\t\t;inicio do programa");
 	CONCAT_BUF("    ;comandos ");
+}
+
+void fimComandos(void)
+{
+	if (DEBUG_GEN) printf("CODEGEN: fimComandos\n");
+
 	CONCAT_BUF("cseg ENDS\t\t\t\t\t;fim seg. codigo");
 	CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
+	
 }
 
 /* gera o asm da declaracao de uma variavel ou constante 

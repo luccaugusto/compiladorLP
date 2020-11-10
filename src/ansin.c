@@ -102,8 +102,11 @@
 	{
 		/* consome o primeiro token */
 		lexan();
-		/* inicia pelo primeiro simbolo da gramatica */
+
+		/* codegen: inicia bloco de declaracoes */
 		initDeclaracao();
+
+		/* inicia pelo primeiro simbolo da gramatica */
 		declaracao();
 	}
 	
@@ -113,6 +116,7 @@
 	 */
 	void declaracao(void)
 	{
+
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: Declaracao\n");
 		push("Declaracao",pilha);
@@ -120,24 +124,18 @@
 		/* var ou const */
 		if (tokenAtual.token == Var) {
 
-			/* inicia bloco de declaracoes */
-			if (!iniciouDec)
-				initDeclaracao();
-
 			lido=0;
 			lexan();
 			variavel();
 			declaracao();
-		} else if (tokenAtual.token == Const) {
 
-			/* inicia bloco de declaracoes */
-			if (!iniciouDec)
-				initDeclaracao();
+		} else if (tokenAtual.token == Const) {
 
 			lido=0;
 			lexan();
 			constante();
 			declaracao();
+
 		} else {
 			/* existem casos especificos onde o
 		 	* token do bloco de comandos ja foi lido
@@ -152,7 +150,12 @@
 			if (!lido) lexan();
 			else lido = 0;
 	
+			/* codegen: finaliza bloco de declaracoes e 
+			 * inicializa bloco do programa 
+			 */
 			fimDeclaracao();
+			initComandos();
+
 			blocoComandos();
 			fimDeArquivo();
 		}
@@ -248,6 +251,7 @@
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
 		push("fimdearquivo",pilha);
+
 	
 		/* se lex nao for 0 ainda n leu o EOF */
 		/* leu fim de arquivo mas nao em estado de aceitacao */
@@ -256,6 +260,9 @@
 	
 		if (estado_sin != ACEITACAO_SIN)
 			erroSintatico(ER_SIN_EOF);
+
+		/* codegen: finaliza o programa */
+		fimComandos();
 	
 		sucesso();
 		del(pilha);
