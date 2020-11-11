@@ -1,6 +1,6 @@
 /* Testes automatizados do compilador */
-#ifndef __TESTES
-#define __TESTES
+#ifndef _TESTES
+#define _TESTES
 
 	#include "ts.c"
 	#include "lexan.c"

@@ -3,7 +3,7 @@
 #define _UTILS
 	#include "types.h"
 	#include "lexan.h"
-	
+
 	char getChar(void);
 	int str2int(char*);
 	int ehLetra(char l);
@@ -16,6 +16,7 @@
 	
 	extern FILE *progFonte;
 	extern char *lexemaLido;
+
 	
 	/* ************************** *
 	              HASH

@@ -364,7 +364,8 @@
 			/* Lendo id,id */
 
 			/* codegen */
-			genDeclaracao(tokenAtual.tipo,
+			genDeclaracao(
+					tokenAtual.endereco->simbolo.tipo,
 					tokenAtual.classe,
 					tokenAtual.endereco->simbolo.tamanho,
 					NULL,
@@ -378,7 +379,8 @@
 			/* lendo fim de um comando */
 
 			/* codegen */
-			genDeclaracao(tokenAtual.tipo,
+			genDeclaracao(
+					tokenAtual.endereco->simbolo.tipo,
 					tokenAtual.classe,
 					tokenAtual.endereco->simbolo.tamanho,
 					NULL,
@@ -413,7 +415,8 @@
 			verificaTipo(tokenAtual.endereco->simbolo.tipo, tokenAtual.tipo);
 
 			/* codegen */
-			genDeclaracao(tokenAtual.tipo,
+			genDeclaracao(
+					tokenAtual.endereco->simbolo.tipo,
 					tokenAtual.classe,
 					tokenAtual.endereco->simbolo.tamanho,
 					tokenAtual.lexema,
@@ -452,7 +455,8 @@
 			casaToken(F_Colchete); lexan();
 
 			/* codegen */
-			genDeclaracao(tokenAtual.tipo,
+			genDeclaracao(
+					tokenAtual.endereco->simbolo.tipo,
 					tokenAtual.classe,
 					tokenAtual.endereco->simbolo.tamanho,
 					NULL,

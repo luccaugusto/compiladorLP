@@ -2,8 +2,8 @@
  * Cada metodo implementa a verificacao de uma acao semantica,
  * em caso de erro, chama a funcao erroSintatico e aborta o programa
  */
-#ifndef __SEMAC
-#define __SEMAC
+#ifndef _SEMAC
+#define _SEMAC
 
 	#include "types.h"
 	#include "ansin.h"

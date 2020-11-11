@@ -1,5 +1,5 @@
-#ifndef __LC_H
-#define __LC_H
+#ifndef _LC_H
+#define _LC_H
 
 	/* MACROS */
 	#define SUCESSO 0

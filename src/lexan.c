@@ -378,7 +378,7 @@
 					/* valor 0 */
 	
 					tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Integer;
+					tokenAtual.tipo = TP_Char;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
@@ -419,7 +419,7 @@
 				} else {
 	
 					tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Integer;
+					tokenAtual.tipo = TP_Char;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema

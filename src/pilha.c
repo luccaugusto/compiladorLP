@@ -1,5 +1,5 @@
-#ifndef __PILHA
-#define __PILHA
+#ifndef _PILHA
+#define _PILHA
 	/*
 	 * Implementacao de uma pilha das chamadas dos métodos.
 	 * Atualmente utilizada para Debugar o analisador sintatico

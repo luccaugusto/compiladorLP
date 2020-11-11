@@ -1,5 +1,5 @@
-#ifndef __CODEGEN
-#define __CODEGEN
+#ifndef _CODEGEN_H
+#define _CODEGEN_H
 
 	#define DEBUG_GEN 0 
 	#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();

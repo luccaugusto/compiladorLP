@@ -3,7 +3,7 @@
 Var integer n,m;
 Char x;
 integer b=11;
-integer a[10];
+char a[256];
 Const MAXITER=-10;
 
 /* Programa Principal */
