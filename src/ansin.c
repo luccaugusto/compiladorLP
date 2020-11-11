@@ -280,17 +280,19 @@
 		if (DEBUG_SIN) printf("SIN: constante\n");
 		push("constante",pilha);
 
+		/* salva o lexema atual para verificacao da classe */
+		char* lex = tokenAtual.lexema;
+
 		int negativo = 0;
 	
 		defClasse(CL_Const);
 	
 		estado_sin = N_ACEITACAO_SIN;
-		casaToken(Identificador);
+		casaToken(Identificador); lexan();
 	
 		/* Ação semantica */
-		verificaClasse();
-	
-		lexan();
+		verificaClasse(lex);
+
 		casaToken(Igual);         lexan();
 
 		/* literal negativo */
@@ -353,10 +355,12 @@
 		if (DEBUG_SIN) printf("SIN: listaIds\n");
 		push("listaIds",pilha);
 
+		Tipo t;
+		char* lex;
 		int negativo = 0;
 	
 		/* acao semantica */
-		verificaClasse();
+		verificaClasse(tokenAtual.lexema);
 	
 		casaToken(Identificador); lexan();
 		if (tokenAtual.token == Virgula){
@@ -408,21 +412,24 @@
 				negativo = 1;
 				lexan();
 			}
-			casaToken(Literal); 
+
+			t = tokenAtual.tipo;
+			lex = tokenAtual.lexema;
+
+			casaToken(Literal); lexan();
 	
 			/* acao semantica */
-			verificaTipo(tokenAtual.endereco->simbolo.tipo, tokenAtual.tipo);
+			verificaTipo(tokenAtual.endereco->simbolo.tipo, t);
 
 			/* codegen */
 			genDeclaracao(
-					tokenAtual.endereco->simbolo.tipo,
+					t,
 					tokenAtual.classe,
 					tokenAtual.endereco->simbolo.tamanho,
-					tokenAtual.lexema,
+					lex,
 					negativo
 			);
 	
-			lexan();
 			if (tokenAtual.token == Virgula) {
 				/* outro id */
 				lexan();
@@ -430,6 +437,7 @@
 			} else {
 				/* terminou de ler o comando */
 				casaToken(PtVirgula); lexan();
+
 				/* Lista de declaracoes tipo Var integer c; char d; */
 				if (tokenAtual.token == Integer || tokenAtual.token == Char)
 					variavel();
@@ -445,12 +453,13 @@
 		} else {
 			/* lendo id[literal] */
 			casaToken(A_Colchete); lexan();
-			casaToken(Literal);
+
+			lex = tokenAtual.lexema;
+			casaToken(Literal); lexan();
 	
 			/* acao semantica */
-			verificaTam();
+			verificaTam(str2int(lex));
 
-	 		lexan();
 			casaToken(F_Colchete); lexan();
 
 			/* codegen */
@@ -470,6 +479,7 @@
 			} else {
 				/* terminou de ler o comando */
 				casaToken(PtVirgula); lexan();
+
 				/* Lista de declaracoes tipo Var integer c; char d; */
 				if (tokenAtual.token == Integer || tokenAtual.token == Char)
 					variavel();

@@ -10,10 +10,10 @@
 	
 	void defTipo(Tipo);
 	Tipo toLogico(Tipo);
+	void verificaTam(int);
 	void defClasse(Classe);
-	void verificaTam(void);
 	void verificaTipo(Tipo, Tipo);
-	void verificaClasse(void);
+	void verificaClasse(char *);
 	void verificaDeclaracao(char *);
 	
 	void defTipo(Tipo tipo)
@@ -39,9 +39,8 @@
 	}
 	
 	/* verifica se o tamanho dos arrays eh valido */
-	void verificaTam(void)
+	void verificaTam(int tam)
 	{
-		int tam = str2int(tokenAtual.lexema);
 		/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
 		if (tokenAtual.tipo == TP_Char && tam > 4000) erroSintatico(ER_SIN_TAMVET);
 	
@@ -72,9 +71,9 @@
 	 * caso a classe ja esteja definida, significa que a variavel
 	 * ou constante ja foi declarada
 	 */
-	void verificaClasse(void)
+	void verificaClasse(char* lex)
 	{
-		tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
+		tokenAtual.endereco = pesquisarRegistro(lex);
 	
 		if (tokenAtual.endereco->simbolo.classe == 0) {
 			tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
