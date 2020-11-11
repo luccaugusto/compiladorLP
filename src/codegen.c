@@ -13,10 +13,26 @@
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int MD = 0x4000;    /* memoria de dados em hexadecimal     */
+	int DS = 0x0;       /* contador de temporários             */
+
+	struct Fator *fator;
+
+	/* declara novo temporario */
+	int novoTemp(int t)
+	{
+		DS += t;
+		return (DS-t);
+	}
+
+	void zeraTemp()
+	{
+		DS = 0x0;
+	}
 
 	/* inicia o buffer */
 	void iniciarCodegen()
-	{
+	{ 
+		fator = (struct Fator *)malloc(sizeof(struct Fator));
 		buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
 		aux = malloc(sizeof(char) * MAX_AUX_SIZE);
 
@@ -71,25 +87,21 @@
 		CONCAT_BUF("byte %Xh DUP(?)\t\t\t;temporarios",MD);
 	}
 
-	/* finaliza o bloco de declaracoes asm */
-	void fimDeclaracao(void)
+	/* finaliza o bloco de declaracoes asm 
+	 * e inicia o bloco de comandos asm
+	 */
+	void fimDecInitCom(void)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fimDeclaracao\n");
 
 		/* fim declaracao */
 		CONCAT_BUF("dseg ENDS\t\t\t\t\t;fim seg. dados");
-
-	}
-
-	void initComandos(void)
-	{
-		if (DEBUG_GEN) printf("CODEGEN: initComandos\n");
-	
 		/* comandos */
 		CONCAT_BUF("cseg SEGMENT PUBLIC\t\t\t;inicio seg. codigo");
 		CONCAT_BUF("     ASSUME CS:cseg, DS: dseg");
 		CONCAT_BUF("strt:\t\t\t\t\t\t;inicio do programa");
 		CONCAT_BUF("    ;comandos ");
+
 	}
 
 	void fimComandos(void)
@@ -106,6 +118,8 @@
 	 */
 	void genDeclaracao(Tipo t, Classe c, int tam, char *val, int negativo)
 	{
+		if (DEBUG_GEN) printf("CODEGEN: genDeclaracao\n");
+
 		char *tipo;  /* string de tipo        */
 		char *classe;/* const ou var          */
 		char *nome;  /* string sword ou byte  */
@@ -157,5 +171,46 @@
 
 		/* incrementa a posicao de memoria com o numero de bytes utilizado */
 		MD+=n_bytes;
+	}
+
+	void fatorGeraConst(Tipo t, int tam, char *val)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraConst\n");
+
+		int tamTipo;
+		if (t == TP_Integer || t == TP_Logico) tamTipo = 2;
+		else tamTipo = 1;
+		
+		/* string */
+		if (t == TP_Char) {
+			A_SEG_PUB
+				CONCAT_BUF("byte \"%s$\"",val);
+			F_SEG_PUB
+			
+			fator->endereco = MD;
+			fator->tamanho = tokenAtual.tamanho;
+			fator->tipo = tokenAtual.tipo;
+
+			MD += fator->tamanho * tamTipo;
+
+		/* nao string */
+		} else {
+			fator->endereco = novoTemp(tamTipo*tam);
+			CONCAT_BUF("mov regA, %s",val);
+			CONCAT_BUF("mov %d, regA",fator->endereco);
+		}
+	}
+
+	void genExp(Tipo t)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: genExp\n");
+
+		switch(t)
+		{
+			case TP_Char:     /* Fallthrough */
+			case TP_Integer:
+				fatorGeraConst(t,tokenAtual.tamanho,tokenAtual.lexema);
+				break;
+		}
 	}
 #endif 

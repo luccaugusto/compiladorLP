@@ -153,8 +153,7 @@
 			/* codegen: finaliza bloco de declaracoes e 
 			 * inicializa bloco do programa 
 			 */
-			fimDeclaracao();
-			initComandos();
+			fimDecInitCom();
 
 			blocoComandos();
 			fimDeArquivo();
@@ -502,6 +501,8 @@
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: atribuicao\n");
 		push("atribuicao",pilha);
+
+		Tipo exp;
 	
 		/* lendo array: id[expressao()] */
 		if (tokenAtual.token == A_Colchete) {
@@ -515,9 +516,15 @@
 		}
 		casaToken(Igual); lexan();
 	
+		/* codegen */
+		zeraTemp();
+
 		/* acao semantica */
-		verificaTipo(expressao(), tokenAtual.endereco->simbolo.tipo);
+		exp = expressao();
+		verificaTipo(exp, tokenAtual.endereco->simbolo.tipo);
 		verificaAtrVetor();
+
+		genExp(exp);
 	
 		del(pilha);
 	} 

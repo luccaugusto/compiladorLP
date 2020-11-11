@@ -86,4 +86,15 @@
 		Classe classe;               /* Classe atual da expressao ,identificador ou constante      */
 		struct Celula *endereco;     /* endereco na tabela de simbolos do identificador atual      */
 	};
+	
+	/* Fator
+	 * um fator contém informações
+	 * sobre o que a expressão gera
+	 */
+	struct Fator {
+		int endereco; /* endereco do valor gerado pela expressao */
+		int tamanho;  /* tamanho do valor gerado pela expressao  */
+		Tipo tipo;    /* tipo do valor gerado pela expressao     */
+	};
+
 #endif

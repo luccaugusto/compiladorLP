@@ -8,6 +8,9 @@ Const MAXITER=-10;
 
 /* Programa Principal */
 
+	x = "alou";
+	n = 10;
+
   write("Digite seu nome: ");
   readln(nome);
   For n=1 to MAXITER do {
