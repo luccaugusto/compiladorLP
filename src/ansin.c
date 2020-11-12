@@ -54,6 +54,7 @@
 			else erroSintatico(ER_SIN_EOF);
 		}
 	
+		lexan();
 		return retorno;
 	}
 	
@@ -288,12 +289,12 @@
 		defClasse(CL_Const);
 	
 		estado_sin = N_ACEITACAO_SIN;
-		casaToken(Identificador); lexan();
+		casaToken(Identificador);
 	
 		/* Ação semantica */
 		verificaClasse(lex);
 
-		casaToken(Igual);         lexan();
+		casaToken(Igual);
 
 		/* literal negativo */
 		if (tokenAtual.token == Menos) {
@@ -303,18 +304,19 @@
 
 		/* atribui tipo a constante */
 		atrTipo();
+
+		lex = tokenAtual.lexema;
 		casaToken(Literal);
 
 		/* codegen */
 		genDeclaracao(tokenAtual.tipo,
 				tokenAtual.classe,
 				tokenAtual.tamanho,
-				tokenAtual.lexema,
+				lex,
 				negativo
 				);
 
-       	lexan();
-		casaToken(PtVirgula);     lexan(); lido = 1;
+		casaToken(PtVirgula); lido = 1;
 		del(pilha);
 	}
 	
@@ -362,7 +364,7 @@
 		/* acao semantica */
 		verificaClasse(tokenAtual.lexema);
 	
-		casaToken(Identificador); lexan();
+		casaToken(Identificador);
 		if (tokenAtual.token == Virgula){
 			/* Lendo id,id */
 
@@ -416,7 +418,7 @@
 			t = tokenAtual.tipo;
 			lex = tokenAtual.lexema;
 
-			casaToken(Literal); lexan();
+			casaToken(Literal);
 	
 			/* acao semantica */
 			verificaTipo(tokenAtual.endereco->simbolo.tipo, t);
@@ -436,7 +438,7 @@
 				listaIds();
 			} else {
 				/* terminou de ler o comando */
-				casaToken(PtVirgula); lexan();
+				casaToken(PtVirgula);
 
 				/* Lista de declaracoes tipo Var integer c; char d; */
 				if (tokenAtual.token == Integer || tokenAtual.token == Char)
@@ -452,15 +454,15 @@
 			}
 		} else {
 			/* lendo id[literal] */
-			casaToken(A_Colchete); lexan();
+			casaToken(A_Colchete);
 
 			lex = tokenAtual.lexema;
-			casaToken(Literal); lexan();
+			casaToken(Literal);
 	
 			/* acao semantica */
 			verificaTam(str2int(lex));
 
-			casaToken(F_Colchete); lexan();
+			casaToken(F_Colchete);
 
 			/* codegen */
 			genDeclaracao(
@@ -478,7 +480,7 @@
 				listaIds();
 			} else {
 				/* terminou de ler o comando */
-				casaToken(PtVirgula); lexan();
+				casaToken(PtVirgula);
 
 				/* Lista de declaracoes tipo Var integer c; char d; */
 				if (tokenAtual.token == Integer || tokenAtual.token == Char)
@@ -522,9 +524,9 @@
 			verificaTipo(expressao(), TP_Integer);
 	
 			atrPos(1);
-			casaToken(F_Colchete); lexan();
+			casaToken(F_Colchete);
 		}
-		casaToken(Igual); lexan();
+		casaToken(Igual);
 	
 		/* codegen */
 		zeraTemp();
@@ -548,12 +550,13 @@
 		if (DEBUG_SIN) printf("SIN: repeticao\n");
 		push("repeticao",pilha);
 	
+		Tipo t = buscaTipo(tokenAtual.lexema);
+
 		casaToken(Identificador);
 	
 		/* acao semantica */
-		verificaTipo(buscaTipo(tokenAtual.lexema),TP_Integer);
+		verificaTipo(t,TP_Integer);
 	
-		lexan();
 	
 		/* lendo array: id[i] */
 		if (tokenAtual.token == A_Colchete) {
@@ -562,18 +565,19 @@
 			/* acao semantica */
 			verificaTipo(expressao(),TP_Integer);
 	
-			casaToken(F_Colchete); lexan();
+			casaToken(F_Colchete);
 		}
 	
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
-		casaToken(Igual);   lexan();
+		casaToken(Igual);
+
+		t = tokenAtual.tipo;
 		casaToken(Literal);
 	
 		/* acao semantica */
-		verificaTipo(tokenAtual.tipo,TP_Integer);
+		verificaTipo(t,TP_Integer);
 	
-	 	lexan();
-		casaToken(To);      lexan();
+		casaToken(To);
 	
 		if (tokenAtual.token == Literal) {
 			/* acao semantica */
@@ -594,7 +598,7 @@
 				/* acao semantica */
 				verificaTipo(expressao(),TP_Integer);
 	
-				casaToken(F_Colchete); lexan();
+				casaToken(F_Colchete);
 			}
 			/* ja leu ( id|id[i] ) e pode fechar o comando */
 		}
@@ -617,19 +621,22 @@
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: repeticao1\n");
 		push("repeticao1",pilha);
+
+		Tipo t;
 	
 		if (tokenAtual.token == Step) {
 			lexan();
-			casaToken(Literal); 
+			t = tokenAtual.tipo;
+
+			casaToken(Literal);
 	
 			/* acao semantica */
-			verificaTipo(tokenAtual.tipo, TP_Integer);
+			verificaTipo(t, TP_Integer);
 	
-			lexan();
 	
 		}
 	
-		casaToken(Do); lexan();
+		casaToken(Do);
 		comandos2();
 		del(pilha);
 	}
@@ -686,7 +693,7 @@
 				lexan();
 				blocoComandos();
 				/* o } ja foi lido por alguem na chamada antiga chamou */
-				casaToken(F_Chaves); lexan();
+				casaToken(F_Chaves);
 				break;
 	
 			case F_Chaves:
@@ -716,7 +723,7 @@
 	
 		/* then foi lido antes de retornar de expressao() */
 		casaToken(Then);
-		lexan();
+
 		comandos2();
 	
 		if (tokenAtual.token == F_Chaves)
@@ -752,19 +759,19 @@
 		if (DEBUG_SIN) printf("SIN: leitura\n");
 		push("leitura",pilha);
 	
-		casaToken(A_Parenteses);  lexan();
-		casaToken(Identificador); lexan();
+		casaToken(A_Parenteses);
+		casaToken(Identificador);
 	
 		if (tokenAtual.token == A_Colchete) {
 			/* lendo array: id[i] */
 			lexan();
 			expressao();
-			casaToken(F_Colchete); lexan();
+			casaToken(F_Colchete);
 		}
 	
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
-		casaToken(F_Parenteses); lexan();
-		casaToken(PtVirgula); lexan();
+		casaToken(F_Parenteses);
+		casaToken(PtVirgula);
 	
 		del(pilha);
 	}
@@ -778,7 +785,7 @@
 		if (DEBUG_SIN) printf("SIN: nulo\n");
 		push("nulo",pilha);
 	
-		casaToken(PtVirgula); lexan();
+		casaToken(PtVirgula);
 		del(pilha);
 	}
 	
@@ -791,10 +798,10 @@
 		if (DEBUG_SIN) printf("SIN: escrita\n");
 		push("escrita",pilha);
 	
-		casaToken(A_Parenteses); lexan();
+		casaToken(A_Parenteses);
 		expressao2();
-		casaToken(F_Parenteses); lexan();
-		casaToken(PtVirgula);    lexan();
+		casaToken(F_Parenteses);
+		casaToken(PtVirgula);
 		del(pilha);
 	}
 	
@@ -831,7 +838,7 @@
 	
 			lexan();
 			ret = expressao();
-			casaToken(F_Parenteses); lexan();
+			casaToken(F_Parenteses);
 	
 		} else if (tokenAtual.token == Identificador) {
 			/* id */
@@ -843,7 +850,7 @@
 			if (tokenAtual.token == A_Colchete) {
 				lexan();
 				expressao();
-				casaToken(F_Colchete); lexan();
+				casaToken(F_Colchete);
 			}
 	
 			ret = expressao1(esq);
