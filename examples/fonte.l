@@ -10,6 +10,7 @@ Const MAXITER=-10;
 
 	x = "alou";
 	n = 10;
+	a[1] = "n";
 
   write("Digite seu nome: ");
   readln(nome);

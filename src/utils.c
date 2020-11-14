@@ -10,6 +10,8 @@
 	int ehDigito(char l);
 	int ehBranco(char l);
 	char minusculo(char l);
+	char *encurtar(char *);
+	char *removeAspas(char *);
 	int identificaToken(char *);
 	char *concatenar(char *, char *);
 	unsigned int hash(unsigned char *, int);
@@ -109,6 +111,20 @@
 	/* ************************** *
 	   MANIPULACAO DE STRING 
 	 * ************************** */
+
+	/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
+	char *removeAspas(char *str)
+	{
+		char *retorno;
+		int tamstr = strlen(str);
+		retorno = (char *) malloc(tamstr-2);
+
+		for (int i=0; i<tamstr-2; ++i) {
+			retorno[i] = str[i+1];
+		}
+
+		return retorno;
+	}
 	
 	/* remove o ultimo caractere de str */
 	char *encurtar(char *str)

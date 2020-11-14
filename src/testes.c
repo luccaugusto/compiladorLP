@@ -107,7 +107,7 @@
 	{
 		while(lex){
 			lexan();
-			printf("atual: %s\n",tokenAtual.lexema);
+			printf("atual: %s\n",regLex.lexema);
 		}
 	}
 

@@ -22,7 +22,7 @@
 	extern char *lexemaLido; /* lexema lido sem transformar em minusculo */
 	
 	extern struct pilha_d *pilha;
-	extern struct registroLex tokenAtual; 
+	extern struct registroLex regLex; 
 	extern struct Celula *tabelaSimbolos[TAM_TBL];
 
 	extern int MD; /* memoria de dados */

@@ -7,15 +7,12 @@
 
 	/*
 	 * TODO
-	 * aumentar MD com o numero de bytes da variavel
 	 */
 
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int MD = 0x4000;    /* memoria de dados em hexadecimal     */
 	int DS = 0x0;       /* contador de temporários             */
-
-	struct Fator *fator;
 
 	/* declara novo temporario */
 	int novoTemp(int t)
@@ -24,15 +21,15 @@
 		return (DS-t);
 	}
 
-	void zeraTemp()
+	void zeraTemp(void)
 	{
 		DS = 0x0;
 	}
 
 	/* inicia o buffer */
-	void iniciarCodegen()
+	void iniciarCodegen(void)
 	{ 
-		fator = (struct Fator *)malloc(sizeof(struct Fator));
+		if (DEBUG_GEN) printf("CODEGEN: iniciarCodegen\n");
 		buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
 		aux = malloc(sizeof(char) * MAX_AUX_SIZE);
 
@@ -44,7 +41,7 @@
 	}
 
 	/* concatena garantindo que o ultimo caractere eh o \n */
-	void buf_concatenar()
+	void buf_concatenar(void)
 	{
 
 		int buf_size = strlen(buffer);
@@ -69,7 +66,7 @@
 	/* escreve buffer no arquivo progAsm 
 	 * e em seguida limpa buffer
 	 */
-	void flush()
+	void flush(void)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: flush\n");
 		fprintf(progAsm, "%s",buffer);
@@ -127,7 +124,7 @@
 		int n_bytes; /* numero de bytes usado */
 
 		/* marca o endereco de memoria na tabela de simbolos */
-		tokenAtual.endereco->simbolo.memoria = MD;
+		regLex.endereco->simbolo.memoria = MD;
 
 		/* string de tipo para o comentario */
 		if (t == TP_Integer) {
@@ -173,44 +170,127 @@
 		MD+=n_bytes;
 	}
 
-	void fatorGeraConst(Tipo t, int tam, char *val)
+	void fatorGeraConst(struct Fator *fator, char *val)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fatorGeraConst\n");
 
-		int tamTipo;
-		if (t == TP_Integer || t == TP_Logico) tamTipo = 2;
-		else tamTipo = 1;
+		int tamTipo = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? 2 : 1;
 		
 		/* string */
-		if (t == TP_Char) {
+		if (fator->tipo == TP_Char) {
 			A_SEG_PUB
-				CONCAT_BUF("byte \"%s$\"",val);
+				CONCAT_BUF("byte \"%s$\"",removeAspas(val));
 			F_SEG_PUB
 			
 			fator->endereco = MD;
-			fator->tamanho = tokenAtual.tamanho;
-			fator->tipo = tokenAtual.tipo;
+			fator->tamanho = regLex.tamanho;
+			fator->tipo = regLex.tipo;
 
 			MD += fator->tamanho * tamTipo;
 
 		/* nao string */
 		} else {
-			fator->endereco = novoTemp(tamTipo*tam);
-			CONCAT_BUF("mov regA, %s",val);
-			CONCAT_BUF("mov %d, regA",fator->endereco);
+			fator->endereco = novoTemp(tamTipo*tamTipo);
+			CONCAT_BUF("mov AX, %s",val);
+			CONCAT_BUF("mov %d, AX",fator->endereco);
 		}
 	}
 
-	void genExp(Tipo t)
+	void fatorGeraId(struct Fator *fator)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraId\n");
+
+		fator->endereco = regLex.endereco->simbolo.memoria;
+		fator->tipo = regLex.endereco->simbolo.tipo;
+		fator->tamanho = regLex.endereco->simbolo.tamanho;
+	}
+
+	void fatorGeraArray(struct Fator *fator, struct Fator *expr)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraArray\n");
+
+		fator->endereco = novoTemp((regLex.tipo == TP_Integer) ? 2 : 1);
+
+		fator->tamanho = 1;
+
+		/* move para AX o endereco da expressao que vai conter o indice */
+		CONCAT_BUF("mov AX, %d", expr->endereco);
+
+		/* int usa 2 bytes, portanto contamos a posicao*2 */
+		if (regLex.tipo == TP_Integer)
+			CONCAT_BUF("add AX, DS:[%d]", expr->endereco);
+
+		/* soma o endereco do id indice + posicao = endereco real */
+		CONCAT_BUF("add AX, AX, %d", regLex.endereco->simbolo.memoria);
+
+		/* XXX instrucao desnecessaria? pode mover de DS:[AX] para fator->endereco de uma vez */
+		/* move para um registrador */
+		CONCAT_BUF("mov AX, DS:[AX]", fator->endereco);
+
+		/* move o que estiver no endereco real para o temporario */
+		CONCAT_BUF("mov %d, AX", fator->endereco);
+
+	}
+
+	void fatorGeraExp(struct Fator *fator,struct Fator *filho)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraExp\n");
+
+		fator->endereco = filho->endereco;
+		fator->tamanho = filho->tamanho;
+		fator->tipo = filho->tipo;
+	}
+
+	void fatorGeraNot(struct Fator *pai, struct Fator *filho)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraNot\n");
+
+		int tam = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? 2 : 1;
+
+		pai->endereco = novoTemp(tam);
+		CONCAT_BUF("mov AX, DS:[%d]", filho->endereco);
+		/* expressao not simulada com expressoes aritmeticas */
+		CONCAT_BUF("neg AX");
+		CONCAT_BUF("add AX, 1");
+		CONCAT_BUF("mov DS:[%d], AX",pai->endereco);
+	}
+
+	void fatorGeraMenos(struct Fator *pai, struct Fator *filho)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: fatorGeraMenos\n");
+
+		pai->endereco = novoTemp(2);
+		CONCAT_BUF("mov AX, DS:[%d]", filho->endereco);
+		/* negacao aritmetica, muda o sinal */
+		CONCAT_BUF("neg AX");
+		CONCAT_BUF("mov DS:[%d], AX",pai->endereco);
+	}
+
+	void acaoTermoFator1(struct Fator *pai)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator1\n");
+
+		pai->termo->endereco = pai->endereco;
+		pai->termo->tipo = pai->tipo;
+		pai->termo->tamanho = pai->tamanho;
+	}
+
+	void acaoTermoFator2(struct Fator *pai)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator2\n");
+		pai->termo->op = regLex.token;
+	}
+
+	void acaoTermoFator3(struct Fator *pai)
+	{
+		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator3\n");
+		CONCAT_BUF("mov AX, %d",pai->termo->endereco);
+		CONCAT_BUF("mov BX, %d" );
+	}
+
+	void genExp(struct Fator *fator, char* lexema)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: genExp\n");
 
-		switch(t)
-		{
-			case TP_Char:     /* Fallthrough */
-			case TP_Integer:
-				fatorGeraConst(t,tokenAtual.tamanho,tokenAtual.lexema);
-				break;
-		}
 	}
 #endif 

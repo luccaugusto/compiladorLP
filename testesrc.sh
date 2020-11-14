@@ -1,4 +1,5 @@
 #!/bin/sh
+make no_debug &&
 make &&
 	#sub shell para nao rodar caso nao compile
 	(

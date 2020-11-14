@@ -18,8 +18,8 @@
 		lexemaLido = "";
 	
 		/* zera o token e o lexema */
-		tokenAtual.lexema = "";
-		tokenAtual.token = 0;
+		regLex.lexema = "";
+		regLex.token = 0;
 	
 		while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(getChar())) != -1) { 
 	
@@ -33,102 +33,102 @@
 					continue;
 				} else if (letra == '/') {
 					/* comentário ou divisão */ 
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 1;
 				} else if (letra == '_' || letra == '.') {
 					/* inicio de identificador */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 7;
 				} else if (letra == '<') {
 					/* menor ou menor ou igual ou diferente*/
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 4;
 				} else if (letra == '>') {
 					/* maior ou maior ou igual */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 5;
 				} else if (letra == '"') {
 					/* inicio de string */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-					tokenAtual.tamanho = 1;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
+					regLex.tamanho = 1;
 					estado = 9;
 				} else if (letra == '0') {
 					/* possivel hexadecimal */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 10;
 				} else if (ehDigito(letra)) {
 					/* inicio de literal */ 
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 6;
 				} else if (letra == ',') {
-					tokenAtual.token = Virgula;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Virgula;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 				} else if (letra == ';') {
-					tokenAtual.token = PtVirgula;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = PtVirgula;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '+') {
-					tokenAtual.token = Mais;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Mais;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '-') {
-					tokenAtual.token = Menos;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Menos;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '*') {
-					tokenAtual.token = Vezes;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Vezes;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '(') {
-					tokenAtual.token = A_Parenteses;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = A_Parenteses;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == ')') {
-					tokenAtual.token = F_Parenteses;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = F_Parenteses;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '{') {
-					tokenAtual.token = A_Chaves;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = A_Chaves;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '}') {
-					tokenAtual.token = F_Chaves;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = F_Chaves;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '[') {
-					tokenAtual.token = A_Colchete;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = A_Colchete;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == ']') {
-					tokenAtual.token = F_Colchete;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = F_Colchete;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '%') {
-					tokenAtual.token = Porcento;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Porcento;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '=') {
-					tokenAtual.token = Igual;
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.token = Igual;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 				} else if (letra == '_' || letra == '.') {
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 7;
 				} else if (ehLetra(letra)) {
 	                /*inicio palavra*/
-	                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+	                regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 8;
 				} else if (!letra) {
 					estado = ACEITACAO_LEX;
@@ -147,7 +147,7 @@
 				} else {
 					/* simbolo '/' encontrado */
 					estado = ACEITACAO_LEX;
-					tokenAtual.token = Barra;
+					regLex.token = Barra;
 				}
 			} else if (estado == 2) {
 				if (letra == '*') {
@@ -193,7 +193,7 @@
 				if (letra == '/') {
 					/* de fato fim de comentario volta ao inicio para ignorar*/
 					estado = 0;
-					tokenAtual.lexema = "";
+					regLex.lexema = "";
 				} else if (letra == '*') {
 					/* ** no comentario, espera pela barra */
 					estado = 3;
@@ -211,12 +211,12 @@
 					/* lexemas de comparacao <= ou <> */
 					estado = ACEITACAO_LEX;
 	
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 	
 					if (letra == '=')
-						tokenAtual.token = MenorIgual;
+						regLex.token = MenorIgual;
 					else
-						tokenAtual.token = Diferente;
+						regLex.token = Diferente;
 	
 				} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 					/* lexema de comparacao < */
@@ -230,7 +230,7 @@
 						lexemaLido = encurtar(lexemaLido);
 					}
 	
-					tokenAtual.token = Menor;
+					regLex.token = Menor;
 				} else if (letra == -1) {
 					/*EOF encontrado, assume que encontrou <*/
 					estado = ACEITACAO_LEX;
@@ -240,8 +240,8 @@
 					/* lexema de comparacao >= */
 					estado = ACEITACAO_LEX;
 	
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-					tokenAtual.token = MaiorIgual;
+					regLex.lexema = concatenar(regLex.lexema, &letra);
+					regLex.token = MaiorIgual;
 	
 				} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
 					/* lexema de comparacao > */
@@ -254,7 +254,7 @@
 						lexemaLido = encurtar(lexemaLido);
 					}
 	
-					tokenAtual.token = Maior;
+					regLex.token = Maior;
 				} else if (letra == -1) {
 					/*EOF encontrado, assume que encontrou >*/
 					estado = ACEITACAO_LEX;
@@ -265,7 +265,7 @@
 				/* le ate encontrar diferente de numero */
 	
 				if (ehDigito(letra)) {
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 				} else {
 					estado = ACEITACAO_LEX;
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
@@ -275,23 +275,23 @@
 						lexemaLido = encurtar(lexemaLido);
 					}
 	
-	                tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Integer;
+	                regLex.token = Literal;
+					regLex.tipo = TP_Integer;
 				}
 			} else if (estado == 7) {
 	            /*lexema identificador _ . 
 	            concatena até achar uma letra ou numero */
 	            if (letra == '_' || letra == '.') {
-	                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+	                regLex.lexema = concatenar(regLex.lexema, &letra);
 	            } else if (ehLetra(letra) || ehDigito(letra)) {
-	                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+	                regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 8;
 	            }
 	        } else if (estado == 8) {
 	            /*lexema de identificador
 	            concatena ate finalizar o identificador ou palavra reservada */
 	            if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
-	                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+	                regLex.lexema = concatenar(regLex.lexema, &letra);
 	            } else {
 					estado = ACEITACAO_LEX;
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
@@ -301,34 +301,34 @@
 						lexemaLido = encurtar(lexemaLido);
 					}
 	
-					tokenAtual.tamanho = 1;
-					tokenAtual.pos = -1;
-	                tokenAtual.token = identificaToken(tokenAtual.lexema);
+					regLex.tamanho = 1;
+					regLex.pos = -1;
+	                regLex.token = identificaToken(regLex.lexema);
 	
 	                //adicionar novo token (identificador)
-					tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-	                if (tokenAtual.endereco == NULL) {
-	                   tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
-					   tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
+					regLex.endereco = pesquisarRegistro(regLex.lexema);
+	                if (regLex.endereco == NULL) {
+	                   regLex.endereco = adicionarRegistro(regLex.lexema,regLex.token);
+					   regLex.endereco->simbolo.tipo = regLex.tipo;
 					} else {
 						/* palavras reservadas nao possuem tipo,
 						 * portanto nao atualiza o tipo do registro
 						 * lexico se nao tem tipo
 						 */
-						if (tokenAtual.tipo != 0)
-							tokenAtual.tipo = tokenAtual.endereco->simbolo.tipo;
-						tokenAtual.tamanho = tokenAtual.endereco->simbolo.tamanho;
+						if (regLex.tipo != 0)
+							regLex.tipo = regLex.endereco->simbolo.tipo;
+						regLex.tamanho = regLex.endereco->simbolo.tamanho;
 					}
 				} 
 	        } else if (estado == 9) {
 	            /*lexema de String
 	            concatena até encontrar o fechamento das aspas */
 	
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.tamanho++;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				regLex.tamanho++;
 	            if (letra == '"') {
-	            	tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Char;
+	            	regLex.token = Literal;
+					regLex.tipo = TP_Char;
 	                estado = ACEITACAO_LEX;
 	            } else if (letra == EOF) {
 					/*EOF encontrado*/
@@ -369,16 +369,16 @@
 	        } else if (estado == 10) {
 				/* hexadecimal */
 				if (letra == 'x') {           /* de fato hexadecimal */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 11;
 				} else if (ehDigito(letra)) {   /* numero começando com 0 */ 
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 6;
 				} else if (!ehLetra(letra) && !ehDigito(letra)) {
 					/* valor 0 */
 	
-					tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Char;
+					regLex.token = Literal;
+					regLex.tipo = TP_Char;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
@@ -401,7 +401,7 @@
 				/* parte numerica do hexadecimal deve conter pelo menos um numero ou A-F */
 				if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
 					/* leu 0x[A-F0-9] */
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 					estado = 12;
 				} else {
 					/* leu só 0x, invalido */
@@ -414,12 +414,12 @@
 				/* resto do valor hexadecimal */
 				if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
 	
-					tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
+					regLex.lexema = concatenar(regLex.lexema, &letra);
 	
 				} else {
 	
-					tokenAtual.token = Literal;
-					tokenAtual.tipo = TP_Char;
+					regLex.token = Literal;
+					regLex.tipo = TP_Char;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
@@ -439,6 +439,6 @@
 		/* leu EOF */
 		if (letra == -1) lex = 0;
 	
-		if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d tam: %d\n",tokenAtual.lexema,tokenAtual.token,tokenAtual.tipo,tokenAtual.tamanho);
+		if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
 	}
 #endif

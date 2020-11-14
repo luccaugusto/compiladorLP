@@ -37,7 +37,7 @@ char *erroMsg; /*Mensagem de erro a ser exibida*/
 char *lexemaLido; /* lexema lido sem transformar em minusculo */
 
 struct pilha_d *pilha;
-struct registroLex tokenAtual; 
+struct registroLex regLex; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
 int rotulo = 0;     /* rotulos do asm */

@@ -12,7 +12,7 @@
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	
-	#define DEBUG_SIN 0
+	#define DEBUG_SIN 1
 	
 	#include "types.h"
 	
@@ -20,6 +20,7 @@
 	extern int estado_sin;
 	extern int lex;
 	extern int lido;
+	extern char* lexAux;
 	extern struct pilha_d *pilha;
 	
 	/* manipulacao do registro lexico */
@@ -34,14 +35,14 @@
 	void escrita(void);
 	void variavel(void);
 	void listaIds(void);
-	Tipo expressao(void);
 	void escritaLn(void);
 	void constante(void);
 	void comandos2(void);
 	void repeticao(void);
-	Tipo expressao1(Tipo);
-	void expressao2(void);
-	void expressao3(void);
+	struct Fator *expressao(struct Fator *);
+	Tipo expressao1(Tipo, struct Fator *);
+	void expressao2(struct Fator *);
+	void expressao3(struct Fator *);
 	void repeticao1(void);
 	void declaracao(void);
 	void atribuicao(void);

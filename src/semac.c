@@ -18,12 +18,12 @@
 	
 	void defTipo(Tipo tipo)
 	{
-		tokenAtual.tipo = tipo;
+		regLex.tipo = tipo;
 	}
 	
 	void defClasse(Classe classe)
 	{
-		tokenAtual.classe = classe;
+		regLex.classe = classe;
 	}
 	
 	/* converte tipo integer para logico 
@@ -42,16 +42,16 @@
 	void verificaTam(int tam)
 	{
 		/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
-		if (tokenAtual.tipo == TP_Char && tam > 4000) erroSintatico(ER_SIN_TAMVET);
+		if (regLex.tipo == TP_Char && tam > 4000) erroSintatico(ER_SIN_TAMVET);
 	
 		/* tipo integer ocupa 2 bytes portanto o array pode ter 4k/2 posicoes */
-		if (tokenAtual.tipo == TP_Integer && tam > 2000) erroSintatico(ER_SIN_TAMVET);
+		if (regLex.tipo == TP_Integer && tam > 2000) erroSintatico(ER_SIN_TAMVET);
 	
 		/* else 
 		 * atualiza o registro lexico e tabela de simbolos com o tamanho
 		 */
-		tokenAtual.tamanho = tam;
-		tokenAtual.endereco->simbolo.tamanho = tam;
+		regLex.tamanho = tam;
+		regLex.endereco->simbolo.tamanho = tam;
 	}
 	
 	/* Verificacao de tipo
@@ -73,11 +73,11 @@
 	 */
 	void verificaClasse(char* lex)
 	{
-		tokenAtual.endereco = pesquisarRegistro(lex);
+		regLex.endereco = pesquisarRegistro(lex);
 	
-		if (tokenAtual.endereco->simbolo.classe == 0) {
-			tokenAtual.endereco->simbolo.tipo = tokenAtual.tipo;
-			tokenAtual.endereco->simbolo.classe = tokenAtual.classe;
+		if (regLex.endereco->simbolo.classe == 0) {
+			regLex.endereco->simbolo.tipo = regLex.tipo;
+			regLex.endereco->simbolo.classe = regLex.classe;
 		} else {
 			erroSintatico(ER_SIN_JADEC);
 		}
@@ -89,12 +89,12 @@
 	 */
 	void verificaDeclaracao(char *identificador)
 	{
-		tokenAtual.endereco = pesquisarRegistro(identificador);
+		regLex.endereco = pesquisarRegistro(identificador);
 	
-		if (tokenAtual.endereco->simbolo.classe == 0)
+		if (regLex.endereco->simbolo.classe == 0)
 			erroSintatico(ER_SIN_NDEC);
 	
-		if (tokenAtual.endereco->simbolo.classe == CL_Const)
+		if (regLex.endereco->simbolo.classe == CL_Const)
 			erroSintatico(ER_SIN_C_INC);
 	
 	}
@@ -112,14 +112,14 @@
 		 * a string deve ter tamanho menor que o tamanho do vetor -1
 		 * pois ainda deve ser acrescentado o $ para encerrar a string
 		 
-		if (tokenAtual.endereco->simbolo.tipo == TP_Char) {
-			if (tokenAtual.endereco->simbolo.tamanho < tokenAtual.tamanho+1)
+		if (regLex.endereco->simbolo.tipo == TP_Char) {
+			if (regLex.endereco->simbolo.tamanho < regLex.tamanho+1)
 				erroSintatico(ER_SIN_TAMVET);
 	
 		} else*/
 
 		/* atribuicoes a vetores nao string */
-		if (tokenAtual.endereco->simbolo.tamanho > 1 && tokenAtual.pos == -1) {
+		if (regLex.endereco->simbolo.tamanho > 1 && regLex.pos == -1) {
 			erroSintatico(ER_SIN_T_INC);
 		}
 	}
