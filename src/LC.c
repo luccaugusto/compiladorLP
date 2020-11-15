@@ -15,6 +15,9 @@
 #include "pilha.c"
 #include "utils.c"
 #include "ts.c"
+#include "lexan.h"
+#include "ansin.h"
+#include "codegen.h"
 #include "LC.h"
 #include "testes.c"
 #include "lexan.c"
@@ -50,8 +53,12 @@ int temporario = 0; /* temporarios do asm */
  */
 void abortar(void)
 {
-	if (DEBUG_SIN) printPilha(pilha);
-	if (DEBUG_TS) mostrarTabelaSimbolos();
+#ifdef DEBUG_SIN
+	printPilha(pilha);
+#endif
+#ifdef DEBUG_TS
+	mostrarTabelaSimbolos();
+#endif
 
 	/* remove o arquivo pois o codigo gerado eh invalido */
 	remove(asmNome);

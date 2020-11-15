@@ -4,6 +4,21 @@
 	/* MACROS */
 	#define SUCESSO 0
 	#define END_ID regLex.endereco->simbolo.memoria
+	#ifdef DEBUG_SIN
+		#define DEBUGSIN(s) printf("SIN: %s\n",s); push(s,pilha);
+	#else
+		#define DEBUGSIN(s)
+	#endif
+	#ifdef DEBUG_LEX
+		#define DEBUGLEX(...) printf(__VA_ARGS__);
+	#else
+		#define DEBUGLEX(...)
+	#endif
+	#ifdef DEBUG_GEN
+		#define DEBUGGEN(s) printf("GEN: %s\n",s); push(s,pilha);
+	#else
+		#define DEBUGGEN(s)
+	#endif
 	
 	
 	/* VARIÁVEIS GLOBAIS */

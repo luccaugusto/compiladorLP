@@ -12,7 +12,7 @@
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	
-	#define DEBUG_SIN 0
+	//define DEBUG_SIN
 	
 	#include "types.h"
 	
@@ -39,10 +39,11 @@
 	void constante(void);
 	void comandos2(void);
 	void repeticao(void);
-	struct Fator *expressao(void);
-	void expressao1(Tipo, struct Fator *);
-	void expressao2(struct Fator *);
-	void expressao3(struct Fator *);
+	Tipo expressao(void);
+	Tipo fator(void);
+	Tipo termo(void);
+	Tipo expressaoS(void);
+	void expressao2(void);
 	void repeticao1(void);
 	void declaracao(void);
 	void atribuicao(void);

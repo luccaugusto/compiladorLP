@@ -17,20 +17,21 @@ runm:
 	./LC-mono.out < examples/fonte.l
 
 no_debug:
-	sed -i "s/DEBUG_LEX 1/DEBUG_LEX 0/g" src/lexan.h
-	sed -i "s/DEBUG_SIN 1/DEBUG_SIN 0/g" src/ansin.h
-	sed -i "s/DEBUG_TS 1/DEBUG_TS 0/g"   src/ts.h
-	sed -i "s/DEBUG_GEN 1/DEBUG_GEN 0/g" src/codegen.h
+	sed -i "s/#define DEBUG_LEX/\/\/define DEBUG_LEX/g" src/lexan.h
+	sed -i "s/#define DEBUG_SIN/\/\/define DEBUG_SIN/g" src/ansin.h
+	sed -i "s/#define DEBUG_TS/\/\/define DEBUG_TS/g"   src/ts.h
+	sed -i "s/#define DEBUG_GEN/\/\/define DEBUG_GEN/g" src/codegen.h
 
 debug:
-	sed -i "s/DEBUG_LEX 0/DEBUG_LEX 1/g" src/lexan.h
-	sed -i "s/DEBUG_SIN 0/DEBUG_SIN 1/g" src/ansin.h
-	sed -i "s/DEBUG_GEN 0/DEBUG_GEN 1/g" src/codegen.h
+	sed -i "s/\/\/define DEBUG_LEX/#define DEBUG_LEX/g" src/lexan.h
+	sed -i "s/\/\/define DEBUG_SIN/#define DEBUG_SIN/g" src/ansin.h
+	sed -i "s/\/\/define DEBUG_GEN/#define DEBUG_GEN/g" src/codegen.h
 
 debug_full:
-	sed -i "s/DEBUG_LEX 0/DEBUG_LEX 1/g" src/lexan.h
-	sed -i "s/DEBUG_SIN 0/DEBUG_SIN 1/g" src/ansin.h
-	sed -i "s/DEBUG_TS 0/DEBUG_TS 1/g"   src/ts.h
+	sed -i "s/\/\/define DEBUG_LEX/#define DEBUG_LEX/g" src/lexan.h
+	sed -i "s/\/\/define DEBUG_SIN/#define DEBUG_SIN/g" src/ansin.h
+	sed -i "s/\/\/define DEBUG_GEN/#define DEBUG_GEN/g" src/codegen.h
+	sed -i "s/\/\/define DEBUG_TS/#define DEBUG_TS/g"   src/ts.h
 
 debug_gdb:
 	gcc -o LCDEBUG.out src/LC.c -g

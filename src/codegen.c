@@ -36,7 +36,9 @@
 	/* inicia o buffer */
 	void iniciarCodegen(void)
 	{ 
-		if (DEBUG_GEN) printf("CODEGEN: iniciarCodegen\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("iniciarCodegen");
+
 		buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
 		aux = malloc(sizeof(char) * MAX_AUX_SIZE);
 
@@ -75,7 +77,9 @@
 	 */
 	void flush(void)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: flush\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("flush");
+
 		fprintf(progAsm, "%s",buffer);
 
 		/* limpa o buffer */
@@ -85,7 +89,9 @@
 	/* inicia o bloco de declaracoes asm */
 	void initDeclaracao(void)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: initDeclaracao\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("initDeclaracao");
+
 		/* dados */
 		CONCAT_BUF("dseg SEGMENT PUBLIC\t\t\t;inicio seg. dados");
 		CONCAT_BUF("byte %Xh DUP(?)\t\t\t;temporarios",MD);
@@ -96,7 +102,8 @@
 	 */
 	void fimDecInitCom(void)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fimDeclaracao\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fimDecInitCom");
 
 		/* fim declaracao */
 		CONCAT_BUF("dseg ENDS\t\t\t\t\t;fim seg. dados");
@@ -110,7 +117,8 @@
 
 	void fimComandos(void)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fimComandos\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fimComandos");
 
 		CONCAT_BUF("cseg ENDS\t\t\t\t\t;fim seg. codigo");
 		CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
@@ -123,7 +131,8 @@
 	 */
 	void genDeclaracao(Tipo t, Classe c, int tam, char *val, int negativo)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: genDeclaracao\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("genDeclaracao");
 
 		char *tipo;  /* string de tipo        */
 		char *classe;/* const ou var          */
@@ -180,6 +189,9 @@
 
 	void genAtribuicao(struct Fator *fator)
 	{
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("genAtribuicao");
+
 		/* int e logico */
 		if (toLogico(regLex.tipo) == TP_Logico) {
 			CONCAT_BUF("mov AX, DS:[%d]", fator->endereco);
@@ -196,7 +208,8 @@
 
 	void fatorGeraConst(struct Fator *fator, char *val)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraConst\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraConst");
 
 		int tamTipo = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? TAM_INT : TAM_CHA;
 		
@@ -222,7 +235,8 @@
 
 	void fatorGeraId(struct Fator *fator)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraId\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraId");
 
 		fator->endereco = END_ID;
 		fator->tipo = regLex.endereco->simbolo.tipo;
@@ -231,7 +245,8 @@
 
 	void fatorGeraArray(struct Fator *fator, struct Fator *expr)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraArray\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraArray");
 
 		fator->endereco = novoTemp((regLex.tipo == TP_Integer) ? TAM_INT : TAM_CHA);
 
@@ -247,7 +262,6 @@
 		/* soma o endereco do id indice + posicao = endereco real */
 		CONCAT_BUF("add AX, AX, %d", END_ID);
 
-		/* XXX instrucao desnecessaria? pode mover de DS:[AX] para fator->endereco de uma vez */
 		/* move para um registrador */
 		CONCAT_BUF("mov AX, DS:[AX]", fator->endereco);
 
@@ -258,7 +272,8 @@
 
 	void fatorGeraExp(struct Fator *fator,struct Fator *filho)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraExp\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraExp");
 
 		fator->endereco = filho->endereco;
 		fator->tamanho = filho->tamanho;
@@ -267,7 +282,8 @@
 
 	void fatorGeraNot(struct Fator *pai, struct Fator *filho)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraNot\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraNot");
 
 		int tam = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? TAM_INT : TAM_CHA;
 
@@ -281,7 +297,8 @@
 
 	void fatorGeraMenos(struct Fator *pai, struct Fator *filho)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: fatorGeraMenos\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("fatorGeraMenos");
 
 		pai->endereco = novoTemp(2);
 		CONCAT_BUF("mov AX, DS:[%d]", filho->endereco);
@@ -292,7 +309,8 @@
 
 	void acaoTermoFator1(struct Fator *pai)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator1\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("acaoTermoFator1");
 
 		pai->termo->endereco = pai->endereco;
 		pai->termo->tipo = pai->tipo;
@@ -301,22 +319,26 @@
 
 	void acaoTermoFator2(struct Fator *pai)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator2\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("acaoTermoFator2");
+
 		pai->op = regLex.token;
 	}
 
 	void acaoTermoFator3(struct Fator *pai)
 	{
-		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator3\n");
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("acaoTermoFator3");
 
 		CONCAT_BUF("mov AX, %d",pai->termo->endereco);
 		CONCAT_BUF("mov BX, %d",pai->endereco);
 
 		/* TODO fazer imul e idiv certo */
-		if (pai->op == Vezes || pai->op == And)
+		if (pai->op == Vezes || pai->op == And) {
 			CONCAT_BUF("imul");
-		else if (pai->op == Barra || pai->op == Porcento)
+		} else if (pai->op == Barra || pai->op == Porcento) {
 			CONCAT_BUF("idiv");
+		}
 
 		pai->termo->endereco = novoTemp(TAM_INT);
 		CONCAT_BUF("mov AX, %d",pai->termo->endereco);

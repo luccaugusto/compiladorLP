@@ -1,7 +1,8 @@
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 
-	#define DEBUG_GEN 0 
+	//define DEBUG_GEN
+
 	#define TAM_INT 2
 	#define TAM_CHA 1
 	#define A_SEG_PUB CONCAT_BUF("dseg SEGMENT PUBLIC\n");

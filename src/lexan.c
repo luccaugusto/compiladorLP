@@ -439,6 +439,6 @@
 		/* leu EOF */
 		if (letra == -1) lex = 0;
 	
-		if (DEBUG_LEX) printf("LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
+		DEBUGLEX("LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
 	}
 #endif
