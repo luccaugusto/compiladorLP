@@ -515,11 +515,9 @@
 		if (DEBUG_SIN) printf("SIN: atribuicao\n");
 		push("atribuicao",pilha);
 	
-		/* fator da expressao do lado direito */
-		NOVO_FATOR(expr);
-	
-		/* termo da atribuicao */
-		NOVO_TERMO(atual);
+		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
+		NOVO_TERMO(atual); /* termo da atribuicao */
+
 		atual->fator = expr;
 		expr->termo = atual;
 	
@@ -531,13 +529,17 @@
 	
 			NOVO_FATOR(aux);
 			aux->termo = atual;
-			aux = expressao(expr);
+
+			expressao(aux);
 			/* acao semantica */
 			verificaTipo(aux->tipo, TP_Integer);
 	
+			/* marca como array */
 			atrPos(1);
 			casaToken(F_Colchete);
+			fatorGeraArray(atual->fator, aux);
 		}
+
 		casaToken(Igual);
 	
 		lexAux = regLex.lexema;
@@ -545,10 +547,13 @@
 		/* codegen */
 		zeraTemp();
 	
+		expressao(atual->fator);
 		/* acao semantica */
-		expr = expressao(atual->fator);
 		verificaTipo(expr->tipo, regLex.endereco->simbolo.tipo);
 		verificaAtrVetor();
+
+		/* codegen */
+		genAtribuicao();
 	
 		del(pilha);
 		casaToken(PtVirgula);
@@ -843,8 +848,25 @@
 		del(pilha);
 	}
 	
+/*
+op relacionais
+O  -> = | <> | < | > | >= | <=
+Expressão
+X   -> Xs [ O Xs ]
+Expressao simples
+Xs -> [-] T {( + | - | ‘or’) T}
+Termo
+T  -> F {( * | / | % | ‘and’ ) F}
+Fator
+F  -> ‘(‘ X ‘)’ | const[G] | id[G]
+indice
+G  -> ** (id | const | ‘(‘ X ’)’ )
+lista de exp
+X2 -> X {,X}*
+*/
+
 	/* le uma expressao e retorna o tipo final */
-	struct Fator *expressao(struct Fator *pai)
+	struct Fator *expressao()
 	{
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: expressao\n");
@@ -878,6 +900,7 @@
 			pai->termo->n_termos++;
 	
 			NOVO_FATOR(expr);
+			int array = 0;
 	
 			lexan();
 			/* lendo array: id[i] */
@@ -885,17 +908,22 @@
 				lexan();
 				expr = expressao(atual);
 				casaToken(F_Colchete);
-				/* codegen */
-				fatorGeraArray(atual, expr);
-			} else { 
-				/* codegen */
-				fatorGeraId(atual);
-			}
+				array=1;
+			}	
+
+
 	
-			acaoTermoFator1(pai);
-	
-			atual->tipo = expressao1(dir,atual);
+			expressao1(dir,atual);
 			pai->tipo = atual->tipo;
+
+			/* codegen */
+			/* expressao1() gerou lambda, portanto avaliou para somente id */
+			if (pai->op == 0) {
+				if (array) fatorGeraArray(atual, expr);
+				else       fatorGeraId(atual);
+			}
+			acaoTermoFator1(pai);
+
 	
 		} else if (regLex.token == Literal) {
 			/* literal */
@@ -906,12 +934,13 @@
 			lexAux = regLex.lexema;
 			lexan();
 	
-			atual->tipo = expressao1(dir,atual);
+			expressao1(dir,atual);
 
 			pai->tipo = atual->tipo;
 	
 			/* codegen */
-			fatorGeraConst(atual,lexAux);
+			/* expressao1() gerou lambda, portanto avaliou para somente literal */
+			if (pai->op == 0) fatorGeraConst(atual,lexAux);
 			acaoTermoFator1(pai);
 	
 		} else if (regLex.token == Menos) {
@@ -943,12 +972,13 @@
 		del(pilha);
 		return atual;
 	}
+
 	
 	/* operadores expressao();
 	 * parametro esq: tipo da espressao do lado esquerdo
 	 * retorna o tipo da expressao do lado direito do operador
 	 */
-	Tipo expressao1(Tipo esq, struct Fator *pai)
+	void expressao1(Tipo esq, struct Fator *pai)
 	{
 		/* DEBUGGER E PILHA */
 		if (DEBUG_SIN) printf("SIN: expressao1\n");
@@ -1028,14 +1058,14 @@
 			/* acao semantica */
 			verificaTipo(expr->tipo,esq);
 			ret = TP_Logico;
-		} 
+		}
 	
 		if (!lambda)
 			acaoTermoFator3(pai);
 	
 	
 		del(pilha);
-		return ret;
+		pai->tipo = ret;
 	}
 	
 	/* lista de expressoes */

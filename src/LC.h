@@ -3,6 +3,7 @@
 
 	/* MACROS */
 	#define SUCESSO 0
+	#define END_ID regLex.endereco->simbolo.memoria
 	
 	
 	/* VARIÁVEIS GLOBAIS */

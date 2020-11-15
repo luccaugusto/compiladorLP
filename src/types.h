@@ -3,6 +3,14 @@
 #ifndef _TYPES
 #define _TYPES
 
+	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
+											s->endereco = novoTemp(2); \
+											s->tipo = regLex.tipo; \
+											s->op = 0
+	#define NOVO_TERMO(s) struct Termo *s = (struct Termo *)malloc(sizeof(struct Termo)); \
+											s->endereco = novoTemp(2); \
+											s->tipo = regLex.tipo
+
 	typedef enum {
 		Identificador = 1,
 		Const,
@@ -96,6 +104,7 @@
 		struct Termo *termo; /* todo fator pertence a um termo          */
 		int endereco;        /* endereco do valor gerado pela expressao */
 		int tamanho;         /* tamanho do valor gerado pela expressao  */
+		Tokens op;           /* operacao realizada pela expressao       */
 		Tipo tipo;           /* tipo do valor gerado pela expressao     */
 	};
 
@@ -108,7 +117,6 @@
 		int n_termos;        /* numero de termos da expressao           */
 		int endereco;        /* endereco do valor gerado pelo termo     */
 		int tamanho;         /* tamanho do valor gerado pela expressao  */
-		Tokens op;           /* operacao realizada pela expressao       */
 		Tipo tipo;           /* tipo do valor gerado pela expressao     */
 	};
 

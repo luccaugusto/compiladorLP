@@ -1,22 +1,20 @@
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 
-	#define DEBUG_GEN 1 
+	#define DEBUG_GEN 0 
+	#define TAM_INT 2
+	#define TAM_CHA 1
 	#define A_SEG_PUB CONCAT_BUF("dseg SEGMENT PUBLIC\n");
 	#define F_SEG_PUB CONCAT_BUF("dseg ENDS\n");
 	#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
 	#define MAX_BUF_SIZE 2048
 	#define MAX_AUX_SIZE 256
-	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
-											s->endereco = novoTemp(2); \
-											s->tipo = regLex.tipo
-	#define NOVO_TERMO(s) struct Termo *s = (struct Termo *)malloc(sizeof(struct Termo)); \
-											s->endereco = novoTemp(2); \
-											s->tipo = regLex.tipo
 
 	/* Geração de código */
 	void flush(void);
 	int novoTemp(int);
+	int novoRot(void);
+	void genAtribuicao(struct Fator *);
 	void zeraTemp(void);
 	void fimComandos(void);
 	void fimDecInitCom(void);

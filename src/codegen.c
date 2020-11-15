@@ -7,18 +7,25 @@
 
 	/*
 	 * TODO
+	 * revisar sintaxe do assembly em TODOS os comandos
 	 */
 
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int MD = 0x4000;    /* memoria de dados em hexadecimal     */
 	int DS = 0x0;       /* contador de temporários             */
+	int RT = 1;         /* contador de rotulos                 */
 
 	/* declara novo temporario */
 	int novoTemp(int t)
 	{
 		DS += t;
 		return (DS-t);
+	}
+
+	int novoRot()
+	{
+		return RT++;
 	}
 
 	void zeraTemp(void)
@@ -107,7 +114,8 @@
 
 		CONCAT_BUF("cseg ENDS\t\t\t\t\t;fim seg. codigo");
 		CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
-	
+		CONCAT_BUF("mov ah, 4Ch");
+		CONCAT_BUF("int 21h");
 	}
 
 	/* gera o asm da declaracao de uma variavel ou constante 
@@ -124,13 +132,13 @@
 		int n_bytes; /* numero de bytes usado */
 
 		/* marca o endereco de memoria na tabela de simbolos */
-		regLex.endereco->simbolo.memoria = MD;
+		END_ID = MD;
 
 		/* string de tipo para o comentario */
 		if (t == TP_Integer) {
 			tipo = "int";
 			nome = "sword";
-			n_bytes = 2*tam;
+			n_bytes = TAM_INT*tam;
 		} else if (t == TP_Char) {
 			if (tam == 0)
 				tipo = "caract";
@@ -138,7 +146,7 @@
 				tipo = "string";
 	
 			nome = "byte";
-			n_bytes = tam;
+			n_bytes = TAM_CHA*tam;
 		} else {
 			tipo = "logic";
 			nome = "byte";
@@ -170,11 +178,27 @@
 		MD+=n_bytes;
 	}
 
+	void genAtribuicao(struct Fator *fator)
+	{
+		/* int e logico */
+		if (toLogico(regLex.tipo) == TP_Logico) {
+			CONCAT_BUF("mov AX, DS:[%d]", fator->endereco);
+			CONCAT_BUF("mov %d, AX", END_ID);
+		} else {
+			/* string, move caractere por caractere */
+			/* TODO: Fazer loop EM ASSEMBLY para carregar posicao a posicao da string para o id */
+			for (int i=0; i<fator->tamanho; ++i) {
+				CONCAT_BUF("mov AX, DS:[%d]", (fator->endereco + i));
+				CONCAT_BUF("mov %d, AX", (END_ID + i));
+			}
+		}
+	}
+
 	void fatorGeraConst(struct Fator *fator, char *val)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fatorGeraConst\n");
 
-		int tamTipo = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? 2 : 1;
+		int tamTipo = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? TAM_INT : TAM_CHA;
 		
 		/* string */
 		if (fator->tipo == TP_Char) {
@@ -200,7 +224,7 @@
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fatorGeraId\n");
 
-		fator->endereco = regLex.endereco->simbolo.memoria;
+		fator->endereco = END_ID;
 		fator->tipo = regLex.endereco->simbolo.tipo;
 		fator->tamanho = regLex.endereco->simbolo.tamanho;
 	}
@@ -209,7 +233,7 @@
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fatorGeraArray\n");
 
-		fator->endereco = novoTemp((regLex.tipo == TP_Integer) ? 2 : 1);
+		fator->endereco = novoTemp((regLex.tipo == TP_Integer) ? TAM_INT : TAM_CHA);
 
 		fator->tamanho = 1;
 
@@ -221,7 +245,7 @@
 			CONCAT_BUF("add AX, DS:[%d]", expr->endereco);
 
 		/* soma o endereco do id indice + posicao = endereco real */
-		CONCAT_BUF("add AX, AX, %d", regLex.endereco->simbolo.memoria);
+		CONCAT_BUF("add AX, AX, %d", END_ID);
 
 		/* XXX instrucao desnecessaria? pode mover de DS:[AX] para fator->endereco de uma vez */
 		/* move para um registrador */
@@ -245,7 +269,7 @@
 	{
 		if (DEBUG_GEN) printf("CODEGEN: fatorGeraNot\n");
 
-		int tam = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? 2 : 1;
+		int tam = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? TAM_INT : TAM_CHA;
 
 		pai->endereco = novoTemp(tam);
 		CONCAT_BUF("mov AX, DS:[%d]", filho->endereco);
@@ -278,19 +302,24 @@
 	void acaoTermoFator2(struct Fator *pai)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator2\n");
-		pai->termo->op = regLex.token;
+		pai->op = regLex.token;
 	}
 
 	void acaoTermoFator3(struct Fator *pai)
 	{
 		if (DEBUG_GEN) printf("CODEGEN: acaoTermoFator3\n");
+
 		CONCAT_BUF("mov AX, %d",pai->termo->endereco);
-		CONCAT_BUF("mov BX, %d" );
+		CONCAT_BUF("mov BX, %d",pai->endereco);
+
+		/* TODO fazer imul e idiv certo */
+		if (pai->op == Vezes || pai->op == And)
+			CONCAT_BUF("imul");
+		else if (pai->op == Barra || pai->op == Porcento)
+			CONCAT_BUF("idiv");
+
+		pai->termo->endereco = novoTemp(TAM_INT);
+		CONCAT_BUF("mov AX, %d",pai->termo->endereco);
 	}
 
-	void genExp(struct Fator *fator, char* lexema)
-	{
-		if (DEBUG_GEN) printf("CODEGEN: genExp\n");
-
-	}
 #endif 
