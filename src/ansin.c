@@ -506,28 +506,21 @@
 		DEBUGSIN("atribuicao");
 	
 		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
-		NOVO_TERMO(atual); /* termo da atribuicao */
-
-		atual->fator = expr;
-		expr->termo = atual;
-	
-		atual->n_termos = 0;
 	
 		/* lendo array: id[expressao()] */
 		if (regLex.token == A_Colchete) {
 			lexan();
 	
 			NOVO_FATOR(aux);
-			aux->termo = atual;
 
-			expressao();
+			aux = expressao();
 			/* acao semantica */
 			verificaTipo(aux->tipo, TP_Integer);
 	
 			/* marca como array */
 			atrPos(1);
 			casaToken(F_Colchete);
-			fatorGeraArray(atual->fator, aux);
+			fatorGeraArray(expr, aux);
 		}
 
 		casaToken(Igual);
@@ -570,7 +563,7 @@
 			lexan();
 	
 			/* acao semantica */
-			verificaTipo(expressao(),TP_Integer);
+			verificaTipo(expressao()->tipo,TP_Integer);
 	
 			casaToken(F_Colchete);
 		}
@@ -839,29 +832,55 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao");
 
-		Tipo esq = expressaoS();
-		Tipo ret = esq;
+		NOVO_FATOR(ret);
+		NOVO_FATOR(filho);
+
+		fiho = expressaoS();
+		
+		/* codegen */
+		acaoTermoFator1(ret,filho);
 
 		/* operacoes tipo x tipo -> logico */
 		if (regLex.token == Igual || regLex.token == Diferente) {
+
+			/* codegen */
+			acaoTermoFator2(ret);
+
 			lexan();
 
-			/* acao semantica */
-			verificaTipo(esq, expressaoS());
+			NOVO_FATOR(filho2);
+			filho2 = expressaoS();
 
-			ret = TP_Logico;
+			/* acao semantica */
+			verificaTipo(ret->tipo, filho2->tipo);
+
+			/* codegen */
+			acaoTermoFator3(ret,filho2);
+
+			ret->tipo = TP_Logico;
 		}
 
 		/* operacoes tipo int x int -> logico */
 		else if (regLex.token == Menor || regLex.token == Maior ||
 				regLex.token == MaiorIgual || regLex.token == MenorIgual) 
 		{
-			lexan();
-			/* acao semantica */
-			verificaTipo(esq,TP_Integer);
-			verificaTipo(expressaoS(),TP_Integer);
 
-			ret = TP_Logico;
+			/* codegen */
+			acaoTermoFator2(ret);
+
+			lexan();
+
+			NOVO_FATOR(filho2);
+			filho2 = expressaoS();
+
+			/* acao semantica */
+			verificaTipo(ret->tipo,TP_Integer);
+			verificaTipo(filho2->tipo,TP_Integer);
+
+			/* codegen */
+			acaoTermoFator3(ret,filho2);
+
+			ret->tipo = TP_Logico;
 		}
 
 
@@ -872,41 +891,71 @@
 	/* Expressao simples
 	 * Xs -> [-] T {( + | - | ‘or’) T}
 	 */
-	Tipo expressaoS(void)
+	struct Fator *expressaoS(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressaoS");
 
-		Tipo ret;
+		int menos = 0;
+		int not = 0;
+		NOVO_FATOR(ret);
+		NOVO_FATOR(filho);
 
 		if (regLex.token == Menos) {
-			/* codegen */
-			//fatorGeraMenos();
+			menos = 1;
+			lexan();
+		} else if (regLex.token == Not) {
+			not = 1;
 			lexan();
 		}
 
-		ret = termo();
+		filho = termo();
+
+		/* codegen */
+		acaoTermoFator1(ret,filho);
+		if (menos) fatorGeraMenos(ret);
+		else if (not) fatorGeraNot(ret);
+
 
 		/* operacoes int x int -> int */
 		if (regLex.token == Mais || regLex.token == Menos) {
+
+			/* codegen */
+			acaoTermoFator2(ret);
+
 			lexan();
 
-			/* acao semantica */
-			verificaTipo(ret, TP_Integer);
-			verificaTipo(termo(), TP_Integer);
+			NOVO_FATOR(filho2);
+			filho2 = termo();
 
-			ret = TP_Integer;
+			/* acao semantica */
+			verificaTipo(ret->tipo, TP_Integer);
+			verificaTipo(filho2->tipo, TP_Integer);
+
+			/* codegen */
+			acaoTermoFator3(ret,filho2);
+
+			ret->tipo = TP_Integer;
 		}
 		
 		/* operacoes logico x logico -> logico */
 		else if (regLex.token == Or) {
+
+			/* codegen */
+			acaoTermoFator2(ret);
 			lexan();
+
+			NOVO_FATOR(filho2);
+			filho2 = termo();
 			
 			/* acao semantica */
-			verificaTipo(toLogico(ret), TP_Logico);
-			verificaTipo(toLogico(termo()), TP_Logico);
+			verificaTipo(toLogico(ret->tipo), TP_Logico);
+			verificaTipo(toLogico(filho2->tipo), TP_Logico);
 
-			ret = TP_Logico;
+			/* codegen */
+			acaoTermoFator3(ret,filho2);
+
+			ret->tipo = TP_Logico;
 		}
 
 		del(pilha);
@@ -917,84 +966,110 @@
 	 * recebe como parametro o tipo do lado esquerdo
 	 * T  -> F {( * | / | % | ‘and’ ) F}
 	 */
-	Tipo termo(void)
+	struct Fator *termo(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("termo");
 
-		Tipo ret = fator();
+		NOVO_FATOR(atual);
+		NOVO_FATOR(filho);
 
-		/* operacoes int com int */
+		filho = fator();
+
+		/* codegen */
+		acaoTermoFator1(atual,filho);
+
+		/* operacoes int x int -> int */
 		if (regLex.token == Vezes ||
 				 regLex.token == Barra || regLex.token == Porcento )
 		{
+			/* codegen */
+			acaoTermoFator2(atual);
+
 			lexan();
+
+			NOVO_FATOR(filho2);
+			filho2 = fator();
 
 			/* acao semantica */
 			verificaTipo(ret,TP_Integer);
-			verificaTipo(fator(), TP_Integer);
+			verificaTipo(filho2->tipo, TP_Integer);
 
-			ret = TP_Integer;
+			/* codegen */
+			acaoTermoFator3(atual,filho);
 
-		/* operacoes logico */
-		} else if (regLex.token == And || regLex.token == Not) {
+
+		/* operacoes logico x logico -> logico */
+		} else if (regLex.token == And) {
 			lexan();
 
 			/* codegen */
-			//fatorGeraNot();
+			acaoTermoFator2(atual);
+
+			NOVO_FATOR(filho2);
+			filho2 = fator();
 
 			/* acao semantica */
 			verificaTipo(ret,TP_Logico);
-			verificaTipo(fator(), TP_Logico);
+			verificaTipo(filho2->tipo, TP_Logico);
 
-			ret = TP_Logico;
+			/* codegen */
+			acaoTermoFator3(atual,filho);
+
 		}
 
 		del(pilha);
-		return ret;
+		return atual;
 	}
 
 	/* Fator
 	 * F  -> ‘(‘ X ‘)’ | literal | id ['[' X ']']
 	 */
-	Tipo fator(void)
+	struct Fator *fator(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("fator");
 
-		Tipo ret;
+		NOVO_FATOR(ret);
 		int array = 0;
 
 		if (regLex.token == A_Parenteses) {
 
 			lexan();
-			ret = expressao();
+			NOVO_FATOR(expr);
+			expr = expressao();
 
 			/* codegen */
-			// fatorGeraExp();
+			fatorGeraExp(ret,expr);
 			
 			casaToken(F_Parenteses);
 
+		/* fator -> literal */
 		} else if (regLex.token == Literal) {
 
 			lexAux = regLex.lexema;
 
 			/* codegen */
-			//fatorGeraConst();
+			fatorGeraLiteral(ret,lexAux);
 			
-			ret = regLex.tipo;
+			ret->tipo = regLex.tipo;
 			lexan();
 
+		/* fator -> id */
 		} else if (regLex.token == Identificador) {
 
 			lexan();
+
+			NOVO_FATOR(aux);
 
 			/* lendo array: id[expressao()] */
 			if (regLex.token == A_Colchete) {
 				lexan();
 
+				aux = expressao();
+
 				/* acao semantica */
-				verificaTipo(expressao(), TP_Integer);
+				verificaTipo(aux->tipo, TP_Integer);
 
 				/* marca como array */
 				atrPos(1); array = 1;
@@ -1003,12 +1078,12 @@
 			}
 
 			/* codegen */
-			//if (array)
-				//fatorGeraArray();
-			//else
-				//fatorGeraId();
+			if (array)
+				fatorGeraArray(ret,aux);
+			else
+				fatorGeraId(ret);
 
-			ret = regLex.endereco->simbolo.tipo;
+			ret->tipo = regLex.endereco->simbolo.tipo;
 		}
 
 		del(pilha);

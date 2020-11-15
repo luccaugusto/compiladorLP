@@ -24,16 +24,16 @@
 	void iniciarCodegen(void);
 	void fatorGeraId(struct Fator *);
 	void genExp(struct Fator *, char*);
-	void fatorGeraConst(struct Fator *, char *);
+	void fatorGeraLiteral(struct Fator *, char *);
 	void fatorGeraExp(struct Fator *,struct Fator *);
 	void fatorGeraNot(struct Fator *, struct Fator *);
 	void genDeclaracao(Tipo, Classe, int, char*, int);
 	void fatorGeraArray(struct Fator *,struct Fator *);
 	void fatorGeraMenos(struct Fator *, struct Fator *);
 
-	void acaoTermoFator1(struct Fator *);
+	void acaoTermoFator1(struct Fator *, struct Fator *);
 	void acaoTermoFator2(struct Fator *);
-	void acaoTermoFator3(struct Fator *);
+	void acaoTermoFator3(struct Fator *, struct Fator *);
 
 	extern char *buffer;
 	extern char *aux;

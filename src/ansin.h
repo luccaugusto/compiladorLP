@@ -39,10 +39,10 @@
 	void constante(void);
 	void comandos2(void);
 	void repeticao(void);
-	Tipo expressao(void);
-	Tipo fator(void);
-	Tipo termo(void);
-	Tipo expressaoS(void);
+	struct Fator *expressao(void);
+	struct Fator *fator(void);
+	struct Fator *termo(void);
+	struct Fator *expressaoS(void);
 	void expressao2(void);
 	void repeticao1(void);
 	void declaracao(void);
