@@ -80,7 +80,7 @@
 	void del(struct pilha_d *pilha)
 	{
 		/* nada a fazer se a pilha estiver vazia */
-		if (pilha != NULL || pilha->tam > 0) {
+		if (pilha != NULL && pilha->tam > 0) {
 
 			/* deleta o ultimo elemento e reduz a contagem do tamanho */
 			pilha->elementos = (struct elemento *) realloc(pilha->elementos,
