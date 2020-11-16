@@ -596,7 +596,7 @@
 				lexan();
 	
 				/* acao semantica */
-				verificaTipo(expressao(),TP_Integer);
+				verificaTipo(expressao()->tipo,TP_Integer);
 	
 				casaToken(F_Colchete);
 			}
@@ -716,7 +716,7 @@
 		DEBUGSIN("teste");
 	
 		/* acao semantica */
-		verificaTipo(expressao(),TP_Logico);
+		verificaTipo(expressao()->tipo,TP_Logico);
 	
 		/* then foi lido antes de retornar de expressao() */
 		casaToken(Then);
@@ -794,11 +794,6 @@
 		/* fator da expressao do lado direito */
 		NOVO_FATOR(expr);
 	
-		/* termo da atribuicao */
-		NOVO_TERMO(atual);
-		atual->fator = expr;
-		expr->termo = atual;
-	
 		casaToken(A_Parenteses);
 		expressao2();
 		casaToken(F_Parenteses);
@@ -827,7 +822,7 @@
 	 * X -> Xs [ O Xs ]
 	 * O  -> = | <> | < | > | >= | <=
 	 */
-	Tipo expressao(void)
+	struct Fator *expressao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao");
@@ -835,7 +830,7 @@
 		NOVO_FATOR(ret);
 		NOVO_FATOR(filho);
 
-		fiho = expressaoS();
+		filho = expressaoS();
 		
 		/* codegen */
 		acaoTermoFator1(ret,filho);
@@ -913,8 +908,8 @@
 
 		/* codegen */
 		acaoTermoFator1(ret,filho);
-		if (menos) fatorGeraMenos(ret);
-		else if (not) fatorGeraNot(ret);
+		if (menos) fatorGeraMenos(ret,filho);
+		else if (not) fatorGeraNot(ret,filho);
 
 
 		/* operacoes int x int -> int */
@@ -992,11 +987,11 @@
 			filho2 = fator();
 
 			/* acao semantica */
-			verificaTipo(ret,TP_Integer);
+			verificaTipo(atual->tipo,TP_Integer);
 			verificaTipo(filho2->tipo, TP_Integer);
 
 			/* codegen */
-			acaoTermoFator3(atual,filho);
+			acaoTermoFator3(atual,filho2);
 
 
 		/* operacoes logico x logico -> logico */
@@ -1010,11 +1005,11 @@
 			filho2 = fator();
 
 			/* acao semantica */
-			verificaTipo(ret,TP_Logico);
+			verificaTipo(atual->tipo,TP_Logico);
 			verificaTipo(filho2->tipo, TP_Logico);
 
 			/* codegen */
-			acaoTermoFator3(atual,filho);
+			acaoTermoFator3(atual,filho2);
 
 		}
 

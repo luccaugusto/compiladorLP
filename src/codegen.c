@@ -33,6 +33,53 @@
 		DS = 0x0;
 	}
 
+	void aritmeticos(char* op, char *RD, char *RO, struct Fator *pai)
+	{
+		pai->endereco = novoTemp(TAM_INT);
+
+		if (op == "imul" || op == "idiv") {
+
+			CONCAT_BUF("%s %s",op, RD);
+
+		} else if (op == "add" || op == "sub") {
+
+			CONCAT_BUF("%s %s %s",op, RD, RO);
+			RO = RD;
+
+		}
+
+		CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RO);
+	}
+
+	void addEsub(char* op, char *RD, char *RO, struct Fator *pai)
+	{
+		CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RD);
+	}
+
+	void comp(char *op, struct Fator *pai)
+	{
+		int verdadeiro = novoRot();
+		int falso = novoRot();
+	
+		CONCAT_BUF("cmp AX BX");
+		CONCAT_BUF("je R%d",verdadeiro);
+		CONCAT_BUF("mov AX, 0");
+		CONCAT_BUF("jmp R%D",falso);
+		CONCAT_BUF("R%d:",verdadeiro);
+		CONCAT_BUF("mov AX, 1");
+		CONCAT_BUF("R%d:",falso);
+	
+		pai->endereco = novoTemp(TAM_INT);
+		pai->tipo = TP_Logico;
+	
+		CONCAT_BUF("mov DS:[%d] AX", pai->endereco);
+	}
+
+	void compChar(char* op, struct Fator *pai)
+	{
+
+	}
+
 	/* inicia o buffer */
 	void iniciarCodegen(void)
 	{ 
@@ -121,9 +168,9 @@
 		DEBUGGEN("fimComandos");
 
 		CONCAT_BUF("cseg ENDS\t\t\t\t\t;fim seg. codigo");
-		CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
 		CONCAT_BUF("mov ah, 4Ch");
 		CONCAT_BUF("int 21h");
+		CONCAT_BUF("END strt\t\t\t\t\t;fim programa");
 	}
 
 	/* gera o asm da declaracao de uma variavel ou constante 
@@ -331,7 +378,6 @@
 
 	/* TODO 
 	 * simular and e or
-	 * refatorar os ifs pra ter menos codigo repetido
 	 */
 	void acaoTermoFator3(struct Fator *pai, struct Fator *filho)
 	{
@@ -345,54 +391,68 @@
 		char *RD = "AX"; /* registrador Destino         */
 		char *RO = "BX"; /* registrador origem          */
 
+		switch (pai->op) {
+			case Vezes: /* fallthrough */
+			case And: 
+						op = "imul";
+						RO = "AX";
+						aritmeticos(op,RD,RO,pai);
+						break;
 
+			case Barra: op = "idiv";
+						RO = "AX";
+						aritmeticos(op,RD,RO,pai);
+						break;
 
-		if (pai->op == Vezes || pai->op == And) {
-			op = "imul";
+			case Porcento: 
+						op = "idiv";
+						RO = "DX";
+						aritmeticos(op,RD,RO,pai);
+						break;
 
-			CONCAT_BUF("%s %s",op, RD);
-			pai->endereco = novoTemp(TAM_INT);
-			CONCAT_BUF("mov DS:[%d], AX",pai->endereco);
+			case Mais: 
+						op = "add";
+						aritmeticos(op, RD, RO, pai);
+						break;
 
-		} else if (pai->op == Barra){
+			case Menos:
+						op = "sub";
+						aritmeticos(op, RD, RO, pai);
+						break;
 
-			CONCAT_BUF("%s %s",op, RD);
-			pai->endereco = novoTemp(TAM_INT);
-			CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RD);
+			case Igual:
+						op = "je";
+						if (pai->tipo == TP_Char)
+							compChar(op, pai);
+						else
+							comp(op, pai);
 
-		} else if (pai->op == Porcento) {
+						break;
 
-			op = "idiv";
-			RO = "DX";
-			CONCAT_BUF("%s %s",op, RD);
-			pai->endereco = novoTemp(TAM_INT);
-			CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RO);
+			case Diferente:
+						op = "jne";
+						comp(op, pai);
+						break;
 
-		} else if (pai->op == Mais) {
-			op = "add";
-			CONCAT_BUF("%s %s %s",op, RD, RO);
+			case Maior: 
+						op = "jg";
+						comp(op, pai);
+						break;
 
-		} else if (pai->op == Menos) {
-			op = "sub";
-			CONCAT_BUF("%s %s %s",op, RD, RO);
+			case Menor:
+						op = "jl";
+						comp(op, pai);
+						break;
 
-		} else if (pai->op == Or) {
+			case MaiorIgual:
+						op = "jge";
+						comp(op, pai);
+						break;
 
-			/*TODO
-			 * MINUTO 21:29
-			 * */
-			
-		} else if (pai->op == Igual) {
-
-		} else if (pai->op == Diferente) {
-
-		} else if (pai->op == Maior) {
-
-		} else if (pai->op == MaiorIgual) {
-
-		} else if (pai->op == Menor) {
-
-		} else if (pai->op == MenorIgual) {
+			case MenorIgual:
+						op = "jle";
+						comp(op, pai);
+						break;
 
 		}
 
