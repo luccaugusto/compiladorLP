@@ -60,10 +60,11 @@
 		int verdadeiro = novoRot();
 		int falso = novoRot();
 	
-		CONCAT_BUF("cmp AX BX");
-		CONCAT_BUF("je R%d",verdadeiro);
+		CONCAT_BUF("cmp AX, BX");
+		CONCAT_BUF("%s R%d", op, verdadeiro);
 		CONCAT_BUF("mov AX, 0");
 		CONCAT_BUF("jmp R%D",falso);
+
 		CONCAT_BUF("R%d:",verdadeiro);
 		CONCAT_BUF("mov AX, 1");
 		CONCAT_BUF("R%d:",falso);
@@ -74,9 +75,40 @@
 		CONCAT_BUF("mov DS:[%d] AX", pai->endereco);
 	}
 
-	void compChar(char* op, struct Fator *pai)
+	void compChar(struct Fator *pai)
 	{
+		int init = novoRot();
+		int verdadeiro = novoRot();
+		int falso = novoRot();
+		int fimStr = novoRot();
 
+		CONCAT_BUF("R%d:",init);        /* marca o inicio do loop */
+		CONCAT_BUF("mov CH, DS:[AX]");  /* move para CH o caractere da string em AX*/
+		CONCAT_BUF("mov CL, DS:[BX]");  /* move para CH o caractere da string em BX*/
+		CONCAT_BUF("cmp CH, CL");       /* compara as strings */
+		CONCAT_BUF("je R%d", verdadeiro);
+		CONCAT_BUF("mov AX, 0");
+		CONCAT_BUF("jmp R%D",fimStr);   /* strings diferentes */
+		CONCAT_BUF("R%d:",verdadeiro);  /* caracteres iguais */
+		CONCAT_BUF("cmp CH, $");        /* verifica se chegou no final da primeira string */
+		CONCAT_BUF("je R%d",iguais);
+		CONCAT_BUF("cmp CL, $");        /* verifica se chegou no final da segunda string */
+		CONCAT_BUF("je R%d",iguais);
+										/* nao chegou fim de nenhuma string */
+		CONCAT_BUF("add AX, 1");        /* anda uma posicao no primeiro string */
+		CONCAT_BUF("add BX, 1");        /* anda uma posicao no segundo string  */
+
+		CONCAT_BUF("jmp R%d", init);    /* volta ao inicio do loop */
+
+		CONCAT_BUF("R%d:",iguais);      /* strings iguais */
+		CONCAT_BUF("mov AX, 1");
+
+		CONCAT_BUF("R%d:", fimStr);     /* fim de string */
+	
+		pai->endereco = novoTemp(TAM_INT);
+		pai->tipo = TP_Logico;
+	
+		CONCAT_BUF("mov DS:[%d] AX", pai->endereco);
 	}
 
 	/* inicia o buffer */
@@ -241,14 +273,28 @@
 		/* int e logico */
 		if (toLogico(regLex.tipo) == TP_Logico) {
 			CONCAT_BUF("mov AX, DS:[%d]", fator->endereco);
-			CONCAT_BUF("mov %d, AX", END_ID);
+			CONCAT_BUF("mov %d, AX", regLex.endereco->simbolo.memoria);
 		} else {
 			/* string, move caractere por caractere */
-			/* TODO: Fazer loop EM ASSEMBLY para carregar posicao a posicao da string para o id */
-			for (int i=0; i<fator->tamanho; ++i) {
-				CONCAT_BUF("mov AX, DS:[%d]", (fator->endereco + i));
-				CONCAT_BUF("mov %d, AX", (END_ID + i));
-			}
+			int init = novoRot();
+			int fim = novoRot();
+			int endereco = novoTemp();
+
+			CONCAT_BUF("mov AX, %d", fator->endereco);
+			CONCAT_BUF("mov DX, %d", endereco); /* concatena em endereco*/
+
+			CONCAT_BUF("R%d", init); /* inicio do loop */
+			CONCAT_BUF("mov CX, DS:[AX]"); /* caractere em CX */
+			CONCAT_BUF("cmp CX, $"); /* verifica se chegou no fim */
+			CONCAT_BUF("jmp R%d", fim); /* fim da str */
+			CONCAT_BUF("mov DS:[DX], CX"); /* transfere pro endereco a string */
+			CONCAT_BUF("add DX, 1"); /* avanca posicao a receber o proximo caractere */
+			CONCAT_BUF("add AX, 1"); /* proximo caractere */
+			CONCAT_BUF("jmp R%d", init);
+			CONCAT_BUF("R%d", fim);
+
+			/* transfere pro endereco do id o endereco da string */
+			CONCAT_BUF("mov %d, DX", regLex.endereco->simbolo.memoria);
 		}
 	}
 
@@ -362,7 +408,7 @@
 	void atualizaPai(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
-		DEBUGGEN("acaoTermoFator1");
+		DEBUGGEN("atualizaPai");
 
 		pai->endereco = filho->endereco;
 		pai->tipo = filho->tipo;
@@ -373,7 +419,7 @@
 	void guardaOp(struct Fator *pai)
 	{
 		/* DEBUGGER E PILHA */
-		DEBUGGEN("acaoTermoFator2");
+		DEBUGGEN("guardaOp");
 
 		pai->op = regLex.token;
 	}
@@ -382,7 +428,7 @@
 	void genOpTermos(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
-		DEBUGGEN("acaoTermoFator3");
+		DEBUGGEN("genOpTermos");
 
 		CONCAT_BUF("mov AX, %d",pai->endereco);
 		CONCAT_BUF("mov BX, %d",filho->endereco);
@@ -423,7 +469,7 @@
 			case Igual:
 						op = "je";
 						if (pai->tipo == TP_Char)
-							compChar(op, pai);
+							compChar(pai);
 						else
 							comp(op, pai);
 
