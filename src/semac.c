@@ -94,9 +94,15 @@
 		if (regLex.endereco->simbolo.classe == 0)
 			erroSintatico(ER_SIN_NDEC);
 	
+	}
+
+	/* verifica se o identificador eh constante */
+	void verificaConst(char *identificador)
+	{
+		regLex.endereco = pesquisarRegistro(identificador);
+
 		if (regLex.endereco->simbolo.classe == CL_Const)
 			erroSintatico(ER_SIN_C_INC);
-	
 	}
 	
 	/* Verificacao de atribuicao a vetor 

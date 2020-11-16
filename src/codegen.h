@@ -13,27 +13,27 @@
 
 	/* Geração de código */
 	void flush(void);
+	void buf_concatenar(void);
 	int novoTemp(int);
 	int novoRot(void);
-	void genAtribuicao(struct Fator *);
 	void zeraTemp(void);
+	void genAtribuicao(struct Fator *);
+	void genExp(struct Fator *, char*);
+	void genDeclaracao(Tipo, Classe, int, char*, int);
+	void initDeclaracao(void);
+	void iniciarCodegen(void);
 	void fimComandos(void);
 	void fimDecInitCom(void);
-	void initDeclaracao(void);
-	void buf_concatenar(void);
-	void iniciarCodegen(void);
 	void fatorGeraId(struct Fator *);
-	void genExp(struct Fator *, char*);
 	void fatorGeraLiteral(struct Fator *, char *);
 	void fatorGeraExp(struct Fator *,struct Fator *);
 	void fatorGeraNot(struct Fator *, struct Fator *);
-	void genDeclaracao(Tipo, Classe, int, char*, int);
 	void fatorGeraArray(struct Fator *,struct Fator *);
 	void fatorGeraMenos(struct Fator *, struct Fator *);
 
-	void acaoTermoFator1(struct Fator *, struct Fator *);
-	void acaoTermoFator2(struct Fator *);
-	void acaoTermoFator3(struct Fator *, struct Fator *);
+	void atualizaPai(struct Fator *, struct Fator *);
+	void guardaOp(struct Fator *);
+	void genOpTermos(struct Fator *, struct Fator *);
 
 	extern char *buffer;
 	extern char *aux;

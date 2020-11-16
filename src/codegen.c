@@ -7,7 +7,9 @@
 
 	/*
 	 * TODO
-	 * revisar sintaxe do assembly em TODOS os comandos
+	 * fazer comparacao de string
+	 * fazer simulacao de And e Or com aritmeticos
+	 * Fazer loop EM ASSEMBLY para carregar posicao a posicao da string para o id
 	 */
 
 	char *buffer;       /* buffer de criacao do codigo asm     */
@@ -33,6 +35,7 @@
 		DS = 0x0;
 	}
 
+	/* operacoes aritmeticas, add, sub, imul e idiv */
 	void aritmeticos(char* op, char *RD, char *RO, struct Fator *pai)
 	{
 		pai->endereco = novoTemp(TAM_INT);
@@ -51,11 +54,7 @@
 		CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RO);
 	}
 
-	void addEsub(char* op, char *RD, char *RO, struct Fator *pai)
-	{
-		CONCAT_BUF("mov DS:[%d], %s", pai->endereco, RD);
-	}
-
+	/* comparacoes nao string */
 	void comp(char *op, struct Fator *pai)
 	{
 		int verdadeiro = novoRot();
@@ -285,6 +284,9 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fatorGeraId");
 
+		/* acao semantica */
+		verificaDeclaracao(regLex.endereco->simbolo.lexema);
+
 		fator->endereco = regLex.endereco->simbolo.tipo;
 		fator->tipo = regLex.endereco->simbolo.tipo;
 		fator->tamanho = regLex.endereco->simbolo.tamanho;
@@ -357,7 +359,7 @@
 	}
 
 	/* repassa dados do filho para o pai */
-	void acaoTermoFator1(struct Fator *pai, struct Fator *filho)
+	void atualizaPai(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("acaoTermoFator1");
@@ -368,7 +370,7 @@
 	}
 
 	/* salva o operador */
-	void acaoTermoFator2(struct Fator *pai)
+	void guardaOp(struct Fator *pai)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("acaoTermoFator2");
@@ -376,10 +378,8 @@
 		pai->op = regLex.token;
 	}
 
-	/* TODO 
-	 * simular and e or
-	 */
-	void acaoTermoFator3(struct Fator *pai, struct Fator *filho)
+	/* operacoes entre termos */
+	void genOpTermos(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("acaoTermoFator3");

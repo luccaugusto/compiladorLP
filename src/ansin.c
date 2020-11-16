@@ -174,6 +174,9 @@
 			case Identificador:
 				/* acao semantica */
 				verificaDeclaracao(regLex.lexema);
+				verificaConst(lexAux);
+
+				lexAux = regLex.lexema;
 	
 				estado_sin = N_ACEITACAO_SIN;
 				lexan();
@@ -504,6 +507,7 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("atribuicao");
+
 	
 		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
 	
@@ -833,13 +837,13 @@
 		filho = expressaoS();
 		
 		/* codegen */
-		acaoTermoFator1(ret,filho);
+		atualizaPai(ret,filho);
 
 		/* operacoes tipo x tipo -> logico */
 		if (regLex.token == Igual || regLex.token == Diferente) {
 
 			/* codegen */
-			acaoTermoFator2(ret);
+			guardaOp(ret);
 
 			lexan();
 
@@ -850,7 +854,7 @@
 			verificaTipo(ret->tipo, filho2->tipo);
 
 			/* codegen */
-			acaoTermoFator3(ret,filho2);
+			genOpTermos(ret,filho2);
 
 			ret->tipo = TP_Logico;
 		}
@@ -861,7 +865,7 @@
 		{
 
 			/* codegen */
-			acaoTermoFator2(ret);
+			guardaOp(ret);
 
 			lexan();
 
@@ -873,7 +877,7 @@
 			verificaTipo(filho2->tipo,TP_Integer);
 
 			/* codegen */
-			acaoTermoFator3(ret,filho2);
+			genOpTermos(ret,filho2);
 
 			ret->tipo = TP_Logico;
 		}
@@ -907,7 +911,7 @@
 		filho = termo();
 
 		/* codegen */
-		acaoTermoFator1(ret,filho);
+		atualizaPai(ret,filho);
 		if (menos) fatorGeraMenos(ret,filho);
 		else if (not) fatorGeraNot(ret,filho);
 
@@ -916,7 +920,7 @@
 		if (regLex.token == Mais || regLex.token == Menos) {
 
 			/* codegen */
-			acaoTermoFator2(ret);
+			guardaOp(ret);
 
 			lexan();
 
@@ -928,7 +932,7 @@
 			verificaTipo(filho2->tipo, TP_Integer);
 
 			/* codegen */
-			acaoTermoFator3(ret,filho2);
+			genOpTermos(ret,filho2);
 
 			ret->tipo = TP_Integer;
 		}
@@ -937,7 +941,7 @@
 		else if (regLex.token == Or) {
 
 			/* codegen */
-			acaoTermoFator2(ret);
+			guardaOp(ret);
 			lexan();
 
 			NOVO_FATOR(filho2);
@@ -948,7 +952,7 @@
 			verificaTipo(toLogico(filho2->tipo), TP_Logico);
 
 			/* codegen */
-			acaoTermoFator3(ret,filho2);
+			genOpTermos(ret,filho2);
 
 			ret->tipo = TP_Logico;
 		}
@@ -972,14 +976,14 @@
 		filho = fator();
 
 		/* codegen */
-		acaoTermoFator1(atual,filho);
+		atualizaPai(atual,filho);
 
 		/* operacoes int x int -> int */
 		if (regLex.token == Vezes ||
 				 regLex.token == Barra || regLex.token == Porcento )
 		{
 			/* codegen */
-			acaoTermoFator2(atual);
+			guardaOp(atual);
 
 			lexan();
 
@@ -991,7 +995,7 @@
 			verificaTipo(filho2->tipo, TP_Integer);
 
 			/* codegen */
-			acaoTermoFator3(atual,filho2);
+			genOpTermos(atual,filho2);
 
 
 		/* operacoes logico x logico -> logico */
@@ -999,7 +1003,7 @@
 			lexan();
 
 			/* codegen */
-			acaoTermoFator2(atual);
+			guardaOp(atual);
 
 			NOVO_FATOR(filho2);
 			filho2 = fator();
@@ -1009,7 +1013,7 @@
 			verificaTipo(filho2->tipo, TP_Logico);
 
 			/* codegen */
-			acaoTermoFator3(atual,filho2);
+			genOpTermos(atual,filho2);
 
 		}
 
