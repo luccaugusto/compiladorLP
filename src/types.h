@@ -8,6 +8,8 @@
 											s->tipo = regLex.tipo; \
 											s->op = 0
 
+	typedef int rot;
+
 	typedef enum {
 		Identificador = 1,
 		Const,

@@ -89,14 +89,14 @@
 	 */
 	void verificaDeclaracao(char *identificador)
 	{
-		if (regLex.endereco->simbolo.classe == 0)
+		if (pesquisarRegistro(identificador)->simbolo.classe == 0)
 			erroSintatico(ER_SIN_NDEC);
 	}
 
 	/* verifica se o identificador eh constante */
 	void verificaConst(char *identificador)
 	{
-		if (regLex.endereco->simbolo.classe == CL_Const)
+		if (pesquisarRegistro(identificador)->simbolo.classe == CL_Const)
 			erroSintatico(ER_SIN_C_INC);
 	}
 	

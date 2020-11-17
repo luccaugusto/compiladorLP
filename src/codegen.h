@@ -1,7 +1,7 @@
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 
-	//define DEBUG_GEN
+	#define DEBUG_GEN
 
 	#define TAM_INT 2
 	#define TAM_CHA 1
@@ -17,18 +17,23 @@
 	int novoTemp(int);
 	int novoRot(void);
 	void zeraTemp(void);
-	void genAtribuicao(struct Fator *);
+	void genAtribuicao(struct Fator *, struct Fator *);
 	void genExp(struct Fator *, char*);
 	void genDeclaracao(Tipo, Classe, int, char*, int);
+	void genRepeticao(struct Fator *, struct Fator *, rot, rot);
+	void genFimRepeticao(struct Fator *, rot, rot, char *);
+	void genTeste(struct Fator *, rot, rot);
+	void genElseTeste(rot, rot);
+	void genFimTeste(rot);
 	void initDeclaracao(void);
 	void iniciarCodegen(void);
 	void fimComandos(void);
 	void fimDecInitCom(void);
-	void fatorGeraId(struct Fator *);
+	void fatorGeraId(struct Fator *, char *);
 	void fatorGeraLiteral(struct Fator *, char *);
 	void fatorGeraExp(struct Fator *,struct Fator *);
 	void fatorGeraNot(struct Fator *, struct Fator *);
-	void fatorGeraArray(struct Fator *,struct Fator *);
+	void fatorGeraArray(struct Fator *,struct Fator *, char *);
 	void fatorGeraMenos(struct Fator *, struct Fator *);
 
 	void atualizaPai(struct Fator *, struct Fator *);

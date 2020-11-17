@@ -174,10 +174,8 @@
 			case Identificador:
 				/* acao semantica */
 				verificaDeclaracao(regLex.lexema);
-				verificaConst(lexAux);
+				verificaConst(regLex.lexema);
 
-				lexAux = regLex.lexema;
-	
 				estado_sin = N_ACEITACAO_SIN;
 				lexan();
 				atribuicao();
@@ -219,7 +217,7 @@
 			case Write:
 				estado_sin = N_ACEITACAO_SIN;
 				lexan();
-				escrita();
+				escrita(0);
 				blocoComandos();
 				estado_sin = ACEITACAO_SIN;
 				break;
@@ -227,7 +225,7 @@
 			case Writeln:
 				estado_sin = N_ACEITACAO_SIN;
 				lexan();
-				escritaLn();
+				escrita(1);
 				blocoComandos();
 				estado_sin = ACEITACAO_SIN;
 				break;
@@ -507,9 +505,16 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("atribuicao");
-
 	
+		NOVO_FATOR(pai);
 		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
+		int tipoId = regLex.endereco->simbolo.tipo;
+
+		/* codegen
+		 * salva no pai o endereco de id
+		 * para caso leia outro id na expressao de atribuicao
+		 */
+		pai->endereco = regLex.endereco->simbolo.memoria;
 	
 		/* lendo array: id[expressao()] */
 		if (regLex.token == A_Colchete) {
@@ -524,23 +529,22 @@
 			/* marca como array */
 			atrPos(1);
 			casaToken(F_Colchete);
-			fatorGeraArray(expr, aux);
+			fatorGeraArray(pai, aux, regLex.endereco->simbolo.lexema);
 		}
 
 		casaToken(Igual);
 	
-		lexAux = regLex.lexema;
-	
 		/* codegen */
 		zeraTemp();
 	
-		expressao();
+		expr = expressao();
+
 		/* acao semantica */
-		verificaTipo(expr->tipo, regLex.endereco->simbolo.tipo);
+		verificaTipo(expr->tipo, tipoId);
 		verificaAtrVetor();
 
 		/* codegen */
-		//genAtribuicao();
+		genAtribuicao(pai,expr);
 	
 		del(pilha);
 		casaToken(PtVirgula);
@@ -554,20 +558,38 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("repeticao");
 	
-		Tipo t = buscaTipo(regLex.lexema);
+		Tipo t = regLex.endereco->simbolo.tipo;
+		NOVO_FATOR(pai);
+		NOVO_FATOR(filho);
+		NOVO_FATOR(filho2);
 	
+		lexAux = regLex.lexema;
+
+		/* codegen
+		 * salva o endereco do id no pai
+		 * para caso leia outro id na expressao de atribuicao
+		 */
+		pai->endereco = regLex.endereco->simbolo.memoria;
+
 		casaToken(Identificador);
 	
 		/* acao semantica */
 		verificaTipo(t,TP_Integer);
-	
+		verificaDeclaracao(lexAux);
+		verificaConst(lexAux);
 	
 		/* lendo array: id[i] */
 		if (regLex.token == A_Colchete) {
 			lexan();
+
+			NOVO_FATOR(aux);
+			aux = expressao();
 	
 			/* acao semantica */
-			verificaTipo(expressao()->tipo,TP_Integer);
+			verificaTipo(aux->tipo,TP_Integer);
+
+			/* codegen */
+			acessoArray(pai, aux);
 	
 			casaToken(F_Colchete);
 		}
@@ -575,72 +597,61 @@
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
 		casaToken(Igual);
 	
-		t = regLex.tipo;
-		casaToken(Literal);
+		filho = expressao();
+
+		/* codegen */
+		genAtribuicao(pai, filho);
 	
 		/* acao semantica */
-		verificaTipo(t,TP_Integer);
+		verificaTipo(filho->tipo,TP_Integer);
 	
 		casaToken(To);
+
+		filho2 = expressao();
+
+		/* codegen */
+		rot inicio = novoRot();
+		rot fim = novoRot();
+		genRepeticao(pai,filho2,inicio,fim);
 	
-		if (regLex.token == Literal) {
-			/* acao semantica */
-			verificaTipo(regLex.tipo, TP_Integer);
-	
-			lexan();
-	
-		} else if (regLex.token == Identificador) {
-			/* acao semantica */
-			verificaTipo(buscaTipo(regLex.lexema), TP_Integer);
-	
-			lexan();
-	
-			if (regLex.token == A_Colchete) {
-				/* lendo array: id[i] */
-				lexan();
-	
-				/* acao semantica */
-				verificaTipo(expressao()->tipo,TP_Integer);
-	
-				casaToken(F_Colchete);
-			}
-			/* ja leu ( id|id[i] ) e pode fechar o comando */
-		}
-	
-		repeticao1();
-	
+		repeticao1(pai, inicio, fim);
 	
 		del(pilha);
 	}
 	
 	/* 
-	 * R2 na gramatica
-	 *
 	 * step literal do comandos2();
 	 * ou
 	 * do comandos2();
 	 */
-	void repeticao1(void)
+	void repeticao1(struct Fator *pai, rot inicio, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("repeticao1");
 	
 		Tipo t;
+		char *step = "1";
 	
 		if (regLex.token == Step) {
 			lexan();
+
+			/* guarda o step */
 			t = regLex.tipo;
-	
+			step = regLex.lexema;
+
 			casaToken(Literal);
 	
 			/* acao semantica */
 			verificaTipo(t, TP_Integer);
 	
-	
 		}
 	
 		casaToken(Do);
 		comandos2();
+
+		/* codegen */
+		genFimRepeticao(pai, inicio, fim, step);
+
 		del(pilha);
 	}
 	
@@ -683,12 +694,12 @@
 	
 			case Write:
 				lexan();
-				escrita();
+				escrita(0);
 				break;
 	
 			case Writeln:
 				lexan();
-				escritaLn();
+				escrita(1);
 				break;
 	
 			case A_Chaves:
@@ -718,9 +729,18 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("teste");
+
+		NOVO_FATOR(expr);
+		rot falso = novoRot();
+		rot fim = novoRot();
+
+		expr = expressao();
 	
 		/* acao semantica */
-		verificaTipo(expressao()->tipo,TP_Logico);
+		verificaTipo(expr->tipo, TP_Logico);
+
+		/* codegen */
+		genTeste(expr, falso, fim);
 	
 		/* then foi lido antes de retornar de expressao() */
 		casaToken(Then);
@@ -730,7 +750,7 @@
 		if (regLex.token == F_Chaves)
 			lexan(); 
 	
-		teste1();
+		teste1(falso, fim);
 		del(pilha);
 	}
 	
@@ -738,15 +758,19 @@
 	 * ou fim do if
 	 * blocoComandos()
 	 */
-	void teste1(void)
+	void teste1(rot falso, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("teste1");
+
+		genElseTeste(falso, fim);
 	
 		if (regLex.token == Else) {
 			lexan();
 			comandos2();
 		}
+
+		genFimTeste(fim);
 		del(pilha);
 	}
 	
@@ -757,20 +781,34 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("leitura");
+		NOVO_FATOR(pai);
+		NOVO_FATOR(expr);
+		char *lexId;
 	
 		casaToken(A_Parenteses);
+
+		lexId = regLex.lexema;
 		casaToken(Identificador);
+
+		/* codegen */
+		pai->endereco = regLex.endereco->simbolo.memoria;
 	
 		if (regLex.token == A_Colchete) {
 			/* lendo array: id[i] */
 			lexan();
-			expressao();
+			expr = expressao();
 			casaToken(F_Colchete);
+
+			/* acao semantica */
+			verificaTipo(expr->tipo, TP_Integer);
+			fatorGeraArray(pai, expr, lexId);
 		}
 	
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
 		casaToken(F_Parenteses);
 		casaToken(PtVirgula);
+
+		genEntrada(pai);
 	
 		del(pilha);
 	}
@@ -790,34 +828,15 @@
 	/* Comando de escrita
 	 * write(id|const)
 	 */
-	void escrita(void)
+	void escrita(int ln)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("escrita");
 	
-		/* fator da expressao do lado direito */
-		NOVO_FATOR(expr);
-	
 		casaToken(A_Parenteses);
-		expressao2();
+		expressao2(ln);
 		casaToken(F_Parenteses);
 		casaToken(PtVirgula);
-		del(pilha);
-	}
-	
-	/* Funciona como um wrapper para o escrita.
-	 * a sintaxe dos dois é a mesma porém o escritaLn
-	 * deve colocar a quebra de linha no final.
-	 * Isso será tratado posteriormente, ao implementar
-	 * a geração de código
-	 * TODO colocar quebra de linha na geracao de codigo
-	 */
-	void escritaLn(void)
-	{
-		/* DEBUGGER E PILHA */
-		DEBUGSIN("escritaLn");
-	
-		escrita();
 		del(pilha);
 	}
 	
@@ -962,7 +981,6 @@
 	}
 
 	/* Termo
-	 * recebe como parametro o tipo do lado esquerdo
 	 * T  -> F {( * | / | % | ‘and’ ) F}
 	 */
 	struct Fator *termo(void)
@@ -1031,6 +1049,7 @@
 
 		NOVO_FATOR(ret);
 		int array = 0;
+		char *lexId;
 
 		if (regLex.token == A_Parenteses) {
 
@@ -1056,11 +1075,14 @@
 
 		/* fator -> id */
 		} else if (regLex.token == Identificador) {
+			lexId = regLex.lexema;
+
+			/* acao semantica */
+			verificaDeclaracao(lexId);
 
 			lexan();
 
 			NOVO_FATOR(aux);
-
 			/* lendo array: id[expressao()] */
 			if (regLex.token == A_Colchete) {
 				lexan();
@@ -1078,11 +1100,11 @@
 
 			/* codegen */
 			if (array)
-				fatorGeraArray(ret,aux);
+				fatorGeraArray(ret,aux,lexId);
 			else
-				fatorGeraId(ret);
+				fatorGeraId(ret,lexId);
 
-			ret->tipo = regLex.endereco->simbolo.tipo;
+			ret->tipo = pesquisarRegistro(lexId)->simbolo.tipo;
 		}
 
 		del(pilha);
@@ -1091,16 +1113,18 @@
 
 	
 	/* lista de expressoes */
-	void expressao2(void)
+	void expressao2(int ln)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao2");
+		NOVO_FATOR(expr);
 	
-		expressao();
+		expr = expressao();
+		genSaida(expr, ln);
 
 		if (regLex.token == Virgula) {
 			lexan();
-			expressao2();
+			expressao2(ln);
 		}
 
 		del(pilha);
