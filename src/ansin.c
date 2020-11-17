@@ -10,10 +10,6 @@
  * sido lido antes.
  */
 
-/* TODO 
- * permitir declaracao no for
- */
-
 #ifndef _ANSIN
 #define _ANSIN
 
@@ -571,12 +567,13 @@
 		 */
 		pai->endereco = regLex.endereco->simbolo.memoria;
 
-		casaToken(Identificador);
-	
 		/* acao semantica */
-		verificaTipo(t,TP_Integer);
 		verificaDeclaracao(lexAux);
 		verificaConst(lexAux);
+		verificaTipo(t,TP_Integer);
+
+		casaToken(Identificador);
+	
 	
 		/* lendo array: id[i] */
 		if (regLex.token == A_Colchete) {

@@ -7,7 +7,7 @@
 	#define ER_LEX_N_ID -14
 	#define ACEITACAO_LEX 13
 	
-	#define DEBUG_LEX
+	//define DEBUG_LEX
 	
 	extern struct registroLex regLex;
 	extern FILE *progFonte;

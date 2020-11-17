@@ -12,7 +12,7 @@
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	
-	#define DEBUG_SIN
+	//define DEBUG_SIN
 	
 	#include "types.h"
 	

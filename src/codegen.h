@@ -1,7 +1,7 @@
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 
-	#define DEBUG_GEN
+	//define DEBUG_GEN
 
 	#define TAM_INT 2
 	#define TAM_CHA 1

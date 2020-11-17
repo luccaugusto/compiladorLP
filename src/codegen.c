@@ -5,11 +5,6 @@
 	#include "codegen.h"
 	#include "LC.h"
 
-	/*
-	 * TODO
-	 * fazer simulacao de And e Or com aritmeticos
-	 */
-
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int CD = 0x4000;    /* contator de dados em hexadecimal    */
@@ -230,7 +225,7 @@
 		int n_bytes; /* numero de bytes usado */
 
 		/* marca o endereco de memoria na tabela de simbolos */
-		END_ID = CD;
+		regLex.endereco->simbolo.memoria = CD;
 
 		/* string de tipo para o comentario */
 		if (t == TP_Integer) {
@@ -268,9 +263,9 @@
 		/* arrays */
 		if (tam > 1) {
 			CONCAT_BUF("%s %d DUP(?)\t\t\t;var. Vet %s. em %Xh\n", nome, tam, tipo, CD);
-		 }else {
+		} else {
 			CONCAT_BUF("%s %s\t\t\t\t\t\t; %s. %s. em %Xh\n", nome, valor, classe, tipo, CD);
-		 }
+		}
 
 		/* incrementa a posicao de memoria com o numero de bytes utilizado */
 		CD+=n_bytes;
@@ -659,6 +654,7 @@
 						aritmeticos(op,RD,RO,pai);
 						break;
 
+			case Or:    /* fallthrough */
 			case Mais: 
 						op = "add";
 						aritmeticos(op, RD, RO, pai);

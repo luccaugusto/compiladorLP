@@ -3,7 +3,6 @@
 
 	/* MACROS */
 	#define SUCESSO 0
-	#define END_ID regLex.endereco->simbolo.memoria
 	#ifdef DEBUG_SIN
 		#define DEBUGSIN(s) printf("SIN: %s\n",s); push(s,pilha);
 	#else
