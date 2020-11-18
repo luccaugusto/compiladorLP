@@ -54,7 +54,7 @@
 		rot verdadeiro = novoRot();
 		rot falso = novoRot();
 	
-		CONCAT_BUF(";inicio de comparacao\n");
+		CONCAT_BUF(";inicio de comparacao %s\n", op);
 		CONCAT_BUF("CMP AX, BX\n");
 		CONCAT_BUF("%s R%d ;comparacao verdadeiro\n", op, verdadeiro);
 		CONCAT_BUF("MOV AX, 0\n");
@@ -205,7 +205,7 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fimComandos");
 
-		CONCAT_BUF("interrompe o programa\n");
+		CONCAT_BUF(";interrompe o programa\n");
 		CONCAT_BUF("MOV AH, 4Ch\n");
 		CONCAT_BUF("INT 21h\n");
 		CONCAT_BUF("CSEG ENDS\t\t\t\t\t;fim seg. codigo\n");
@@ -312,7 +312,8 @@
 			CONCAT_BUF("ADD BX, 1 ;proximo caractere\n");
 			CONCAT_BUF("JMP R%d\n", inicio);
 			CONCAT_BUF("R%d:\n", fim);
-			CONCAT_BUF("MOV DS:[DI], 0Dh ;copia tambem o dolar\n");
+			CONCAT_BUF("MOV CX, 0Dh ;coloca $ em CX\n")
+			CONCAT_BUF("MOV DS:[DI], CX ;copia tambem o dolar\n");
 
 			CONCAT_BUF(";fim atribuicao de strings\n");
 		}
@@ -660,16 +661,17 @@
 		DEBUGGEN("genOpTermos");
 
 		CONCAT_BUF("; inicio operacoes\n");
-		CONCAT_BUF("MOV AX, %d ;operando 1 em AX\n",pai->endereco);
-		CONCAT_BUF("MOV BX, %d ;operando 2 em BX\n",filho->endereco);
+		CONCAT_BUF("MOV AX, DS:[%d] ;operando 1 em AX\n",pai->endereco);
+		CONCAT_BUF("MOV BX, DS:[%d] ;operando 2 em BX\n",filho->endereco);
 
 		char *op;        /* codigo assembly da operacao */
 		char *RD = "AX"; /* registrador Destino         */
 		char *RO = "BX"; /* registrador origem          */
 
 		switch (pai->op) {
-			case Vezes: /* fallthrough */
-			case And: 
+			case And:  /* fallthrough */
+						CONCAT_BUF("; And\n");
+			case Vezes:
 						op = "IMUL";
 						RO = "AX";
 						aritmeticos(op,RD,RO,pai);
@@ -687,6 +689,7 @@
 						break;
 
 			case Or:    /* fallthrough */
+						CONCAT_BUF("; Or\n");
 			case Mais: 
 						op = "ADD";
 						aritmeticos(op, RD, RO, pai);
@@ -698,6 +701,7 @@
 						break;
 
 			case Igual:
+						CONCAT_BUF("; igual\n");
 						op = "JE";
 						if (pai->tipo == TP_Char)
 							compChar(pai);
@@ -707,26 +711,31 @@
 						break;
 
 			case Diferente:
+						CONCAT_BUF("; Diferente\n");
 						op = "JNE";
 						comp(op, pai);
 						break;
 
 			case Maior: 
+						CONCAT_BUF("; Maior\n");
 						op = "JG";
 						comp(op, pai);
 						break;
 
 			case Menor:
+						CONCAT_BUF("; Menor\n");
 						op = "JL";
 						comp(op, pai);
 						break;
 
 			case MaiorIgual:
+						CONCAT_BUF("; MaiorIgual\n");
 						op = "JGE";
 						comp(op, pai);
 						break;
 
 			case MenorIgual:
+						CONCAT_BUF("; MenorIgual\n");
 						op = "JLE";
 						comp(op, pai);
 						break;
