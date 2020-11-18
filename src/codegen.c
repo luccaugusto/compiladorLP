@@ -33,6 +33,7 @@
 	{
 		pai->endereco = novoTemp(TAM_INT);
 
+		CONCAT_BUF(";inicio de operacao artimetica\n");
 		if (op == "IMUL" || op == "IDIV") {
 
 			CONCAT_BUF("%s %s\n",op, RD);
@@ -44,7 +45,7 @@
 
 		}
 
-		CONCAT_BUF("MOV DS:[%d], %s\n", pai->endereco, RO);
+		CONCAT_BUF("MOV DS:[%d], %s ;grava o resultado da operacao no endereco\n", pai->endereco, RO);
 	}
 
 	/* comparacoes nao string */
@@ -53,19 +54,20 @@
 		rot verdadeiro = novoRot();
 		rot falso = novoRot();
 	
+		CONCAT_BUF(";inicio de comparacao\n");
 		CONCAT_BUF("CMP AX, BX\n");
-		CONCAT_BUF("%s R%d\n", op, verdadeiro);
+		CONCAT_BUF("%s R%d ;comparacao verdadeiro\n", op, verdadeiro);
 		CONCAT_BUF("MOV AX, 0\n");
-		CONCAT_BUF("JMP R%d\n",falso);
+		CONCAT_BUF("JMP R%d ;comparacao falso\n",falso);
 
-		CONCAT_BUF("R%d:\n",verdadeiro);
+		CONCAT_BUF("R%d: ;verdadeiro\n",verdadeiro);
 		CONCAT_BUF("MOV AX, 1\n");
-		CONCAT_BUF("R%d:\n",falso);
+		CONCAT_BUF("R%d: ;falso\n",falso);
 	
 		pai->endereco = novoTemp(TAM_INT);
 		pai->tipo = TP_Logico;
 	
-		CONCAT_BUF("MOV DS:[%d], AX\n", pai->endereco);
+		CONCAT_BUF("MOV DS:[%d], AX ;guarda no endereco o resultado da expressao\n", pai->endereco);
 	}
 
 	void compChar(struct Fator *pai)
@@ -76,43 +78,45 @@
 		rot fimStr = novoRot();
 		rot iguais = novoRot();
 
-		CONCAT_BUF("R%d:\n",inicio);      /* marca o inicio do loop */
-		CONCAT_BUF("MOV CL, DS:[BX]\n");  /* move para CL o caractere da string em BX*/
+		CONCAT_BUF(";inicio de comparacao de string\n");
+		CONCAT_BUF("R%d: ;marca o inicio do loop\n",inicio);
+		CONCAT_BUF("MOV CL, DS:[BX] ;move para CL o caractere da string em BX\n");
 
-		CONCAT_BUF("MOV DX, BX\n");       /* Troca AX de lugar com BX  */
-		CONCAT_BUF("MOV BX, AX");         /* pois so BX pode ser utilizado */
-		CONCAT_BUF("MOV AX, DX\n");       /* para acessar memoria */
+		CONCAT_BUF("MOV DX, BX ;Troca AX de lugar com BX\n");
+		CONCAT_BUF("MOV BX, AX ;pois so BX pode ser utilizado\n");
+		CONCAT_BUF("MOV AX, DX ;para acessar memoria\n");
 
-		CONCAT_BUF("MOV CH, DS:[BX]\n");  /* move para CH o caractere da string em BX*/
-		CONCAT_BUF("CMP CH, CL\n");       /* compara as strings */
-		CONCAT_BUF("JE R%d\n", verdadeiro);
+		CONCAT_BUF("MOV CH, DS:[BX] ;move para CH o caractere da string em BX\n");
+		CONCAT_BUF("CMP CH, CL ;compara as strings\n");
+		CONCAT_BUF("JE R%d ;jmp verdadeiro\n", verdadeiro);
 		CONCAT_BUF("MOV AX, 0\n");
-		CONCAT_BUF("JMP R%D\n",fimStr);   /* strings diferentes */
-		CONCAT_BUF("R%d:\n",verdadeiro);  /* caracteres iguais */
-		CONCAT_BUF("CMP CH, 0Dh\n");        /* verifica se chegou no final da primeira string */
-		CONCAT_BUF("JE R%d\n",iguais);
-		CONCAT_BUF("CMP CL, 0Dh\n");        /* verifica se chegou no final da segunda string */
-		CONCAT_BUF("JE R%d\n",iguais);
-										/* nao chegou fim de nenhuma string */
-		CONCAT_BUF("ADD AX, 1\n");        /* anda uma posicao no primeiro string */
-		CONCAT_BUF("ADD BX, 1\n");        /* anda uma posicao no segundo string  */
+		CONCAT_BUF("JMP R%D ;strings diferentes\n",fimStr);
+		CONCAT_BUF("R%d: ;caracteres iguais\n",verdadeiro);
+		CONCAT_BUF("CMP CH, 0Dh ;verifica se chegou no final da primeira string\n");
+		CONCAT_BUF("JE R%d ;iguais\n",iguais);
+		CONCAT_BUF("CMP CL, 0Dh ;verifica se chegou no final da segunda string\n");
+		CONCAT_BUF("JE R%d ;iguais\n",iguais);
+		CONCAT_BUF("; nao chegou fim de nenhuma string\n");
+		CONCAT_BUF("ADD AX, 1 ;anda uma posicao no primeiro string\n");
+		CONCAT_BUF("ADD BX, 1 ;anda uma posicao no segundo string\n");
 
-		CONCAT_BUF("JMP R%d\n", inicio);    /* volta ao inicio do loop */
+		CONCAT_BUF("JMP R%d ;volta ao inicio do loop\n", inicio);
 
-		CONCAT_BUF("R%d:\n",iguais);      /* strings iguais */
+		CONCAT_BUF("R%d: ;strings iguais\n",iguais);
 		CONCAT_BUF("MOV AX, 1\n");
 
-		CONCAT_BUF("R%d:\n", fimStr);     /* fim de string */
+		CONCAT_BUF("R%d: ;fim de string\n", fimStr);
 	
 		pai->endereco = novoTemp(TAM_INT);
 		pai->tipo = TP_Logico;
 	
-		CONCAT_BUF("MOV DS:[%d], AX\n", pai->endereco);
+		CONCAT_BUF("MOV DS:[%d], AX ;salva no endereco o resultado\n", pai->endereco);
 	}
 
 	/* move cursor para linha de baixo */
 	void proxLinha()
 	{
+		CONCAT_BUF(";gera quebra de linha\n");
 		CONCAT_BUF("MOV AH, 02h\n");
 		CONCAT_BUF("MOV DL, 0Dh\n");
 		CONCAT_BUF("INT 21h\n");
@@ -192,7 +196,7 @@
 		CONCAT_BUF("CSEG SEGMENT PUBLIC\t\t\t;inicio seg. codigo\n");
 		CONCAT_BUF("     ASSUME CS:cseg, DS: dseg\n");
 		CONCAT_BUF("STRT:\t\t\t\t\t\t;inicio do programa\n");
-		CONCAT_BUF("    ;comandos \n");
+		CONCAT_BUF("    ;comandos\n");
 
 	}
 
@@ -201,6 +205,7 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fimComandos");
 
+		CONCAT_BUF("interrompe o programa\n");
 		CONCAT_BUF("MOV AH, 4Ch\n");
 		CONCAT_BUF("INT 21h\n");
 		CONCAT_BUF("CSEG ENDS\t\t\t\t\t;fim seg. codigo\n");
@@ -210,9 +215,11 @@
 	/* gera codigo para acesso a array */
 	void acessoArray(struct Fator *pai, struct Fator *filho)
 	{
-		CONCAT_BUF("MOV AX, %d\n", pai->endereco);
+		CONCAT_BUF(";acesso a array\n");
+		CONCAT_BUF("MOV AX, %d ;endereco base\n", pai->endereco);
 		/* adiciona o resultado da expressao ao inicio do array para encontrar a posicao de acesso */
-		CONCAT_BUF("ADD AX, DS:[%d]\n", filho->endereco); 
+		CONCAT_BUF("ADD AX, DS:[%d] ;soma com offset\n", filho->endereco); 
+		CONCAT_BUF("fim acesso a array");
 	}
 
 	/* gera o asm da declaracao de uma variavel ou constante 
@@ -283,30 +290,31 @@
 
 		/* int e logico */
 		if (toLogico(regLex.tipo) == TP_Logico) {
-			CONCAT_BUF("MOV AX, DS:[%d]\n", fator->endereco);
-			CONCAT_BUF("MOV DS:[%d], AX\n", pai->endereco);
+			CONCAT_BUF(";atribuicao de inteiros e logicos\n");
+			CONCAT_BUF("MOV AX, DS:[%d] ;endereco do resultado para ax\n", fator->endereco);
+			CONCAT_BUF("MOV DS:[%d], AX ;ax para posicao de memoria da variavel\n", pai->endereco);
+			CONCAT_BUF(";fim atribuicao de inteiros e logicos\n");
 		} else {
 			/* string, move caractere por caractere */
 			rot inicio = novoRot();
 			rot fim = novoRot();
-			int endereco = novoTemp(TAM_CHA * pai->tamanho);
 
-			CONCAT_BUF("MOV BX, %d\n", fator->endereco);
-			CONCAT_BUF("MOV DI, %d\n", endereco); /* concatena em endereco*/
+			CONCAT_BUF(";atribuicao de strings\n");
+			CONCAT_BUF("MOV BX, %d ;endereco da string para bx\n", fator->endereco);
+			CONCAT_BUF("MOV DI, %d ;endereco do pai para concatenar\n", pai->endereco);
 
-			CONCAT_BUF("R%d:\n", inicio); /* inicio do loop */
-			CONCAT_BUF("MOV CX, DS:[BX]\n"); /* caractere em CX */
-			CONCAT_BUF("CMP CX, 0Dh\n"); /* verifica se chegou no fim */
-			CONCAT_BUF("JMP R%d\n", fim); /* fim da str */
-			CONCAT_BUF("MOV DS:[DI], CX\n"); /* transfere pro endereco a string */
-			CONCAT_BUF("ADD DX, 1\n"); /* avanca posicao a receber o proximo caractere */
-			CONCAT_BUF("ADD AX, 1\n"); /* proximo caractere */
+			CONCAT_BUF("R%d: ;inicio do loop\n", inicio);
+			CONCAT_BUF("MOV CX, DS:[BX] ;joga caractere em CX\n");
+			CONCAT_BUF("CMP CX, 0Dh ;verifica se chegou no fim\n");
+			CONCAT_BUF("JE R%d ;fim da str\n", fim);
+			CONCAT_BUF("MOV DS:[DI], CX ;transfere pro endereco a string\n");
+			CONCAT_BUF("ADD DI, 1 ;avanca posicao a receber o proximo caractere\n");
+			CONCAT_BUF("ADD BX, 1 ;proximo caractere\n");
 			CONCAT_BUF("JMP R%d\n", inicio);
 			CONCAT_BUF("R%d:\n", fim);
-			CONCAT_BUF("MOV DS:[DI], CX\n"); /* copia tambem o dolar */
+			CONCAT_BUF("MOV DS:[DI], 0Dh ;copia tambem o dolar\n");
 
-			/* transfere pro endereco do id o endereco da string */
-			CONCAT_BUF("MOV DS:[%d], DX\n", pai->endereco);
+			CONCAT_BUF(";fim atribuicao de strings\n");
 		}
 	}
 
@@ -347,9 +355,9 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("genTeste");
 
-		CONCAT_BUF("MOV AX, DS:[%d]\n", filho->endereco);
+		CONCAT_BUF("MOV AX, DS:[%d] ;inicio de teste\n", filho->endereco);
 		CONCAT_BUF("CMP AX, 0\n"); /* checa se eh falso */
-		CONCAT_BUF("JE R%d\n", falso); /* vai para falso */
+		CONCAT_BUF("JE R%d ;jump falso\n", falso); /* vai para falso */
 	}
 
 	/* gera a parte do else, que pode ser vazia */
@@ -359,8 +367,8 @@
 		DEBUGGEN("genElseTeste");
 
 		/* else */
-		CONCAT_BUF("JMP R%d\n",fim);
-		CONCAT_BUF("R%d:\n",falso);
+		CONCAT_BUF("JMP R%d ;fim verdadeiro\n",fim);
+		CONCAT_BUF("R%d: ;inicio else\n",falso);
 	}
 
 	/* gera o rotulo de saida do teste */
@@ -369,7 +377,7 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("genFimTeste");
 
-		CONCAT_BUF("R%d:\n", fim);
+		CONCAT_BUF("R%d: ;fim do teste\n", fim);
 	}
 
 	void genEntrada(struct Fator *pai)
