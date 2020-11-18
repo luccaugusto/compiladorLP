@@ -378,7 +378,7 @@
 					/* valor 0 */
 	
 					regLex.token = Literal;
-					regLex.tipo = TP_Char;
+					regLex.tipo = TP_Integer;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema

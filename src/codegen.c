@@ -39,7 +39,7 @@
 
 		} else if (op == "ADD" || op == "SUB") {
 
-			CONCAT_BUF("%s %s %s\n",op, RD, RO);
+			CONCAT_BUF("%s %s, %s\n",op, RD, RO);
 			RO = RD;
 
 		}
@@ -558,7 +558,7 @@
 			CONCAT_BUF("ADD BX, DS:[%d]\n", expr->endereco);
 
 		/* soma o endereco do id indice + posicao = endereco real */
-		CONCAT_BUF("ADD  BX, %d\n", pesquisarRegistro(id)->simbolo.memoria);
+		CONCAT_BUF("ADD BX, %d\n", pesquisarRegistro(id)->simbolo.memoria);
 
 		/* move para um registrador o valor na posicao de memoria calculada */
 		CONCAT_BUF("MOV BX, DS:[BX]\n", fator->endereco);
