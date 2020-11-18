@@ -4,7 +4,7 @@
 	#define SEPARADOR "=-=-=-=-=-=-=-="
 	
 	#include "ts.h"
-	#include "utils.h"
+	#include "utils.c"
 	
 	/* retorna o tipo do identificador */
 	Tipo buscaTipo(char *identificador)
