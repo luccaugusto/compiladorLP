@@ -90,7 +90,7 @@
 		CONCAT_BUF("CMP CH, CL ;compara as strings\n");
 		CONCAT_BUF("JE R%d ;jmp verdadeiro\n", verdadeiro);
 		CONCAT_BUF("MOV AX, 0\n");
-		CONCAT_BUF("JMP R%D ;strings diferentes\n",fimStr);
+		CONCAT_BUF("JMP R%d ;strings diferentes\n",fimStr);
 		CONCAT_BUF("R%d: ;caracteres iguais\n",verdadeiro);
 		CONCAT_BUF("CMP CH, 0Dh ;verifica se chegou no final da primeira string\n");
 		CONCAT_BUF("JE R%d ;iguais\n",iguais);
