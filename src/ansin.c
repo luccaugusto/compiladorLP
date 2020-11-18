@@ -297,7 +297,7 @@
 		/* atribui tipo a constante */
 		atrTipo();
 	
-		lexAux = regLex.lexema;
+		lexAux = removeComentario(lexemaLido);
 		casaToken(Literal);
 	
 		/* codegen */
@@ -509,8 +509,11 @@
 		/* codegen
 		 * salva no pai o endereco de id
 		 * para caso leia outro id na expressao de atribuicao
+		 *
+		 * zera os temporarios
 		 */
 		pai->endereco = regLex.endereco->simbolo.memoria;
+		zeraTemp();
 	
 		/* lendo array: id[expressao()] */
 		if (regLex.token == A_Colchete) {
@@ -530,8 +533,6 @@
 
 		casaToken(Igual);
 	
-		/* codegen */
-		zeraTemp();
 	
 		expr = expressao();
 
@@ -564,8 +565,11 @@
 		/* codegen
 		 * salva o endereco do id no pai
 		 * para caso leia outro id na expressao de atribuicao
+		 * e zera temporarios
 		 */
 		pai->endereco = regLex.endereco->simbolo.memoria;
+		pai->tipo = t;
+		zeraTemp();
 
 		/* acao semantica */
 		verificaDeclaracao(lexAux);
@@ -573,7 +577,6 @@
 		verificaTipo(t,TP_Integer);
 
 		casaToken(Identificador);
-	
 	
 		/* lendo array: id[i] */
 		if (regLex.token == A_Colchete) {
@@ -731,6 +734,9 @@
 		rot falso = novoRot();
 		rot fim = novoRot();
 
+		/* codegen */
+		zeraTemp();
+
 		expr = expressao();
 	
 		/* acao semantica */
@@ -789,6 +795,7 @@
 
 		/* codegen */
 		pai->endereco = regLex.endereco->simbolo.memoria;
+		zeraTemp();
 	
 		if (regLex.token == A_Colchete) {
 			/* lendo array: id[i] */
@@ -830,6 +837,7 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("escrita");
 	
+		zeraTemp();
 		casaToken(A_Parenteses);
 		expressao2(ln);
 		casaToken(F_Parenteses);
@@ -928,8 +936,14 @@
 
 		/* codegen */
 		atualizaPai(ret,filho);
-		if (menos) fatorGeraMenos(ret,filho);
-		else if (not) fatorGeraNot(ret,filho);
+		if (menos) {
+			/* acao semantica */
+			verificaTipo(filho->tipo, TP_Integer);
+			fatorGeraMenos(ret,filho);
+		} else if (not) {
+			verificaTipo(toLogico(filho->tipo), TP_Logico);
+			fatorGeraNot(ret,filho);
+		}
 
 
 		/* operacoes int x int -> int */
@@ -1045,6 +1059,7 @@
 		DEBUGSIN("fator");
 
 		NOVO_FATOR(ret);
+
 		int array = 0;
 		char *lexId;
 
@@ -1062,12 +1077,12 @@
 		/* fator -> literal */
 		} else if (regLex.token == Literal) {
 
-			lexAux = regLex.lexema;
+			lexAux = removeComentario(lexemaLido);
+			ret->tipo = regLex.tipo;
 
 			/* codegen */
 			fatorGeraLiteral(ret,lexAux);
 			
-			ret->tipo = regLex.tipo;
 			lexan();
 
 		/* fator -> id */

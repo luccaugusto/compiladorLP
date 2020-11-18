@@ -99,7 +99,6 @@
 	 * sobre o que a expressão gera
 	 */
 	struct Fator {
-		struct Fator *fator; /* caso gere mais um fator                 */
 		int endereco;        /* endereco do valor gerado pela expressao */
 		int tamanho;         /* tamanho do valor gerado pela expressao  */
 		Tokens op;           /* operacao realizada pela expressao       */
