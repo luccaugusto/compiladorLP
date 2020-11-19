@@ -1,5 +1,5 @@
 *.out
-*.exe
-*.obj
+*.EXE
+*.OBJ
 *.asm
 examples/fonte.l
