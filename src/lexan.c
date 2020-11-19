@@ -148,6 +148,14 @@
 					/* simbolo '/' encontrado */
 					estado = ACEITACAO_LEX;
 					regLex.token = Barra;
+
+					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+					 * um caractere de um possivel proximo lexema
+				 	 */
+					if (! ehBranco(letra)) {
+						fseek(progFonte, posAtual, SEEK_SET);
+						lexemaLido = encurtar(lexemaLido);
+					}
 				}
 			} else if (estado == 2) {
 				if (letra == '*') {
@@ -158,31 +166,7 @@
 					erro = ER_LEX_EOF;
 					erroMsg = "fim de arquivo nao esperado";
 					abortar();
-				} else if (letra != '/' &&
-						!ehBranco(letra)&&
-						!ehDigito(letra)&&
-						!ehLetra(letra) &&
-						letra != '_'    &&
-						letra != '.'    &&
-						letra != '<'    &&
-						letra != '>'    &&
-						letra != '"'    &&
-						letra != ','    &&
-						letra != ';'    &&
-						letra != '+'    &&
-						letra != '-'    &&
-						letra != '('    &&
-						letra != ')'    &&
-						letra != '{'    &&
-						letra != '}'    &&
-						letra != '['    &&
-						letra != ']'    &&
-						letra != '%'    &&
-						letra != '='    &&
-						letra != ':'    &&
-						letra != '\''   &&
-						letra != '.'    )
-				{
+				} else if (C_INVALIDO) {
 					/* caractere inválido */
 					erro = ER_LEX_INVD;
 					erroMsg = "caractere invalido";
@@ -335,31 +319,7 @@
 					erro = ER_LEX_EOF;
 					erroMsg = "fim de arquivo nao esperado.";
 					abortar();
-				} else if (letra != '/' &&
-						!ehBranco(letra)&&
-						!ehDigito(letra)&&
-						!ehLetra(letra) &&
-						letra != '_'    &&
-						letra != ':'    &&
-						letra != '.'    &&
-						letra != '<'    &&
-						letra != '>'    &&
-						letra != '"'    &&
-						letra != ','    &&
-						letra != ';'    &&
-						letra != '+'    &&
-						letra != '-'    &&
-						letra != '('    &&
-						letra != ')'    &&
-						letra != '{'    &&
-						letra != '}'    &&
-						letra != '['    &&
-						letra != ']'    &&
-						letra != '%'    &&
-						letra != '='    &&
-						letra != '\''   &&
-						letra != '.'    )
-				{
+				} else if (C_INVALIDO) {
 					/* caractere inválido */
 					erro = ER_LEX_INVD;
 					erroMsg = "caractere invalido";

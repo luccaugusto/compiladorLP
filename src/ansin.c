@@ -505,6 +505,7 @@
 		NOVO_FATOR(pai);
 		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
 		int tipoId = regLex.endereco->simbolo.tipo;
+		pai->tipo = tipoId;
 
 		/* codegen
 		 * salva no pai o endereco de id
@@ -557,6 +558,7 @@
 	
 		Tipo t = regLex.endereco->simbolo.tipo;
 		NOVO_FATOR(pai);
+		pai->tipo = t;
 		NOVO_FATOR(filho);
 		NOVO_FATOR(filho2);
 	
@@ -794,7 +796,8 @@
 		casaToken(Identificador);
 
 		/* codegen */
-		pai->endereco = regLex.endereco->simbolo.memoria;
+		pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;
+		pai->tipo = buscaTipo(lexId);
 		zeraTemp();
 	
 		if (regLex.token == A_Colchete) {
@@ -991,6 +994,25 @@
 		return ret;
 	}
 
+	void acaoFilhoTermo2(struct Fator *atual, Tipo gerado)
+	{
+			/* codegen */
+			guardaOp(atual);
+
+			lexan();
+
+			NOVO_FATOR(filho2);
+			filho2 = fator();
+
+			/* acao semantica */
+			verificaTipo(atual->tipo, gerado);
+			verificaTipo(filho2->tipo,  gerado);
+
+			/* codegen */
+			genOpTermos(atual,filho2);
+	
+	}
+
 	/* Termo
 	 * T  -> F {( * | / | % | ‘and’ ) F}
 	 */
@@ -1011,39 +1033,11 @@
 		if (regLex.token == Vezes ||
 				 regLex.token == Barra || regLex.token == Porcento )
 		{
-			/* codegen */
-			guardaOp(atual);
-
-			lexan();
-
-			NOVO_FATOR(filho2);
-			filho2 = fator();
-
-			/* acao semantica */
-			verificaTipo(atual->tipo,TP_Integer);
-			verificaTipo(filho2->tipo, TP_Integer);
-
-			/* codegen */
-			genOpTermos(atual,filho2);
-
-
+			acaoFilhoTermo2(atual, TP_Integer);
+		}
 		/* operacoes logico x logico -> logico */
-		} else if (regLex.token == And) {
-			lexan();
-
-			/* codegen */
-			guardaOp(atual);
-
-			NOVO_FATOR(filho2);
-			filho2 = fator();
-
-			/* acao semantica */
-			verificaTipo(atual->tipo,TP_Logico);
-			verificaTipo(filho2->tipo, TP_Logico);
-
-			/* codegen */
-			genOpTermos(atual,filho2);
-
+		else if (regLex.token == And) {
+			acaoFilhoTermo2(atual, TP_Logico);
 		}
 
 		del(pilha);

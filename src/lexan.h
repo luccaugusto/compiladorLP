@@ -6,6 +6,30 @@
 	#define ER_LEX_INVD -13
 	#define ER_LEX_N_ID -14
 	#define ACEITACAO_LEX 13
+	#define C_INVALIDO letra != '/' &&\
+			!ehBranco(letra)&&\
+			!ehDigito(letra)&&\
+			!ehLetra(letra) &&\
+			letra != '_'    &&\
+			letra != '.'    &&\
+			letra != '<'    &&\
+			letra != '>'    &&\
+			letra != '"'    &&\
+			letra != ','    &&\
+			letra != ';'    &&\
+			letra != '+'    &&\
+			letra != '-'    &&\
+			letra != '('    &&\
+			letra != ')'    &&\
+			letra != '{'    &&\
+			letra != '}'    &&\
+			letra != '['    &&\
+			letra != ']'    &&\
+			letra != '%'    &&\
+			letra != '='    &&\
+			letra != ':'    &&\
+			letra != '\''   &&\
+			letra != '.'    \
 	
 	//define DEBUG_LEX
 	
