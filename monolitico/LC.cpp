@@ -22,12 +22,87 @@
 #include <unistd.h>
 #include <string.h>
 
-/*TODO: REMOVER ESTE INCLUDE ANTES DE MANDAR PRO VERDE*/
 #include "../src/pilha.c"
 
+//define DEBUG_LEX
+//define DEBUG_SIN
+//define DEBUG_GEN
 
-/* DECLARAÇÕES */
-/* Definicoes de tipos e estruturas utilizadas */
+/* MACROS */
+#define ER_LEX -11
+#define ER_LEX_EOF -12
+#define ER_LEX_INVD -13
+#define ER_LEX_N_ID -14
+#define ACEITACAO_LEX 13
+#define C_INVALIDO letra != '/' &&\
+		!ehBranco(letra)&&\
+		!ehDigito(letra)&&\
+		!ehLetra(letra) &&\
+		letra != '_'    &&\
+		letra != '.'    &&\
+		letra != '<'    &&\
+		letra != '>'    &&\
+		letra != '"'    &&\
+		letra != ','    &&\
+		letra != ';'    &&\
+		letra != '+'    &&\
+		letra != '-'    &&\
+		letra != '('    &&\
+		letra != ')'    &&\
+		letra != '{'    &&\
+		letra != '}'    &&\
+		letra != '['    &&\
+		letra != ']'    &&\
+		letra != '%'    &&\
+		letra != '='    &&\
+		letra != ':'    &&\
+		letra != '\''   &&\
+		letra != '.'    \
+
+#define TAM_INT 2
+#define TAM_CHA 1
+#define TAM_TBL 256
+#define A_SEG_PUB CONCAT_BUF((char *)"dseg SEGMENT PUBLIC\n");
+#define F_SEG_PUB CONCAT_BUF((char *)"dseg ENDS\n");
+#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
+#define MAX_BUF_SIZE 2048
+#define MAX_AUX_SIZE 256
+
+#define ER_SIN -20
+#define ER_SIN_EOF -21
+#define ER_SIN_NDEC -22
+#define ER_SIN_JADEC -23
+#define ER_SIN_TAMVET -24
+#define ER_SIN_C_INC -25
+#define ER_SIN_T_INC -26
+
+#define N_ACEITACAO_SIN -31
+#define ACEITACAO_SIN 32
+
+#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
+										s->endereco = novoTemp(2); \
+										s->tipo = regLex.tipo; \
+										s->op = Nulo
+
+#define SEPARADOR "=-=-=-=-=-=-=-="
+#define SUCESSO 0
+#ifdef DEBUG_SIN
+	#define DEBUGSIN(s) printf((char *)"SIN: %s\n",s); push(s,pilha);
+#else
+	#define DEBUGSIN(s)
+#endif
+#ifdef DEBUG_LEX
+	#define DEBUGLEX(...) printf(__VA_ARGS__);
+#else
+	#define DEBUGLEX(...)
+#endif
+#ifdef DEBUG_GEN
+	#define DEBUGGEN(s) printf((char *)"GEN: %s\n",s); push(s,pilha);
+#else
+	#define DEBUGGEN(s)
+#endif
+
+typedef int rot;
 
 typedef enum {
 	Identificador = 1,
@@ -67,18 +142,31 @@ typedef enum {
 	A_Colchete,
 	F_Colchete,
 	Do,
-	Literal
+	Literal,
+	Nulo
 } Tokens;
 
 typedef enum {
-	TP_Integer = 0,
+	TP_Integer = 1,
 	TP_Char,
+	TP_Logico,
+	TP_Nulo
 } Tipo;
+
+typedef enum {
+	CL_Const = 1,
+	CL_Var,
+	CL_Nulo
+} Classe;
 
 /*registro na tabela de símbolos*/
 struct Simbolo {
-	Tokens token;
-	char *lexema;
+	int tamanho;    /* tamanho do array    */
+	char *lexema;   /* lexema              */
+	int memoria;    /* endereco na memoria */
+	Tipo tipo;      /* int char ou logico  */
+	Tokens token;   /* token do simbolo    */
+	Classe classe;  /* const ou var        */
 };
 
 /* Celulas da lista encadeada */
@@ -87,42 +175,162 @@ struct Celula {
 	struct Simbolo simbolo;
 };
 
-/* Registro léxico */
+/* Registro léxico 
+ * O registro lexico eh mantido para cada comando
+ * token,lexema, pos e tamanho se alteram a cada chamada do lexan()
+ * os demais atributos se alteram conforme o comando 
+ * vai sendo identificado pelo analisador sintatico
+ */
 struct registroLex {
-	Tokens token;
-	char *lexema;
-	struct Celula *endereco;
-	Tipo tipo;
-	int tamanho;
+	int pos;                     /* posicao a ser acessada no array, 0 se qualquer outra coisa */
+	int tamanho;                 /* tamanho do array, arrays de tamanho 1 sao variaveis        */
+	char *lexema;                /* lexema atual do registro do comando atual                  */
+	Tipo tipo;                   /* Tipo atual da expressao ,identificador ou constante atual  */
+	Tokens token;                /* token atual do registro do comando atual                   */
+	Classe classe;               /* Classe atual da expressao ,identificador ou constante      */
+	struct Celula *endereco;     /* endereco na tabela de simbolos do identificador atual      */
 };
 
-/* MACROS */
-#define TAM_TBL 254
-#define SEPARADOR "=-=-=-=-=-=-=-="
-#define ERRO_LEXICO -1
-#define ERRO_LEXICO_EOF -2
-#define ERRO_LEXICO_INV -3
-#define ERRO_SINTATICO -4
-#define ERRO_SINTATICO_EOF -5
-#define ACEITACAO_LEX 11
-#define ACEITACAO_SIN 12
-#define N_ACEITACAO_SIN -6 
-#define SUCESSO 0
-#define DEVOLVIDO_NULL -7
+/* Fator
+ * um fator contém informações
+ * sobre o que a expressão gera
+ */
+struct Fator {
+	int endereco;        /* endereco do valor gerado pela expressao */
+	int tamanho;         /* tamanho do valor gerado pela expressao  */
+	Tokens op;           /* operacao realizada pela expressao       */
+	Tipo tipo;           /* tipo do valor gerado pela expressao     */
+};
 
-#define DEBUG_LEX 0
-#define DEBUG_SIN 0
 
+/* VARIÁVEIS GLOBAIS */
+int erro;
+int lex;
+int lido;
+char* lexAux;
+
+/* parametros da linha de comando */
+FILE *progFonte;
+char *fonteNome;
+FILE *progAsm;
+char *asmNome;
+
+int linha; /*linha do arquivo*/
+int estado_sin; /* estado de aceitacao ou nao do analisador sintatico */
+
+char letra; /*posicao da proxima letra a ser lida no arquivo*/
+char *erroMsg; /*Mensagem de erro a ser exibida*/
+char *lexemaLido; /* lexema lido sem transformar em minusculo */
+
+struct pilha_d *pilha;
+struct registroLex regLex; 
+struct Celula *tabelaSimbolos[TAM_TBL];
+
+
+char *buffer;       /* buffer de criacao do codigo asm     */
+char *aux;          /* buffer auxiliar para criacao do asm */
+int CD = 0x4000;    /* contator de dados em hexadecimal    */
+int TP = 0x0;       /* contador de temporários             */
+rot RT = 1;         /* contador de rotulos                 */
 
 /*DECLARAÇÕES DE FUNÇÕES*/
+/* manipulacao do registro lexico */
+void atrPos(int);
+
+/* Analisador Sintatico */
+void nulo(void);
+void teste(void);
+void ansin(void);
+void teste1(rot, rot);
+void leitura(void);
+void escrita(int);
+void variavel(void);
+void listaIds(void);
+void constante(void);
+void comandos2(void);
+void repeticao(void);
+struct Fator *expressao(void);
+struct Fator *fator(void);
+struct Fator *termo(void);
+struct Fator *expressaoS(void);
+void expressao2(int);
+void repeticao1(struct Fator *, rot, rot);
+void declaracao(void);
+void atribuicao(void);
+void blocoComandos(void);
+void iniciarAnSin(void);
+void fimDeArquivo(void);
+void erroSintatico(int);
+int casaToken(Tokens);
+
+/* Geração de código */
+void flush(void);
+void buf_concatenar(void);
+int novoTemp(int);
+int novoRot(void);
+void zeraTemp(void);
+void genAtribuicao(struct Fator *, struct Fator *);
+void genExp(struct Fator *, char*);
+void genDeclaracao(Tipo, Classe, int, char*, int);
+void genRepeticao(struct Fator *, struct Fator *, rot, rot);
+void genFimRepeticao(struct Fator *, rot, rot, char *);
+void genTeste(struct Fator *, rot, rot);
+void genElseTeste(rot, rot);
+void genFimTeste(rot);
+void initDeclaracao(void);
+void iniciarCodegen(void);
+void fimComandos(void);
+void fimDecInitCom(void);
+void fatorGeraId(struct Fator *, char *);
+void fatorGeraLiteral(struct Fator *, char *);
+void fatorGeraExp(struct Fator *,struct Fator *);
+void fatorGeraNot(struct Fator *, struct Fator *);
+void fatorGeraArray(struct Fator *,struct Fator *, char *);
+void fatorGeraMenos(struct Fator *, struct Fator *);
+
+/* Fluxo de execução geral */
+void abortar(void);
+void sucesso(void);
+
+void atualizaPai(struct Fator *, struct Fator *);
+void guardaOp(struct Fator *);
+void genOpTermos(struct Fator *, struct Fator *);
+
+
+/* Tabela de símbolos */
+Tipo buscaTipo(char *);
+void limparTabela(void);
+void inicializarTabela(void);
+void adicionarReservados(void);
+void mostrarTabelaSimbolos(void);
+void limparLista(struct Celula *);
+struct Celula *pesquisarRegistro(char *);
+struct Celula *adicionarRegistro(char *, Tokens);
+
+/* Analisador léxico */
+void lexan(void);
 
 /* utils */
+char getChar(void);
+int str2int(char*);
 int ehLetra(char l);
 int ehDigito(char l);
 int ehBranco(char l);
 char minusculo(char l);
-unsigned int hash(unsigned char *str);
-char *concatenar(char *inicio, char *fim);
+char *encurtar(char *);
+char *removeAspas(char *);
+Tokens identificaToken(char *);
+char *concatenar(char *, char *);
+unsigned int hash(unsigned char *, int);
+
+/* acoes semanticas */
+void defTipo(Tipo);
+Tipo toLogico(Tipo);
+void verificaTam(int);
+void defClasse(Classe);
+void verificaTipo(Tipo, Tipo);
+void verificaClasse(char *);
+void verificaDeclaracao(char *);
 
 /* testes */
 void testeLexan(void);
@@ -133,77 +341,10 @@ void testeBuscaSimples(void);
 void testeBuscaEmColisao(void);
 void testesTabelaSimbolos(void);
 
-/* Tabela de símbolos */
-void limparTabela(void);
-void inicializarTabela(void);
-void adicionarReservados(void);
-void mostrarTabelaSimbolos(void);
-void limparLista(struct Celula *cel);
-struct Celula *pesquisarRegistro(char *lexema);
-struct Celula *adicionarRegistro(char *lexema, int token);
-
-/* Analisador Sintatico */
-void nulo(void);
-void teste(void);
-void ansin(void);
-void teste1(void);
-void leitura(void);
-void escrita(void);
-void variavel(void);
-void listaIds(void);
-void expressao(void);
-void escritaLn(void);
-void constante(void);
-void comandos2(void);
-void repeticao(void);
-void expressao1(void);
-void expressao2(void);
-void expressao3(void);
-void repeticao1(void);
-void declaracao(void);
-void atribuicao(void);
-void blocoComandos(void);
-void iniciarAnSin(void);
-void fimDeArquivo(void);
-void erroSintatico(int tipo);
-int casaToken(Tokens encontrado);
-
-
-/* Analisador léxico */
-void lexan(void);
-
-/* Fluxo de execução geral */
-void abortar(void);
-void sucesso(void);
-
-/* VARIÁVEIS GLOBAIS */
-
-/* parametros da linha de comando */
-FILE *progFonte;
-FILE *progAsm;
-
-int lex = 1;
-int erro = 0;
-int lido = 0;
-int linha = 1; /*linha do arquivo*/
-int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
-
-char letra; /* letra lida*/
-char *erroMsg /*Mensagem de erro a ser exibida*/;
-char devolvido = DEVOLVIDO_NULL; /* caractere devolvido pelo lexan */
-
-struct registroLex tokenAtual; 
-struct Celula *tabelaSimbolos[TAM_TBL];
-
-
-/* DEFINIÇÃO DE FUNÇÕES */
-
-/* Definicao das funcoes utilitárias do projeto */
-
 /* ************************** *
               HASH
  * ************************** */
-unsigned int hash(char *str)
+unsigned int hash(unsigned char *str, int mod)
 {
     unsigned int hash = 5381;
     int c;
@@ -211,7 +352,7 @@ unsigned int hash(char *str)
     while (c = *str++)
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-    return (hash % TAM_TBL);
+    return (hash % mod);
 }
 
 
@@ -246,9 +387,9 @@ int ehBranco(char l)
 	return retorno;
 }
 
-int identificaTipo(char *lex)
+Tokens identificaToken(char *lex)
 {
-	int retorno = Identificador;
+	Tokens retorno = Identificador;
 
 	if (strcmp(lex,"const") == 0)
 		retorno = Const;
@@ -292,20 +433,60 @@ int identificaTipo(char *lex)
    MANIPULACAO DE STRING 
  * ************************** */
 
+/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
+char *removeAspas(char *str)
+{
+	char *retorno;
+	int tamstr = strlen(str);
+	retorno = (char *) malloc(tamstr-2);
+
+	for (int i=0; i<tamstr-2; ++i) {
+		retorno[i] = str[i+1];
+	}
+
+	return retorno;
+}
+
+/* remove o ultimo caractere de str */
+char *encurtar(char *str)
+{
+	char *retorno;
+	int tamstr = strlen(str);
+	/* nao encurta strings de tamanho 1 */
+	if (tamstr > 1) {
+
+		/* remove a ultima posicao e acrescenta a posicao do \0 */
+		retorno = (char *) malloc(tamstr);
+	
+		for (int i=0; i<tamstr-1; ++i)
+			retorno[i] = str[i];
+	
+		retorno[tamstr]='\0';
+	} else {
+		retorno = str;
+	}
+
+	return retorno;
+}
+
 char *concatenar(char *inicio, char *fim)
 {
 	char *retorno;
 	int tamInicio = strlen(inicio);
 	int tamFim = strlen(fim);
 
-	retorno = (char *) malloc(tamInicio+tamFim);
+	/* acrescenta a posicao do \0 */
+	retorno = (char *) malloc(tamInicio+tamFim+1);
 
 	for (int i=0; i<tamInicio; ++i)
 		retorno[i] = inicio[i];
+
 	for (int i=0; i<tamFim; ++i)
 		retorno[tamInicio+i] = fim[i];
 
-	/*printf("concatenado %s\n",retorno);*/
+	retorno[tamInicio+tamFim]='\0';
+
+
 	return retorno;
 }
 
@@ -317,15 +498,534 @@ char minusculo(char l)
 	return l;
 }
 
-/* Implementacao da tabela de simbolos */
-
-struct Celula *adicionarRegistro(char *lexema, int token)
+/* transforma uma string de numeros em um inteiro */
+int str2int(char *str)
 {
-	unsigned int pos = hash(lexema);
+	int l = strlen(str);
+	int val = 1; /* valor da casa (unidade, dezena, centena) */
+	int ret = 0;
+
+	/* comeca do fim da string (posição menos significativa), e multiplica 
+	 * cada posicao(valor ascii - 48 para encontrar o valor do numero de fato)
+	 * por val, que é multiplicado por 10 a cada iteração,
+	 * representando as posições mais significativas
+	 */
+	for (int i=l-1; i>=0; --i) {
+		ret += (str[i]-48) * val;
+		val*=10;
+	}
+	return ret;
+}
+
+/* remove comentarios do lexemaLido */
+char *removeComentario(char *str)
+{
+	char *ret;
+	int t = strlen(str);
+	int c = 0;
+	int concat = 1;
+	int remover = 0;
+
+	ret = (char *)malloc(sizeof(char));	
+	/* se existe um comentario, remove, senao, retorna a string original */
+	for (int i=1; i<t; ++i) {
+		if (str[i-1] == '/' && str[i] == '*') {
+			remover = 1;
+			break;
+		}
+	}
+
+	if (remover) {
+		/* marca quais posicoes nao sao comentario */
+		for (int i=1; i<t; ++i) {
+			/* se eh inicio de comentario nao concatena ate o fim de comentario*/
+			if (str[i-1] == '/' && str[i] == '*') {
+				concat = 0;
+			} else if (str[i-1] == '*' && str[i] == '/') {
+				concat = 1;
+				continue;
+			} else if ( i<t && str[i] == '/' && str[i+1] == '*') {
+				concat = 0;
+			}
+	
+			if (concat)
+				ret[c++] = str[i];
+
+		}
+
+	} else {
+		ret = str;
+	}
+
+
+	return ret;
+}
+
+/* ************************** *
+   LEITURA DE ARQUIVO 
+ * ************************** */
+char getChar(void)
+{
+	int c = fgetc(progFonte);
+	char *l = (char *) &c;
+	if (!ehBranco(c)) lexemaLido = concatenar(lexemaLido,l);
+	return (char) c;
+}
+
+/* Implementacao do automato do analisador lexico
+ * grava lex como 1 caso de sucesso,
+ *         0 caso EOF encontrado,
+ *         letra caso erro lexico
+ */
+void lexan(void)
+{
+	int estado = 0;
+	int posAtual = ftell(progFonte);
+
+	/* zera o lexemaLido */
+	lexemaLido = (char *)"";
+
+	/* zera o token e o lexema */
+	regLex.lexema = (char *)"";
+	regLex.token = Nulo;
+
+	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(getChar())) != -1) { 
+
+        /* \n é contabilizado sempre */
+		if (letra == '\n') {
+			linha++;
+		} 
+
+		if (estado == 0) {
+			if (ehBranco(letra)) {
+				continue;
+			} else if (letra == '/') {
+				/* comentário ou divisão */ 
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 1;
+			} else if (letra == '_' || letra == '.') {
+				/* inicio de identificador */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 7;
+			} else if (letra == '<') {
+				/* menor ou menor ou igual ou diferente*/
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 4;
+			} else if (letra == '>') {
+				/* maior ou maior ou igual */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 5;
+			} else if (letra == '"') {
+				/* inicio de string */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				regLex.tamanho = 1;
+				estado = 9;
+			} else if (letra == '0') {
+				/* possivel hexadecimal */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 10;
+			} else if (ehDigito(letra)) {
+				/* inicio de literal */ 
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 6;
+			} else if (letra == ',') {
+				regLex.token = Virgula;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+			} else if (letra == ';') {
+				regLex.token = PtVirgula;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '+') {
+				regLex.token = Mais;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '-') {
+				regLex.token = Menos;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '*') {
+				regLex.token = Vezes;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '(') {
+				regLex.token = A_Parenteses;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == ')') {
+				regLex.token = F_Parenteses;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '{') {
+				regLex.token = A_Chaves;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '}') {
+				regLex.token = F_Chaves;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '[') {
+				regLex.token = A_Colchete;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == ']') {
+				regLex.token = F_Colchete;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '%') {
+				regLex.token = Porcento;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+				
+			} else if (letra == '=') {
+				regLex.token = Igual;
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = ACEITACAO_LEX;
+			} else if (letra == '_' || letra == '.') {
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 7;
+			} else if (ehLetra(letra)) {
+                /*inicio palavra*/
+                regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 8;
+			} else if (!letra) {
+				estado = ACEITACAO_LEX;
+			} else {
+				/* lexema nao identificado */
+				erro = ER_LEX_N_ID;
+				erroMsg = (char *)"lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
+				abortar();
+			}
+            
+		} else if (estado == 1) {
+			if (letra == '*') {
+				/* de fato comentario */
+				estado = 2;
+			} else {
+				/* simbolo '/' encontrado */
+				estado = ACEITACAO_LEX;
+				regLex.token = Barra;
+
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+			}
+		} else if (estado == 2) {
+			if (letra == '*') {
+				/* inicio de fim de comentario */
+				estado = 3;
+			} else if (letra == -1) {
+				/*EOF encontrado*/
+				erro = ER_LEX_EOF;
+				erroMsg = (char *)"fim de arquivo nao esperado";
+				abortar();
+			} else if (C_INVALIDO) {
+				/* caractere inválido */
+				erro = ER_LEX_INVD;
+				erroMsg = (char *)"caractere invalido";
+				abortar();
+				
+			} 
+		} else if (estado == 3) {
+			if (letra == '/') {
+				/* de fato fim de comentario volta ao inicio para ignorar*/
+				estado = 0;
+				regLex.lexema = (char *)"";
+			} else if (letra == '*') {
+				/* ** no comentario, espera pela barra */
+				estado = 3;
+			} else if (letra == -1) {
+				/*EOF encontrado*/
+				erro = ER_LEX_EOF;
+				erroMsg = (char *)"fim de arquivo nao esperado";
+				abortar();
+			} else {
+				/* simbolo '*' dentro do comentario */
+				estado = 2;
+			}
+		} else if (estado == 4) {
+			if (letra == '=' || letra == '>') {
+				/* lexemas de comparacao <= ou <> */
+				estado = ACEITACAO_LEX;
+
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+
+				if (letra == '=')
+					regLex.token = MenorIgual;
+				else
+					regLex.token = Diferente;
+
+			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
+				/* lexema de comparacao < */
+				estado = ACEITACAO_LEX;
+
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+				regLex.token = Menor;
+			} else if (letra == -1) {
+				/*EOF encontrado, assume que encontrou <*/
+				estado = ACEITACAO_LEX;
+			}
+		} else if (estado == 5) {
+			if (letra == '=') {
+				/* lexema de comparacao >= */
+				estado = ACEITACAO_LEX;
+
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				regLex.token = MaiorIgual;
+
+			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
+				/* lexema de comparacao > */
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+				 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual,SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+				regLex.token = Maior;
+			} else if (letra == -1) {
+				/*EOF encontrado, assume que encontrou >*/
+				estado = ACEITACAO_LEX;
+			}
+
+		} else if (estado == 6) {
+			/* Inteiros */
+			/* le ate encontrar diferente de numero */
+
+			if (ehDigito(letra)) {
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+			} else {
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+                regLex.token = Literal;
+				regLex.tipo = TP_Integer;
+			}
+		} else if (estado == 7) {
+            /*lexema identificador _ . 
+            concatena até achar uma letra ou numero */
+            if (letra == '_' || letra == '.') {
+                regLex.lexema = concatenar(regLex.lexema, &letra);
+            } else if (ehLetra(letra) || ehDigito(letra)) {
+                regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 8;
+            }
+        } else if (estado == 8) {
+            /*lexema de identificador
+            concatena ate finalizar o identificador ou palavra reservada */
+            if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
+                regLex.lexema = concatenar(regLex.lexema, &letra);
+            } else {
+				estado = ACEITACAO_LEX;
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+				regLex.tamanho = 1;
+				regLex.pos = -1;
+                regLex.token = identificaToken(regLex.lexema);
+
+                //adicionar novo token (identificador)
+				regLex.endereco = pesquisarRegistro(regLex.lexema);
+                if (regLex.endereco == NULL) {
+                   regLex.endereco = adicionarRegistro(regLex.lexema,regLex.token);
+				   regLex.endereco->simbolo.tipo = regLex.tipo;
+				} else {
+					/* palavras reservadas nao possuem tipo,
+					 * portanto nao atualiza o tipo do registro
+					 * lexico se nao tem tipo
+					 */
+					if (regLex.tipo != 0)
+						regLex.tipo = regLex.endereco->simbolo.tipo;
+					regLex.tamanho = regLex.endereco->simbolo.tamanho;
+				}
+			} 
+        } else if (estado == 9) {
+            /*lexema de String
+            concatena até encontrar o fechamento das aspas */
+
+			regLex.lexema = concatenar(regLex.lexema, &letra);
+			regLex.tamanho++;
+            if (letra == '"') {
+            	regLex.token = Literal;
+				regLex.tipo = TP_Char;
+                estado = ACEITACAO_LEX;
+            } else if (letra == EOF) {
+				/*EOF encontrado*/
+				erro = ER_LEX_EOF;
+				erroMsg = (char *)"fim de arquivo nao esperado.";
+				abortar();
+			} else if (C_INVALIDO) {
+				/* caractere inválido */
+				erro = ER_LEX_INVD;
+				erroMsg = (char *)"caractere invalido";
+				abortar();
+				
+			}
+        } else if (estado == 10) {
+			/* hexadecimal */
+			if (letra == 'x') {           /* de fato hexadecimal */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 11;
+			} else if (ehDigito(letra)) {   /* numero começando com 0 */ 
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 6;
+			} else if (!ehLetra(letra) && !ehDigito(letra)) {
+				/* valor 0 */
+
+				regLex.token = Literal;
+				regLex.tipo = TP_Integer;
+
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+				estado = ACEITACAO_LEX;
+				
+			} else {
+				erro = ER_LEX_N_ID;
+				erroMsg = (char *)"lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
+				abortar();
+			}
+
+		} else if (estado == 11) {
+			/* parte numerica do hexadecimal deve conter pelo menos um numero ou A-F */
+			if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+				/* leu 0x[A-F0-9] */
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+				estado = 12;
+			} else {
+				/* leu só 0x, invalido */
+				erro = ER_LEX_N_ID;
+				erroMsg = (char *)"lexema nao identificado";
+				lexemaLido = encurtar(lexemaLido);
+				abortar();
+			}
+		} else if (estado == 12) {
+			/* resto do valor hexadecimal */
+			if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+
+				regLex.lexema = concatenar(regLex.lexema, &letra);
+
+			} else {
+
+				regLex.token = Literal;
+				regLex.tipo = TP_Char;
+
+				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
+				 * um caractere de um possivel proximo lexema
+			 	 */
+				if (! ehBranco(letra)) {
+					fseek(progFonte, posAtual, SEEK_SET);
+					lexemaLido = encurtar(lexemaLido);
+				}
+
+				estado = ACEITACAO_LEX;
+			}
+		}
+
+		posAtual = ftell(progFonte);
+	}
+
+	/* leu EOF */
+	if (letra == -1) lex = 0;
+
+	DEBUGLEX((char *)"LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
+}
+
+/* retorna o tipo do identificador */
+Tipo buscaTipo(char *identificador)
+{
+	return pesquisarRegistro(identificador)->simbolo.tipo;
+}
+
+void adicionarReservados(void)
+{
+	adicionarRegistro((char *)"const",Const);
+	adicionarRegistro((char *)"var",Var);
+	adicionarRegistro((char *)"integer",Integer);
+	adicionarRegistro((char *)"char",Char);
+	adicionarRegistro((char *)"for",For);
+	adicionarRegistro((char *)"if",If);
+	adicionarRegistro((char *)"else",Else);
+	adicionarRegistro((char *)"and",And);
+	adicionarRegistro((char *)"or",Or);
+	adicionarRegistro((char *)"not",Not);
+	adicionarRegistro((char *)"=",Igual);
+	adicionarRegistro((char *)"to",To);
+	adicionarRegistro((char *)"((char *)",A_Parenteses);
+	adicionarRegistro((char *)")",F_Parenteses);
+	adicionarRegistro((char *)"<",Menor);
+	adicionarRegistro((char *)">",Maior);
+	adicionarRegistro((char *)"<>",Diferente);
+	adicionarRegistro((char *)">=",MaiorIgual);
+	adicionarRegistro((char *)"<=",MenorIgual);
+	adicionarRegistro((char *)",",Virgula);
+	adicionarRegistro((char *)"+",Mais);
+	adicionarRegistro((char *)"-",Menos);
+	adicionarRegistro((char *)"*",Vezes);
+	adicionarRegistro((char *)"/",Barra);
+	adicionarRegistro((char *)";",PtVirgula);
+	adicionarRegistro((char *)"{",A_Chaves);
+	adicionarRegistro((char *)"}",F_Chaves);
+	adicionarRegistro((char *)"then",Then);
+	adicionarRegistro((char *)"readln",Readln);
+	adicionarRegistro((char *)"step",Step);
+	adicionarRegistro((char *)"write",Write);
+	adicionarRegistro((char *)"writeln",Writeln);
+	adicionarRegistro((char *)"%",Porcento);
+	adicionarRegistro((char *)"[",A_Colchete);
+	adicionarRegistro((char *)"]",F_Colchete);
+	adicionarRegistro((char *)"do",Do);
+}
+
+struct Celula *adicionarRegistro(char *lexema, Tokens token)
+{
+	unsigned int pos = hash((unsigned char*)lexema,TAM_TBL);
 	struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
 	struct Simbolo *simb = (struct Simbolo *) malloc(sizeof(struct Simbolo));
-	simb->token = (Tokens) token;
+	simb->token = token;
 	simb->lexema = lexema;
+	simb->classe = CL_Nulo;
+	simb->tipo = TP_Nulo;
+	simb->tamanho=1;
 	cel->prox = NULL;
 	cel->simbolo = *simb;
 	
@@ -340,7 +1040,7 @@ struct Celula *adicionarRegistro(char *lexema, int token)
 struct Celula *pesquisarRegistro(char *procurado)
 {
 	int encontrado = 0;
-	unsigned int pos = hash(procurado);
+	unsigned int pos = hash((unsigned char*)procurado,TAM_TBL);
 	struct Celula *retorno = NULL;
 	struct Celula *prox = tabelaSimbolos[pos];
 
@@ -358,16 +1058,16 @@ struct Celula *pesquisarRegistro(char *procurado)
 /* printa a tabela de simbolos */
 void mostrarTabelaSimbolos(void)
 {
-	printf(SEPARADOR "TABELA DE SÍMBOLOS" SEPARADOR "\n");
+	printf("============TABELA DE SÍMBOLOS=============\n");
 	for (int i=0; i<TAM_TBL; ++i) {
 		if (tabelaSimbolos[i] != NULL) {
-			printf("|\t%d\t|-> %s", i, tabelaSimbolos[i]->simbolo.lexema);
+			printf((char *)"|\t%d\t|-> %s[%d]", i, tabelaSimbolos[i]->simbolo.lexema,tabelaSimbolos[i]->simbolo.tamanho);
 			struct Celula *prox = tabelaSimbolos[i]->prox;
 			while (prox != NULL){
-				printf(" -> %s",prox->simbolo.lexema);
+				printf((char *)" -> %s",prox->simbolo.lexema);
 				prox = prox->prox;
 			}
-			printf("\n");
+			printf((char *)"\n");
 		}
 	}
 }
@@ -402,395 +1102,860 @@ void limparTabela(void)
 	}
 }
 
-/* Implementacao do automato do analisador lexico
- * retorna 1 caso de sucesso,
- *         0 caso EOF encontrado,
- *         letra caso erro lexico
+/* Acoes semanticas 
+ * Cada metodo implementa a verificacao de uma acao semantica,
+ * em caso de erro, chama a funcao erroSintatico e aborta o programa
  */
-void lexan(void)
+
+void defTipo(Tipo tipo)
 {
-	int estado = 0;
+	regLex.tipo = tipo;
+}
 
-	/* zera o token atual */
-	tokenAtual.lexema = (char *)"";
-	tokenAtual.token = (Tokens)0;
-	tokenAtual.endereco = NULL;
-	tokenAtual.tipo = (Tipo)0;
-	tokenAtual.tamanho = 0;
+void defClasse(Classe classe)
+{
+	regLex.classe = classe;
+}
 
-	/* gasta o caractere devolvido se existir */
-	if (devolvido != DEVOLVIDO_NULL) {
-		letra = devolvido;
-		devolvido = DEVOLVIDO_NULL;
-	} else {
-		letra = minusculo(getchar());
+/* converte tipo integer para logico 
+ * tipo logico é implicito, 0 é falso,
+ * diferente de 0 é verdadeiro.
+ * caracteres não são válidos
+ */
+Tipo toLogico(Tipo tipo)
+{
+	Tipo t = tipo;
+	if (tipo == TP_Integer) t = TP_Logico;
+	return t;
+}
+
+/* verifica se o tamanho dos arrays eh valido */
+void verificaTam(int tam)
+{
+	/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
+	if (regLex.tipo == TP_Char && tam > 4000) erroSintatico(ER_SIN_TAMVET);
+
+	/* tipo integer ocupa 2 bytes portanto o array pode ter 4k/2 posicoes */
+	if (regLex.tipo == TP_Integer && tam > 2000) erroSintatico(ER_SIN_TAMVET);
+
+	/* else 
+	 * atualiza o registro lexico e tabela de simbolos com o tamanho
+	 */
+	regLex.tamanho = tam;
+	regLex.endereco->simbolo.tamanho = tam;
+}
+
+/* Verificacao de tipo
+ * verifica se tipo A == tipo B
+ */
+void verificaTipo(Tipo A, Tipo B)
+{
+
+	if ( A != B) {
+		erroSintatico(ER_SIN_T_INC);
 	}
-
-	int k=0;
-
-	/* por algum motivo o k precisa existir para nao entrar em loop */
-	while (estado != ACEITACAO_LEX && !erro && letra  && k++ < 80) {
-        /* \n é contabilizado sempre */
-		if (letra == '\n') {
-			linha++;
-		} 
-
-		if (estado == 0) {
-			if (letra == '/') {
-				/* comentário ou divisão */ 
-				estado = 1;
-			} else if (ehBranco(letra)) {
-				goto fimloop;
-			} else if (letra == '_' || letra == '.') {
-				/* inicio de identificador */
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 7;
-			} else if (letra == '<') {
-				/* menor ou menor ou igual ou diferente*/
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 4;
-			} else if (letra == '>') {
-				/* maior ou maior ou igual */
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 5;
-			} else if (letra == '"') {
-				/* inicio de string */
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 9;
-			} else if (ehDigito(letra)) {
-				/* inicio de literal */ 
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 6;
-			} else if (letra == ',') {
-				tokenAtual.token = Virgula;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-			} else if (letra == ';') {
-				tokenAtual.token = PtVirgula;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '+') {
-				tokenAtual.token = Mais;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '-') {
-				tokenAtual.token = Menos;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '*') {
-				tokenAtual.token = Vezes;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '(') {
-				tokenAtual.token = A_Parenteses;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == ')') {
-				tokenAtual.token = F_Parenteses;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '{') {
-				tokenAtual.token = A_Chaves;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '}') {
-				tokenAtual.token = F_Chaves;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '[') {
-				tokenAtual.token = A_Colchete;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == ']') {
-				tokenAtual.token = F_Colchete;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '%') {
-				tokenAtual.token = Porcento;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-				
-			} else if (letra == '=') {
-				tokenAtual.token = Igual;
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(&letra);
-				estado = ACEITACAO_LEX;
-			} else if (letra == '_' || letra == '.') {
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 7;
-			} else if (ehLetra(letra)) {
-                /*inicio palavra*/
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 8;
-			} else if (letra >=  48 && letra <= 57) {
-                /*inicio inteiro*/
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 10;
-			} else if (letra == -1) {
-				estado = ACEITACAO_LEX;
-				letra = 0;
-			} else {
-				/* lexema nao identificado */
-				erro = ERRO_LEXICO;
-				erroMsg = (char *)"lexema nao identificado";
-				abortar();
-			}
-            
-		} else if (estado == 1) {
-			if (letra == '*') {
-				/* de fato comentario */
-				estado = 2;
-			} else {
-				/* simbolo '/' encontrado */
-				estado = ACEITACAO_LEX;
-			}
-		} else if (estado == 2) {
-			if (letra == '*') {
-				/* inicio de fim de comentario */
-				estado = 3;
-			} else if (!letra) {
-				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
-				erroMsg = (char *)"fim de arquivo nao esperado.";
-				abortar();
-			} else if (letra != '/' &&
-					!ehBranco(letra)&&
-					!ehDigito(letra)&&
-					!ehLetra(letra) &&
-					letra != '_'    &&
-					letra != '.'    &&
-					letra != '<'    &&
-					letra != '>'    &&
-					letra != '"'    &&
-					letra != ','    &&
-					letra != ';'    &&
-					letra != '+'    &&
-					letra != '-'    &&
-					letra != '('    &&
-					letra != ')'    &&
-					letra != '{'    &&
-					letra != '}'    &&
-					letra != '['    &&
-					letra != ']'    &&
-					letra != '%'    &&
-					letra != '='    &&
-					letra != ':'    &&
-					letra != '\''    &&
-					letra != '.'    )
-			{
-				/* caractere inválido */
-				erro = ERRO_LEXICO_INV;
-				erroMsg = (char *)"caractere invalido";
-				abortar();
-				
-			} 
-		} else if (estado == 3) {
-			if (letra == '/') {
-				/* de fato fim de comentario volta ao inicio para ignorar*/
-				estado = 0;
-			} else if (!letra) {
-				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
-				letra = 0;
-				erroMsg = (char *)"fim de arquivo nao esperado.";
-				abortar();
-			} else {
-				/* simbolo '*' dentro do comentario */
-				estado = 2;
-			}
-		} else if (estado == 4) {
-			if (letra == '=' || letra == '>') {
-				/* lexemas de comparacao <= ou <> */
-				estado = ACEITACAO_LEX;
-
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-
-				if (letra == '=')
-					tokenAtual.token = MenorIgual;
-				else
-					tokenAtual.token = Diferente;
-
-			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
-				/* lexema de comparacao < */
-				estado = ACEITACAO_LEX;
-
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema
-			 	 */
-				if (! ehBranco(letra))
-					devolvido = letra;
-
-				tokenAtual.token = Menor;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-			} else if (letra == -1) {
-				/*EOF encontrado, assume que encontrou <*/
-				letra = 0;
-				estado = ACEITACAO_LEX;
-			}
-		} else if (estado == 5) {
-			if (letra == '=') {
-				/* lexema de comparacao >= */
-				estado = ACEITACAO_LEX;
-
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				tokenAtual.token = Identificador;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-
-			} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
-				/* lexema de comparacao > */
-				estado = ACEITACAO_LEX;
-				/* devolve o caractere pois consumiu
-				 * um caractere de um possivel proximo lexema
-				 */
-				if (! ehBranco(letra))
-					devolvido = letra;
-
-				tokenAtual.token = Maior;
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-			} else if (!letra) {
-				/*EOF encontrado, assume que encontrou >*/
-				estado = ACEITACAO_LEX;
-				letra = 0;
-			}
-
-		} else if (estado == 6) {
-			/* le ate encontrar diferente de numero */
-			if (ehDigito(letra)) {
-				tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-			} else {
-				estado = ACEITACAO_LEX;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema */
-				if (! ehBranco(letra))
-					devolvido = letra;
-
-                tokenAtual.token = Literal;
-				tokenAtual.tipo = TP_Integer;
-				tokenAtual.endereco = NULL;
-			}
-		} else if (estado == 7) {
-            /*lexema identificador _ . 
-            concatena até achar uma letra ou numero */
-            if (letra == '_' || letra == '.') {
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            } else if (ehLetra(letra) || ehDigito(letra)) {
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-				estado = 8;
-            }
-        } else if (estado == 8) {
-            /*lexema de identificador
-            concatena ate finalizar o identificador ou palavra reservada */
-            if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            } else {
-				estado = ACEITACAO_LEX;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema */
-				if (! ehBranco(letra))
-					devolvido = letra;
-
-                tokenAtual.token = (Tokens) identificaTipo(tokenAtual.lexema);
-				tokenAtual.endereco = pesquisarRegistro(tokenAtual.lexema);
-                if (tokenAtual.endereco == NULL) {
-                   //adicionar novo token (identificador)
-                    tokenAtual.endereco = adicionarRegistro(tokenAtual.lexema,tokenAtual.token);
-                }
-			} 
-        } else if (estado == 9) {
-            /*lexema de String
-            concatena até encontrar o fechamento das aspas */
-            tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            if (letra == '"') {
-				tokenAtual.tipo = TP_Char;
-				tokenAtual.token = Literal;
-                estado = ACEITACAO_LEX;
-            } else if (!letra) {
-				/*EOF encontrado*/
-				erro = ERRO_LEXICO_EOF;
-				erroMsg = (char *)"fim de arquivo nao esperado.";
-				abortar();
-			} else if (letra != '/' &&
-					!ehBranco(letra)&&
-					!ehDigito(letra)&&
-					!ehLetra(letra) &&
-					letra != '_'    &&
-					letra != '.'    &&
-					letra != '<'    &&
-					letra != '>'    &&
-					letra != '"'    &&
-					letra != ','    &&
-					letra != ';'    &&
-					letra != '+'    &&
-					letra != '-'    &&
-					letra != '('    &&
-					letra != ')'    &&
-					letra != '{'    &&
-					letra != '}'    &&
-					letra != '['    &&
-					letra != ']'    &&
-					letra != '%'    &&
-					letra != '='    &&
-					letra != ':'    &&
-					letra != '\''   &&
-					letra != '.'    )
-			{
-				/* caractere inválido */
-				erro = ERRO_LEXICO_INV;
-				erroMsg = (char *)"caractere invalido";
-				abortar();
-				
-			}
-        } else if (estado == 10) {
-            /*lexema de Inteiro
-            concatena até finalizar o numero */
-            if (letra >=  48 && letra <= 57) {
-                tokenAtual.lexema = concatenar(tokenAtual.lexema, &letra);
-            } else {
-				estado = ACEITACAO_LEX;
-				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
-				 * um caractere de um possivel proximo lexema
-			 	 */
-				if (! ehBranco(letra))
-					devolvido = letra;
-
-				tokenAtual.token = Literal;
-				tokenAtual.tipo = TP_Integer;
-
-			} 
-        }
-fimloop:
-		/* se ja aceitou nao le o proximo */
-		if (estado != ACEITACAO_LEX)
-			letra = minusculo(getchar());
-
-	}
-
-	if (! letra) lex = 0;
 	
-	if (DEBUG_LEX) printf("lexema: %s , token:%d\n",tokenAtual.lexema, tokenAtual.token);
+}
+
+/* Verificacao de classe
+ * atualiza na tabela de simbolos o tipo e a classe do elemento,
+ * caso a classe ja esteja definida, significa que a variavel
+ * ou constante ja foi declarada
+ */
+void verificaClasse(char* lex)
+{
+	regLex.endereco = pesquisarRegistro(lex);
+
+	if (regLex.endereco->simbolo.classe == 0) {
+		regLex.endereco->simbolo.tipo = regLex.tipo;
+		regLex.endereco->simbolo.classe = regLex.classe;
+	} else {
+		erroSintatico(ER_SIN_JADEC);
+	}
+}
+
+/* Verificacao de declaracao
+ * verifica se o identificador ja foi declarado
+ * ou se é constante
+ */
+void verificaDeclaracao(char *identificador)
+{
+	if (pesquisarRegistro(identificador)->simbolo.classe == 0)
+		erroSintatico(ER_SIN_NDEC);
+}
+
+/* verifica se o identificador eh constante */
+void verificaConst(char *identificador)
+{
+	if (pesquisarRegistro(identificador)->simbolo.classe == CL_Const)
+		erroSintatico(ER_SIN_C_INC);
+}
+
+/* Verificacao de atribuicao a vetor 
+ * operacoes sobre vetores so podem acontecer posicao a posicao
+ * operacoes na forma vet1 = vet2 nao sao permitidas
+ */
+void verificaAtrVetor(void)
+{
+	/* ATENCAO:
+	 * Este erro poderia ter sido deixado para tempo de execucao
+	 *
+	 * atribuicao de strings 
+	 * a string deve ter tamanho menor que o tamanho do vetor -1
+	 * pois ainda deve ser acrescentado o $ para encerrar a string
+	 */
+	if (regLex.endereco->simbolo.tipo == TP_Char) {
+		if (regLex.endereco->simbolo.tamanho < regLex.tamanho+1)
+			erroSintatico(ER_SIN_TAMVET);
+
+	} 
+
+	/* atribuicoes a vetores nao string */
+	else if (regLex.endereco->simbolo.tamanho > 1 && regLex.pos == -1) {
+		erroSintatico(ER_SIN_T_INC);
+	}
+}
+
+/* declara novo temporario */
+int novoTemp(int t)
+{
+	TP += t;
+	return (TP-t);
+}
+
+int novoRot()
+{
+	return RT++;
+}
+
+void zeraTemp(void)
+{
+	TP = 0x100;
+}
+
+/* operacoes aritmeticas, ADD, SUB, IMUL e IDIV
+ * recebe a operacao op, o registrador destino RD, o registrador origem RO
+ * o registrador resultado RR e o pai
+ */
+void aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai)
+{
+	pai->endereco = novoTemp(TAM_INT);
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================inicio de operacao %s===================\n", op);
+	if (op == (char *)"IMUL" || op == (char *)"IDIV") {
+
+		CONCAT_BUF((char *)"\t%s %s\n",op, RO);
+
+	} else if (op == (char *)"ADD" || op == (char *)"SUB") {
+
+		CONCAT_BUF((char *)"\t%s %s, %s\n",op, RD, RO);
+
+	}
+
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], %s\t\t\t\t\t\t\t;grava o resultado da operacao no endereco\n", pai->endereco, RR);
+}
+
+/* comparacoes nao string */
+void comp(char *op, struct Fator *pai)
+{
+	rot verdadeiro = novoRot();
+	rot falso = novoRot();
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================inicio de comparacao %s===================\n", op);
+	CONCAT_BUF((char *)"\tCMP AX, BX\n");
+	CONCAT_BUF((char *)"\t%s R%d\t\t\t\t\t\t\t\t;comparacao verdadeiro\n", op, verdadeiro);
+	CONCAT_BUF((char *)"\tMOV AX, 0\n");
+	CONCAT_BUF((char *)"\tJMP R%d\t\t\t\t\t\t\t\t;comparacao falso\n",falso);
+
+	CONCAT_BUF((char *)"\tR%d:\t\t\t\t\t\t\t\t;verdadeiro\n",verdadeiro);
+	CONCAT_BUF((char *)"\tMOV AX, 1\n");
+	CONCAT_BUF((char *)"\tR%d:\t\t\t\t\t\t\t\t;falso\n",falso);
+
+	pai->endereco = novoTemp(TAM_INT);
+	pai->tipo = TP_Logico;
+
+	CONCAT_BUF((char *)"MOV DS:[0%Xh], AX\t\t\t\t\t\t\t\t;guarda no endereco o resultado da expressao\n", pai->endereco);
+}
+
+void compChar(struct Fator *pai)
+{
+	rot inicio = novoRot();
+	rot verdadeiro = novoRot();
+	rot falso = novoRot();
+	rot fimStr = novoRot();
+	rot iguais = novoRot();
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================inicio de comparacao de string===================\n");
+	CONCAT_BUF((char *)"R%d:\t\t\t\t\t\t\t\t;marca o inicio do loop\n",inicio);
+	CONCAT_BUF((char *)"MOV CL, DS:[BX] \t\t;move para CL o caractere da string em BX\n");
+
+	CONCAT_BUF((char *)"MOV DX, BX\t\t\t\t\t;Troca AX de lugar com BX\n");
+	CONCAT_BUF((char *)"MOV BX, AX\t\t\t\t\t;pois so BX pode ser utilizado\n");
+	CONCAT_BUF((char *)"MOV AX, DX\t\t\t\t\t;para acessar memoria\n");
+
+	CONCAT_BUF((char *)"MOV CH, DS:[BX] \t\t;move para CH o caractere da string em BX\n");
+	CONCAT_BUF((char *)"CMP CH, CL\t\t\t\t\t\t\t\t;compara as strings\n");
+	CONCAT_BUF((char *)"JE R%d\t\t\t\t\t\t\t\t;jmp verdadeiro\n", verdadeiro);
+	CONCAT_BUF((char *)"MOV AX, 0\n");
+	CONCAT_BUF((char *)"JMP R%d\t\t\t\t\t\t\t\t;strings diferentes\n",fimStr);
+	CONCAT_BUF((char *)"R%d:\t\t\t\t\t\t\t\t;caracteres iguais\n",verdadeiro);
+	CONCAT_BUF((char *)"CMP CH, 24h\t\t\t\t\t\t\t\t;verifica se chegou no final da primeira string\n");
+	CONCAT_BUF((char *)"JE R%d\t\t\t\t\t\t\t\t;iguais\n",iguais);
+	CONCAT_BUF((char *)"CMP CL, 24h\t\t\t\t\t\t\t\t;verifica se chegou no final da segunda string\n");
+	CONCAT_BUF((char *)"JE R%\t\t\t\t\t\t\t\t;iguais\n",iguais);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t;================ nao chegou fim de nenhuma string===================\n");
+	CONCAT_BUF((char *)"ADD AX, 1\t\t\t\t\t\t\t\t;anda uma posicao no primeiro string\n");
+	CONCAT_BUF((char *)"ADD BX, 1\t\t\t\t\t\t\t\t;anda uma posicao no segundo string\n");
+
+	CONCAT_BUF((char *)"JMP R%d\t\t\t\t\t\t\t\t;volta ao inicio do loop\n", inicio);
+
+	CONCAT_BUF((char *)"R%d:\t\t\t\t\t\t\t\t;strings iguais\n",iguais);
+	CONCAT_BUF((char *)"MOV AX, 1\n");
+
+	CONCAT_BUF((char *)"R%d:\t\t\t\t\t\t\t\t;fim de string\n", fimStr);
+
+	pai->endereco = novoTemp(TAM_INT);
+	pai->tipo = TP_Logico;
+
+	CONCAT_BUF((char *)"MOV DS:[0%Xh], AX\t\t\t\t\t\t\t\t;salva no endereco o resultado\n", pai->endereco);
+}
+
+/* move cursor para linha de baixo */
+void proxLinha()
+{
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================gera quebra de linha===================\n");
+	CONCAT_BUF((char *)"MOV AH, 02h\n");
+	CONCAT_BUF((char *)"MOV DL, 0Dh\n");
+	CONCAT_BUF((char *)"INT 21h\n");
+	CONCAT_BUF((char *)"MOV DL, 0Ah\n");
+	CONCAT_BUF((char *)"INT 21h\n");
+}
+
+/* inicia o buffer */
+void iniciarCodegen(void)
+{ 
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"iniciarCodegen");
+
+	buffer = (char *)malloc(sizeof(char) * MAX_BUF_SIZE);
+	aux = (char *)malloc(sizeof(char) * MAX_AUX_SIZE);
+
+	/* Pilha */
+	CONCAT_BUF((char *)"SSEG SEGMENT STACK\t\t\t\t\t\t\t\t\t\t\t;inicio seg. pilha\n");
+	CONCAT_BUF((char *)"\tbyte 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t\t;dimensiona pilha\n",CD);
+	CONCAT_BUF((char *)"SSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. pilha\n");
+
+}
+
+/* concatena garantindo que o ultimo caractere eh o \n */
+void buf_concatenar(void)
+{
+
+	int buf_size = strlen(buffer);
+
+
+	/* se o buffer vai encher, escreve no arquivo e esvazia */
+	if ((buf_size+strlen(aux)) >= MAX_BUF_SIZE)
+		flush();
+
+	buffer = concatenar(buffer, aux);
+	buf_size = strlen(buffer);
+
+	aux[0] = '\0'; /* limpa aux */
+}
+
+/* escreve buffer no arquivo progAsm 
+ * e em seguida limpa buffer
+ */
+void flush(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"flush");
+
+	fprintf(progAsm, "%s",buffer);
+
+	/* limpa o buffer */
+	buffer[0] = '\0';
+}
+
+/* inicia o bloco de declaracoes asm */
+void initDeclaracao(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"initDeclaracao");
+
+	/* dados */
+	CONCAT_BUF((char *)"dseg SEGMENT PUBLIC\t\t\t\t\t\t\t\t\t\t\t;inicio seg. dados\n");
+	CONCAT_BUF((char *)"\tbyte 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t\t;temporarios\n",CD);
+}
+
+/* finaliza o bloco de declaracoes asm 
+ * e inicia o bloco de comandos asm
+ */
+void fimDecInitCom(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fimDecInitCom");
+
+	/* fim declaracao */
+	CONCAT_BUF((char *)"DSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. dados\n");
+	/* comandos */
+	CONCAT_BUF((char *)"CSEG SEGMENT PUBLIC\t\t\t\t\t\t\t\t\t\t\t;inicio seg. codigo\n");
+	CONCAT_BUF((char *)"\tASSUME CS:CSEG, DS: DSEG\n");
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================inicio do programa===================\nSTRT:\n");
+
+}
+
+void fimComandos(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fimComandos");
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================interrompe o programa===================\n");
+	CONCAT_BUF((char *)"\tMOV AH, 4Ch\n");
+	CONCAT_BUF((char *)"\tINT 21h\n");
+	CONCAT_BUF((char *)"\tCSEG ENDS\t\t\t\t\t\t\t\t\t;fim seg. codigo\n");
+	CONCAT_BUF((char *)"END STRT\t\t\t\t\t\t\t\t\t\t;fim programa\n");
+}
+
+/* gera codigo para acesso a array */
+void acessoArray(struct Fator *pai, struct Fator *filho)
+{
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;================acesso a array===================\n");
+	CONCAT_BUF((char *)"\tMOV AX, 0%Xh \t\t\t\t\t\t;endereco base\n", pai->endereco);
+	/* adiciona o resultado da expressao ao inicio do array para encontrar a posicao de acesso */
+	CONCAT_BUF((char *)"\tADD AX, DS:[0%Xh] \t\t\t\t\t\t\t\t;soma com offset\n", filho->endereco);
+	CONCAT_BUF((char *)"\tfim acesso a array");
+}
+
+/* gera o asm da declaracao de uma variavel ou constante 
+ * e retorna o endereco que foi alocado 
+ */
+void genDeclaracao(Tipo t, Classe c, int tam, char *val, int negativo)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genDeclaracao");
+
+	char *tipo;  /* string de tipo        */
+	char *classe;/* const ou var          */
+	char *nome;  /* string sword ou byte  */
+	char *valor; /* string de valor ou ?  */
+	int n_bytes; /* numero de bytes usado */
+
+	/* marca o endereco de memoria na tabela de simbolos */
+	regLex.endereco->simbolo.memoria = CD;
+
+	/* string de tipo para o comentario */
+	if (t == TP_Integer) {
+		tipo = (char *)"int";
+		nome = (char *)"sword";
+		n_bytes = TAM_INT*tam;
+	} else if (t == TP_Char) {
+		if (tam == 0)
+			tipo = (char *)"caract";
+		else
+			tipo = (char *)"string";
+
+		nome = (char *)"byte";
+		n_bytes = TAM_CHA*tam;
+	} else {
+		tipo = (char *)"logic";
+		nome = (char *)"byte";
+		n_bytes = 1;
+	}
+
+	if (c == CL_Const)
+		classe = (char *)"const";
+	else
+		classe = (char *)"var";
+
+	/* string de valor se existir */
+	if (val != NULL) {
+
+		valor = val;
+
+		if (negativo)
+			valor = concatenar((char *)"-",valor);
+
+		/* adiciona $ ao fim da string */
+		if (t == TP_Char) {
+			valor = concatenar(removeAspas(valor),(char *)"$");
+			valor = concatenar((char *)"\"",valor);
+			valor = concatenar(valor,(char *)"\"");
+		}
+
+	} else {
+		valor = (char *)"?";
+	}
+
+	/* arrays */
+	if (tam > 1) {
+		CONCAT_BUF((char *)"\t%s 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t;var. Vet %s. em 0%Xh\n", nome, tam, tipo, CD);
+	} else {
+		CONCAT_BUF((char *)"\t%s %s\t\t\t\t\t\t\t\t\t\t\t\t; %s. %s. em 0%Xh\n", nome, valor, classe, tipo, CD);
+	}
+
+	/* incrementa a posicao de memoria com o numero de bytes utilizado */
+	CD+=n_bytes;
+}
+
+void genAtribuicao(struct Fator *pai, struct Fator *fator)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genAtribuicao");
+
+	/* int e logico */
+	if (pai->tipo == TP_Integer || pai->tipo == TP_Logico) {
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de inteiros e logicos===================\n");
+		CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t\t;endereco do resultado para ax\n", fator->endereco);
+		CONCAT_BUF((char *)"\tMOV DS:[0%Xh], AX \t\t\t\t\t\t;ax para posicao de memoria da variavel\n", pai->endereco);
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de inteiros e logicos===================\n");
+	} else {
+		/* string, move caractere por caractere */
+		rot inicio = novoRot();
+		rot fim = novoRot();
+
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de strings===================\n");
+		CONCAT_BUF((char *)"\tMOV BX, 0%Xh \t\t\t\t\t\t;endereco da string para bx\n", fator->endereco);
+		CONCAT_BUF((char *)"\tMOV DI, 0%Xh \t\t\t\t\t\t;endereco do pai para concatenar\n", pai->endereco);
+
+		CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
+		CONCAT_BUF((char *)"\tMOV CL, DS:[BX] \t\t\t\t\t\t;joga caractere em CL\n");
+		CONCAT_BUF((char *)"\tMOV DS:[DI], CL \t\t\t\t\t\t;transfere pro endereco a string\n");
+		CONCAT_BUF((char *)"\tCMP CL, 24h \t\t\t\t\t\t\t\t;verifica se chegou no fim\n");
+		CONCAT_BUF((char *)"\tJE R%d \t\t\t\t\t\t\t\t;fim da str\n", fim);
+		CONCAT_BUF((char *)"\tADD DI, 1 \t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
+		CONCAT_BUF((char *)"\tADD BX, 1 \t\t\t\t\t\t\t\t;proximo caractere\n");
+		CONCAT_BUF((char *)"\tJMP R%d\n", inicio);
+		CONCAT_BUF((char *)"\tR%d:\n", fim);
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de strings===================\n");
+	}
+}
+
+/* segunda acao do for
+ * gera a declaracao e o fim
+ * for ID=EXP TO EXP
+ */
+void genRepeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genRepeticao");
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio da repeticao===================\n");
+	CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t\t\t;inicio do loop \n", inicio);
+	CONCAT_BUF((char *)"\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
+	CONCAT_BUF((char *)"\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t;move o resultado da TO EXP para BX \n", filho->endereco);
+	CONCAT_BUF((char *)"\tCMP CX, BX \t\t\t\t\t\t\t\t\t;compara os valores \n");
+	CONCAT_BUF((char *)"\tJG R%d \t\t\t\t\t\t\t\t\t\t;vai para o fim se id > exp \n", fim);
+}
+
+/* fim do loop de repeticao 
+ * incrementa e desvia
+ */
+void genFimRepeticao(struct Fator *pai, rot inicio, rot fim,char *step)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genFimRepeticao");
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim da repeticao===================\n");
+	CONCAT_BUF((char *)"\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
+	CONCAT_BUF((char *)"\tADD CX, %s \t\t\t\t\t\t\t\t\t;soma o step\n", step);
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], CX \t\t\t\t\t\t;guarda o valor de id \n", pai->endereco);
+	CONCAT_BUF((char *)"\tJMP R%d \t\t\t\t\t\t\t\t\t\t;volta para o inicio\n", inicio);
+	CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
+}
+
+/* gera o inicio do comando de teste */
+void genTeste(struct Fator *filho, rot falso, rot fim)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genTeste");
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do teste===================\n");
+	CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t;move para ax o resultado da expressao logica\n", filho->endereco);
+	CONCAT_BUF((char *)"\tCMP AX, 0 \t\t\t\t\t\t\t\t;checa se eh falso \n");
+	CONCAT_BUF((char *)"\tJE R%d \t\t\t\t\t\t\t\t;vai para falso \n", falso);
+}
+
+/* gera a parte do else, que pode ser vazia */
+void genElseTeste(rot falso, rot fim)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genElseTeste");
+
+	/* else */
+	CONCAT_BUF((char *)"\tJMP R%d \t\t\t\t\t\t\t\t;fim verdadeiro\n",fim);
+	CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;inicio else\n",falso);
+}
+
+/* gera o rotulo de fim do teste */
+void genFimTeste(rot fim)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genFimTeste");
+
+	CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;fim do teste\n", fim);
+}
+
+void genEntrada(struct Fator *pai)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genEntrada");
+
+	/* buffer para entrada do teclado, tam max = 255 */
+	int buffer = novoTemp(pai->tamanho+3);
+	rot inicio = novoRot();
+	rot meio = novoRot();
+	rot fim = novoRot();
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
+	CONCAT_BUF((char *)"\tMOV DX, 0%Xh \t\t\t\t\t\t;buffer para receber a string\n", buffer);
+	CONCAT_BUF((char *)"\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", pai->tamanho);
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], AL \t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+	CONCAT_BUF((char *)"\tMOV AH, 0Ah \t\t\t\t\t\t; interrupcao para leitura do teclado\n");
+	CONCAT_BUF((char *)"\tINT 21h\n");
+	/* string */
+	if (pai->tipo == TP_Char) {
+
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
+
+		CONCAT_BUF((char *)"\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
+		CONCAT_BUF((char *)"\tMOV DX, 0 \t\t\t\t\t\t;contador de posicoes\n");
+		CONCAT_BUF((char *)"\tMOV BX, 0%Xh \t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
+
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
+		
+		CONCAT_BUF((char *)"\tR%d:\n",inicio); /* inicio do loop */
+		CONCAT_BUF((char *)"\tCMP DX, CX \t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
+		CONCAT_BUF((char *)"\tJE R%d \t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
+		CONCAT_BUF((char *)"\tMOV DI, 0%Xh \t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
+		CONCAT_BUF((char *)"\tADD DI, DX \t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
+		CONCAT_BUF((char *)"\tMOV DI, DS:[DI] \t\t\t\t\t\t;move o caractere para DI\n");
+		CONCAT_BUF((char *)"\tMOV DS:[BX], DI \t\t\t\t\t\t;move DI para o endereco do pai\n");
+		CONCAT_BUF((char *)"\tADD DX, 1 \t\t\t\t\t\t\t\t;soma 1 no offset\n");
+		CONCAT_BUF((char *)"\tADD BX, 1 \t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
+		CONCAT_BUF((char *)"\tJMP R%d \t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
+		CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;fim do loop\n", fim);
+		CONCAT_BUF((char *)"\tMOV CX, 24h\n");
+		CONCAT_BUF((char *)"\tMOV DS:[BX], CX \t\t\t\t\t\t;coloca $ no final \n");
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
+	}
+
+	/* inteiro */
+	else if (pai->tipo == TP_Integer) {
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio entrada de inteiros===================\n");
+		CONCAT_BUF((char *)"\tMOV DI, 0%Xh \t\t\t\t\t\t;posição do string\n",buffer+2);
+		CONCAT_BUF((char *)"\tMOV AX, 0 \t\t\t\t\t\t;acumulador\n");
+		CONCAT_BUF((char *)"\tMOV BX, 10 \t\t\t\t\t\t;base decimal\n");
+		CONCAT_BUF((char *)"\tMOV DX, 1 \t\t\t\t\t\t;valor sinal +\n");
+		CONCAT_BUF((char *)"\tMOV BH, 0\n");
+		CONCAT_BUF((char *)"\tMOV BL, DS:[DI] \t\t\t\t\t\t;caractere\n");
+		CONCAT_BUF((char *)"\tCMP CX, 2Dh \t\t\t\t\t\t\t\t;verifica sinal\n");
+		CONCAT_BUF((char *)"\tJNE R%d \t\t\t\t\t\t\t\t;se não negativo jmp inicio\n", inicio);
+		CONCAT_BUF((char *)"\tMOV DX, -1 \t\t\t\t\t\t;valor sinal -\n");
+		CONCAT_BUF((char *)"\tADD DI, 1 \t\t\t\t\t\t\t\t;incrementa base\n");
+		CONCAT_BUF((char *)"\tMOV BL, DS:[DI] \t\t\t\t\t\t;próximo caractere\n");
+		CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;inicio\n",inicio);
+		CONCAT_BUF((char *)"\tPUSH DX \t\t\t\t\t\t\t\t;empilha sinal\n");
+		CONCAT_BUF((char *)"\tMOV DX, 0 \t\t\t\t\t\t;reg. multiplicação\n");
+		CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;meio\n",meio);
+		CONCAT_BUF((char *)"\tCMP CX, 24h \t\t\t\t\t\t\t\t;verifica fim string\n");
+		CONCAT_BUF((char *)"\tJE R%d \t\t\t\t\t\t\t\t;salta fim se fim string\n",fim);
+		CONCAT_BUF((char *)"\tIMUL BX \t\t\t\t\t\t\t\t;mult. 10\n");
+		CONCAT_BUF((char *)"\tADD CX, -48 \t\t\t\t\t\t\t\t;converte caractere\n");
+		CONCAT_BUF((char *)"\tADD AX, CX \t\t\t\t\t\t\t\t;soma valor caractere\n");
+		CONCAT_BUF((char *)"\tADD DI, 1 \t\t\t\t\t\t\t\t;incrementa base\n");
+		CONCAT_BUF((char *)"\tMOV BH, 0\n");
+		CONCAT_BUF((char *)"\tMOV BL, DS:[DI] \t\t\t\t\t\t;próximo caractere\n");
+		CONCAT_BUF((char *)"\tJMP R%d \t\t\t\t\t\t\t\t;jmp meio\n",meio);
+		CONCAT_BUF((char *)"\tR%d: \t\t\t\t\t\t\t\t;fim\n", fim);
+		CONCAT_BUF((char *)"\tPOP BX \t\t\t\t\t\t\t\t;desempilha sinal\n");
+		CONCAT_BUF((char *)"\tIMUL BX \t\t\t\t\t\t\t\t;mult. sinal\n");
+
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere resultado para o pai===================\n");
+		CONCAT_BUF((char *)"\tMOV BX, 0%Xh\n", pai->endereco);
+		CONCAT_BUF((char *)"\tMOV DS:[BX], AX\n");
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== fim entrada de inteiros===================\n");
+	}
+
+	proxLinha();
+}
+
+/* geracao de codigo para saida de texto */
+void genSaida(struct Fator *pai, int ln)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genSaida");
+
+	int endereco = pai->endereco;
+	rot inicio = novoRot();
+	rot meio = novoRot();
+	rot fim = novoRot();
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio saida===================\n");
+	/* conversao de inteiro para string */
+	if (pai->tipo == TP_Integer) {
+		endereco = novoTemp(pai->tamanho);
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================saida de inteiros===================\n");
+		CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh]\t\t\t\t\t\t\t;carrega para AX o valor\n", pai->endereco);
+		CONCAT_BUF((char *)"\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;end. string temp.\n",endereco);
+		CONCAT_BUF((char *)"\tMOV CX, 0 \t\t\t\t\t\t\t\t\t;contador\n");
+		CONCAT_BUF((char *)"\tCMP AX, 0 \t\t\t\t\t\t\t\t\t;verifica sinal\n");
+		CONCAT_BUF((char *)"\tJGE R%d \t\t\t\t\t\t\t\t\t\t;salta se número positivo\n", inicio);
+		CONCAT_BUF((char *)"\tMOV BL, 2Dh \t\t\t\t\t\t\t\t;senão, escreve sinal –\n");
+		CONCAT_BUF((char *)"\tMOV DS:[DI], BL\n");
+		CONCAT_BUF((char *)"\tADD DI, 1 \t\t\t\t\t\t\t\t\t;incrementa índice\n");
+		CONCAT_BUF((char *)"\tneg AX \t\t\t\t\t\t\t\t\t\t;toma módulo do número\n");
+		CONCAT_BUF((char *)"\tR%d:\n",inicio);
+		CONCAT_BUF((char *)"\tMOV BX, 10 \t\t\t\t\t\t\t\t\t;divisor\n");
+		CONCAT_BUF((char *)"\tR%d:\n",meio);
+		CONCAT_BUF((char *)"\tADD CX, 1 \t\t\t\t\t\t\t\t\t;incrementa contador\n");
+		CONCAT_BUF((char *)"\tMOV DX, 0 \t\t\t\t\t\t\t\t\t;estende 32bits p/ div.\n");
+		CONCAT_BUF((char *)"\tIDIV BX \t\t\t\t\t\t\t\t\t;divide DXAX por BX\n");
+		CONCAT_BUF((char *)"\tPUSH DX \t\t\t\t\t\t\t\t\t;empilha valor do resto\n");
+		CONCAT_BUF((char *)"\tCMP AX, 0 \t\t\t\t\t\t\t\t\t;verifica se quoc. é 0\n");
+		CONCAT_BUF((char *)"\tJNE R%d \t\t\t\t\t\t\t\t\t\t;se não é 0, continua\n", meio);
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================agora, desemp. os valores e escreve o string===================\n");
+		CONCAT_BUF((char *)"\tR%d:\n",fim);
+		CONCAT_BUF((char *)"\tPOP DX \t\t\t\t\t\t\t\t\t\t;desempilha valor\n");
+		CONCAT_BUF((char *)"\tADD DX, 30h \t\t\t\t\t\t\t\t;transforma em caractere\n");
+		CONCAT_BUF((char *)"\tMOV DS:[DI],DL \t\t\t\t\t\t\t\t;escreve caractere\n");
+		CONCAT_BUF((char *)"\tADD DI, 1 \t\t\t\t\t\t\t\t\t;incrementa base\n");
+		CONCAT_BUF((char *)"\tADD CX, -1 \t\t\t\t\t\t\t\t\t;decrementa contador\n");
+		CONCAT_BUF((char *)"\tCMP CX, 0 \t\t\t\t\t\t\t\t\t;verifica pilha vazia\n");
+		CONCAT_BUF((char *)"\tJNE R%d \t\t\t\t\t\t\t\t\t\t;se não pilha vazia, loop\n", fim);
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================grava fim de string===================\n");
+		CONCAT_BUF((char *)"\tMOV DL, 24h \t\t\t\t\t\t\t\t;fim de string\n");
+		CONCAT_BUF((char *)"\tMOV DS:[DI], DL \t\t\t\t\t\t\t;grava '$'\n");
+		CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim saida de inteiros===================\n");
+	}
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================exibe string===================\n");
+	CONCAT_BUF((char *)"\tMOV DX, 0%Xh\n", endereco);
+	CONCAT_BUF((char *)"\tMOV AH, 09h\n");
+	CONCAT_BUF((char *)"\tINT 21h	\n");
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim saida===================\n");
+
+	if (ln)
+		proxLinha();
+}
+
+void fatorGeraLiteral(struct Fator *fator, char *val)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraLiteral");
+
+	
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================gera literal===================\n");
+	/* string */
+	if (fator->tipo == TP_Char) {
+		A_SEG_PUB
+			CONCAT_BUF((char *)"\tbyte \"%s$\" \t\t\t\t\t\t\t\t;string %s em 0%Xh\n",removeAspas(val),val,CD);
+		F_SEG_PUB
+		
+		fator->endereco = CD;
+		fator->tamanho = regLex.tamanho;
+
+		CD += (fator->tamanho+1) * TAM_CHA;
+
+	/* nao string */
+	} else {
+		fator->endereco = novoTemp(TAM_INT);
+		fator->tamanho = 1;
+		CONCAT_BUF((char *)"\tMOV AX, %s \t\t\t\t\t\t\t\t\t;literal para AX\n",val);
+		CONCAT_BUF((char *)"\tMOV DS:[0%Xh], AX \t\t\t\t\t\t\t;ax para memoria\n",fator->endereco);
+	}
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim gera literal===================\n");
+}
+
+void fatorGeraId(struct Fator *fator, char *id)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraId");
+
+	struct Celula *registro = pesquisarRegistro(id);
+
+	fator->endereco = registro->simbolo.memoria;
+	fator->tipo = registro->simbolo.tipo;
+	fator->tamanho = registro->simbolo.tamanho;
+}
+
+void fatorGeraArray(struct Fator *fator, struct Fator *expr, char *id)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraArray");
+
+	fator->endereco = novoTemp((expr->tipo == TP_Integer) ? TAM_INT : TAM_CHA);
+
+	fator->tamanho = 1;
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================acessar array===================\n");
+	
+	CONCAT_BUF((char *)"\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t;move para BX o endereco da expressao que vai conter o indice \n", expr->endereco);
+
+
+	if (fator->tipo == TP_Integer)
+		CONCAT_BUF((char *)"\tADD BX, DS:[0%Xh] \t\t\t\t\t\t\t\t;int usa 2 bytes, portanto contamos a posicao\n", expr->endereco);
+
+
+	CONCAT_BUF((char *)"\tADD BX, 0%Xh \t\t\t\t\t\t\t\t;soma o endereco do id indice + posicao = endereco real \n", pesquisarRegistro(id)->simbolo.memoria);
+
+
+	CONCAT_BUF((char *)"\tMOV BX, DS:[BX] \t\t\t\t\t\t;move para um registrador o valor na posicao de memoria calculada \n", fator->endereco);
+
+
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], BX \t\t\t\t\t\t;move o que estiver no endereco real para o temporario \n", fator->endereco);
+}
+
+void fatorGeraExp(struct Fator *fator, struct Fator *expr)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraExp");
+
+	fator->endereco = expr->endereco;
+	fator->tamanho = expr->tamanho;
+	fator->tipo = expr->tipo;
+}
+
+void fatorGeraNot(struct Fator *pai, struct Fator *filho)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraNot");
+
+	int tam = (regLex.tipo == TP_Integer || regLex.tipo == TP_Logico) ? TAM_INT : TAM_CHA;
+
+	pai->endereco = novoTemp(tam);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================nega expressao===================\n");
+	CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh]\n", filho->endereco);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================expressao not simulada com expressoes aritmeticas===================\n");
+	CONCAT_BUF((char *)"\tneg AX\n");
+	CONCAT_BUF((char *)"\tADD AX, 1\n");
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], AX \t\t\t\t\t\t;move o resultado para o endereco de memoria\n",pai->endereco);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim nega expressao===================\n");
+}
+
+void fatorGeraMenos(struct Fator *pai, struct Fator *filho)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"fatorGeraMenos");
+
+	pai->endereco = novoTemp(TAM_INT);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== - (exp)===================\n");
+	CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh]\n", filho->endereco);
+	
+	CONCAT_BUF((char *)"\tneg AX \t\t\t\t\t\t\t\t;negacao aritmetica \n");
+	CONCAT_BUF((char *)"\tMOV DS:[0%Xh], AX\n",pai->endereco);
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;===================fim - (exp)===================\n");
+}
+
+/* repassa dados do filho para o pai */
+void atualizaPai(struct Fator *pai, struct Fator *filho)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"atualizaPai");
+
+	pai->endereco = filho->endereco;
+	pai->tipo = filho->tipo;
+	pai->tamanho = filho->tamanho;
+}
+
+/* salva o operador */
+void guardaOp(struct Fator *pai)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"guardaOp");
+
+	pai->op = regLex.token;
+}
+
+/* operacoes entre termos */
+void genOpTermos(struct Fator *pai, struct Fator *filho)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGGEN((char *)"genOpTermos");
+
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio operacoes===================\n");
+	CONCAT_BUF((char *)"\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t;operando 1 em AX\n",pai->endereco);
+	CONCAT_BUF((char *)"\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t\t;operando 2 em BX\n",filho->endereco);
+
+	char *op;        /* codigo assembly da operacao */
+	char *RD = (char *)"AX"; /* registrador Destino         */
+	char *RO = (char *)"BX"; /* registrador origem          */
+	char *RR = (char *)"AX"; /* registrador origem          */
+
+	switch (pai->op) {
+		case And:  /* fallthrough */
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== And===================\n");
+		case Vezes:
+					op = (char *)"IMUL";
+					aritmeticos(op,RD,RO,RR,pai);
+					break;
+
+		case Barra: op = (char *)"IDIV";
+					aritmeticos(op,RD,RO,RR,pai);
+					break;
+
+		case Porcento: 
+					op = (char *)"IDIV";
+					RR = (char *)"DX";
+					aritmeticos(op,RD,RO,RR,pai);
+					break;
+
+		case Or:    /* fallthrough */
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== Or===================\n");
+		case Mais: 
+					op = (char *)"ADD";
+					aritmeticos(op, RD, RO,RR, pai);
+					break;
+
+		case Menos:
+					op = (char *)"SUB";
+					aritmeticos(op, RD, RO,RR, pai);
+					break;
+
+		case Igual:
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== igual===================\n");
+					op = (char *)"JE";
+					if (pai->tipo == TP_Char)
+						compChar(pai);
+					else
+						comp(op, pai);
+
+					break;
+
+		case Diferente:
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== Diferente===================\n");
+					op = (char *)"JNE";
+					comp(op, pai);
+					break;
+
+		case Maior: 
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== Maior===================\n");
+					op = (char *)"JG";
+					comp(op, pai);
+					break;
+
+		case Menor:
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== Menor===================\n");
+					op = (char *)"JL";
+					comp(op, pai);
+					break;
+
+		case MaiorIgual:
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== MaiorIgual===================\n");
+					op = (char *)"JGE";
+					comp(op, pai);
+					break;
+
+		case MenorIgual:
+					CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== MenorIgual===================\n");
+					op = (char *)"JLE";
+					comp(op, pai);
+					break;
+
+	}
+	CONCAT_BUF((char *)"\t\t\t\t\t\t\t\t\t\t\t\t;=================== fim operacao===================\n");
+
 }
 
 /* Analisador sintático
@@ -804,6 +1969,19 @@ fimloop:
  * simbolo que espera. Esse símbolo já deve ter
  * sido lido antes.
  */
+
+	
+/* atribui posicao de acesso ao vetor no registro lexico */
+void atrPos(int pos)
+{
+	regLex.pos = pos;
+}
+
+/* atribui tipo à constante na tabela de simbolos */
+void atrTipo()
+{
+	regLex.endereco->simbolo.tipo = regLex.tipo;
+}
 
 /* confere se o último token lido é esperado
  * Caso não seja o token esperado, aborta a
@@ -821,11 +1999,12 @@ int casaToken(Tokens esperado)
 {
 	int retorno = 1;
 
-	if (esperado != tokenAtual.token){
-		if (lex) erroSintatico(ERRO_SINTATICO);
-		else erroSintatico(ERRO_SINTATICO_EOF);
+	if (esperado != regLex.token){
+		if (lex) erroSintatico(ER_SIN);
+		else erroSintatico(ER_SIN_EOF);
 	}
 
+	lexan();
 	return retorno;
 }
 
@@ -834,15 +2013,31 @@ int casaToken(Tokens esperado)
  */
 void erroSintatico(int tipo)
 {
-	/* mostra a pilha de chamadas */
-	/*printPilha(); */
 
-	if (tipo == ERRO_SINTATICO) {
-		erro = ERRO_SINTATICO;
-		erroMsg = (char *)"token nao esperado";
-	} else {
-		erro = ERRO_SINTATICO_EOF;
-		erroMsg = (char *)"fim de arquivo nao esperado";
+	erro = tipo;
+	switch (tipo)
+	{
+		case ER_SIN:
+			erroMsg = (char *)"token nao esperado";
+			break;
+		case ER_SIN_EOF:
+			erroMsg = (char *)"fim de arquivo nao esperado";
+			break;
+		case ER_SIN_NDEC:
+			erroMsg = (char *)"identificador nao declarado";
+			break;
+		case ER_SIN_JADEC:
+			erroMsg = (char *)"identificador ja declarado";
+			break;
+		case ER_SIN_TAMVET:
+			erroMsg = (char *)"tamanho do vetor excede o maximo permitido";
+			break;
+		case ER_SIN_C_INC:
+			erroMsg = (char *)"classe de identificador incompativel";
+			break;
+		case ER_SIN_T_INC :
+			erroMsg = (char *)"tipos incompativeis";
+			break;
 	}
 
 	/* Aborta a compilação */
@@ -856,6 +2051,10 @@ void iniciarAnSin(void)
 {
 	/* consome o primeiro token */
 	lexan();
+
+	/* codegen: inicia bloco de declaracoes */
+	initDeclaracao();
+
 	/* inicia pelo primeiro simbolo da gramatica */
 	declaracao();
 }
@@ -867,38 +2066,46 @@ void iniciarAnSin(void)
 void declaracao(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: Declaracao\n");
-	/*push("Declaracao");*/
-
+	DEBUGSIN((char *)"declaracao");
 
 	/* var ou const */
-	if (tokenAtual.token == Var) {
+	if (regLex.token == Var) {
+
 		lido=0;
 		lexan();
 		variavel();
 		declaracao();
-	} else if (tokenAtual.token == Const) {
+
+	} else if (regLex.token == Const) {
+
 		lido=0;
 		lexan();
 		constante();
 		declaracao();
+
 	} else {
 		/* existem casos especificos onde o
-	 	* token do bloco de comandos ja foi lido
-	 	* e portanto nao precisa ser lido aqui,
-	 	* conferir listaIds para ver a lista desses
-	 	* casos 
-	 	*
-	 	* se ainda nao leu, le
-	 	* se ja leu, utiliza o lexema lido
-	 	* e marca que nao leu
-	 	* */
+		 * token do bloco de comandos ja foi lido
+		 * e portanto nao precisa ser lido aqui,
+		 * conferir listaIds para ver a lista desses
+		 * casos 
+		 *
+		 * se ainda nao leu, le
+		 * se ja leu, utiliza o lexema lido
+		 * e marca que nao leu
+		 * */
 		if (!lido) lexan();
 		else lido = 0;
+
+		/* codegen: finaliza bloco de declaracoes e 
+		 * inicializa bloco do programa 
+		 */
+		fimDecInitCom();
 
 		blocoComandos();
 		fimDeArquivo();
 	}
+	del(pilha);
 }
 
 
@@ -908,12 +2115,15 @@ void declaracao(void)
 void blocoComandos()
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: blocoComandos\n");
-	/*push("blocoComandos");*/
+	DEBUGSIN((char *)"blocoComandos");
 
-	switch(tokenAtual.token)
+	switch(regLex.token)
 	{
 		case Identificador:
+			/* acao semantica */
+			verificaDeclaracao(regLex.lexema);
+			verificaConst(regLex.lexema);
+
 			estado_sin = N_ACEITACAO_SIN;
 			lexan();
 			atribuicao();
@@ -939,7 +2149,6 @@ void blocoComandos()
 
 		case PtVirgula:
 			estado_sin = N_ACEITACAO_SIN;
-			lexan();
 			nulo();
 			blocoComandos();
 			estado_sin = ACEITACAO_SIN;
@@ -956,7 +2165,7 @@ void blocoComandos()
 		case Write:
 			estado_sin = N_ACEITACAO_SIN;
 			lexan();
-			escrita();
+			escrita(0);
 			blocoComandos();
 			estado_sin = ACEITACAO_SIN;
 			break;
@@ -964,7 +2173,7 @@ void blocoComandos()
 		case Writeln:
 			estado_sin = N_ACEITACAO_SIN;
 			lexan();
-			escritaLn();
+			escrita(1);
 			blocoComandos();
 			estado_sin = ACEITACAO_SIN;
 			break;
@@ -976,28 +2185,32 @@ void blocoComandos()
 			estado_sin = ACEITACAO_SIN;
 			return;
 
-		default:
+	default:
 			return;
-	}
+}
+del(pilha);
 }
 
 /* EOF */
 void fimDeArquivo(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: fimDeArquivo\n");
-	/*push("fimdearquivo");*/
+	DEBUGSIN((char *)"fimDeArquivo");
 
 
 	/* se lex nao for 0 ainda n leu o EOF */
-	if (lex)
-		erroSintatico(ERRO_SINTATICO_EOF);
-
 	/* leu fim de arquivo mas nao em estado de aceitacao */
+	if (lex)
+		erroSintatico(ER_SIN);
+
 	if (estado_sin != ACEITACAO_SIN)
-		erroSintatico(ERRO_SINTATICO_EOF);
+		erroSintatico(ER_SIN_EOF);
+
+	/* codegen: finaliza o programa */
+	fimComandos();
 
 	sucesso();
+	del(pilha);
 }
 
 /***********************************************
@@ -1010,32 +2223,69 @@ void fimDeArquivo(void)
 void constante(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: constante\n");
-	/*push("constante");*/
+	DEBUGSIN((char *)"constante");
+
+	/* salva o lexema atual para verificacao da classe */
+	lexAux = regLex.lexema;
+
+	int negativo = 0;
+
+	defClasse(CL_Const);
 
 	estado_sin = N_ACEITACAO_SIN;
-	casaToken(Identificador); lexan();
-	casaToken(Igual);         lexan();
-	casaToken(Literal);       lexan();
-	casaToken(PtVirgula);
+	casaToken(Identificador);
+
+	/* Ação semantica */
+	verificaClasse(lexAux);
+
+	casaToken(Igual);
+
+	/* literal negativo */
+	if (regLex.token == Menos) {
+		negativo = 1;
+		lexan(); 
+	}
+
+	/* atribui tipo a constante */
+	atrTipo();
+
+	lexAux = removeComentario(lexemaLido);
+	casaToken(Literal);
+
+	/* codegen */
+	genDeclaracao(regLex.tipo,
+			regLex.classe,
+			regLex.tamanho,
+			lexAux,
+			negativo
+			);
+
+	casaToken(PtVirgula); lido = 1;
+	del(pilha);
 }
 
 /* var char|integer listaIds();
- */
+*/
 void variavel(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: variavel\n");
-	/*push("variavel");*/
+	DEBUGSIN((char *)"variavel");
+
+	/* Ação semantica */
+	defClasse(CL_Var);
 
 	estado_sin = N_ACEITACAO_SIN;
-	if (tokenAtual.token == Char || tokenAtual.token == Integer) {
+	if (regLex.token == Char || regLex.token == Integer) {
+		if (regLex.token == Char) regLex.tipo = TP_Char;
+		else regLex.tipo = TP_Integer;
+
 		lexan();
 		listaIds();
 	} else {
-		erroSintatico(ERRO_SINTATICO);
+		erroSintatico(ER_SIN);
 	}
 	estado_sin = ACEITACAO_SIN;
+	del(pilha);
 }
 
 
@@ -1047,21 +2297,45 @@ void variavel(void)
 void listaIds(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: listaIds\n");
-	/*push("listaIds");*/
+	DEBUGSIN((char *)"listaIds");
 
-	casaToken(Identificador); lexan();
+	Tipo t;
+	int negativo = 0;
 
-	if (tokenAtual.token == Virgula){
+	/* acao semantica */
+	verificaClasse(regLex.lexema);
+
+	casaToken(Identificador);
+	if (regLex.token == Virgula){
 		/* Lendo id,id */
+
+		/* codegen */
+		genDeclaracao(
+				regLex.endereco->simbolo.tipo,
+				regLex.classe,
+				regLex.endereco->simbolo.tamanho,
+				NULL,
+				negativo
+				);
+
 		lexan();
 		listaIds();
 
-	} else if (tokenAtual.token == PtVirgula) {
+	} else if (regLex.token == PtVirgula) {
 		/* lendo fim de um comando */
+
+		/* codegen */
+		genDeclaracao(
+				regLex.endereco->simbolo.tipo,
+				regLex.classe,
+				regLex.endereco->simbolo.tamanho,
+				NULL,
+				negativo
+				);
+
 		lexan();
 		/* Lista de declaracoes tipo Var integer c; char d; */
-		if (tokenAtual.token == Integer || tokenAtual.token == Char)
+		if (regLex.token == Integer || regLex.token == Char)
 			variavel();
 		else
 			/* fim do comando e marca lido como 1
@@ -1072,55 +2346,97 @@ void listaIds(void)
 			 * */
 			lido = 1;
 
-	} else if (tokenAtual.token == Igual) {
+	} else if (regLex.token == Igual) {
 		/* lendo id=literal */
 		lexan();
-		casaToken(Literal); lexan();
-		if (tokenAtual.token == Virgula) {
+
+		/* literal negativo */
+		if (regLex.token == Menos) {
+			negativo = 1;
+			lexan();
+		}
+
+		t = regLex.tipo;
+		lexAux = regLex.lexema;
+
+		casaToken(Literal);
+
+		/* acao semantica */
+		verificaTipo(regLex.endereco->simbolo.tipo, t);
+
+		/* codegen */
+		genDeclaracao(
+				t,
+				regLex.classe,
+				regLex.endereco->simbolo.tamanho,
+				lexAux,
+				negativo
+				);
+
+		if (regLex.token == Virgula) {
 			/* outro id */
 			lexan();
 			listaIds();
-		} else if (casaToken(PtVirgula)) {
+		} else {
 			/* terminou de ler o comando */
-			lexan();
+			casaToken(PtVirgula);
+
 			/* Lista de declaracoes tipo Var integer c; char d; */
-			if (tokenAtual.token == Integer || tokenAtual.token == Char)
+			if (regLex.token == Integer || regLex.token == Char)
 				variavel();
 			else
 				/* fim do comando e marca lido como 1
-			 	* pois leu um lexema que nao
-			 	* foi utilizado aqui, portanto
-			 	* o proximo metodo nao precisa ler
-			 	* este lexema
-			 	* */
+				 * pois leu um lexema que nao
+				 * foi utilizado aqui, portanto
+				 * o proximo metodo nao precisa ler
+				 * este lexema
+				 * */
 				lido = 1;
 		}
-	} else if (casaToken(A_Colchete)) {
-		/* lendo id[int] */
-		lexan();
-		casaToken(Literal);    lexan();
-		casaToken(F_Colchete); lexan();
+	} else {
+		/* lendo id[literal] */
+		casaToken(A_Colchete);
 
-		if (tokenAtual.token == Virgula) {
+		lexAux = regLex.lexema;
+		casaToken(Literal);
+
+		/* acao semantica */
+		verificaTam(str2int(lexAux));
+
+		casaToken(F_Colchete);
+
+		/* codegen */
+		genDeclaracao(
+				regLex.endereco->simbolo.tipo,
+				regLex.classe,
+				regLex.endereco->simbolo.tamanho,
+				NULL,
+				negativo
+				);
+
+
+		if (regLex.token == Virgula) {
 			/* outro id */
 			lexan();
 			listaIds();
-		} else if (casaToken(PtVirgula)) {
+		} else {
 			/* terminou de ler o comando */
-			lexan();
+			casaToken(PtVirgula);
+
 			/* Lista de declaracoes tipo Var integer c; char d; */
-			if (tokenAtual.token == Integer || tokenAtual.token == Char)
+			if (regLex.token == Integer || regLex.token == Char)
 				variavel();
 			else
 				/* fim do comando e marca lido como 1
-			 	* pois leu um lexema que nao
-			 	* foi utilizado aqui, portanto
-			 	* o proximo metodo nao precisa ler
-			 	* este lexema
-			 	* */
+				 * pois leu um lexema que nao
+				 * foi utilizado aqui, portanto
+				 * o proximo metodo nao precisa ler
+				 * este lexema
+				 * */
 				lido = 1;
 		}
 	}
+	del(pilha);
 }
 
 /***********************************************
@@ -1131,43 +2447,57 @@ void listaIds(void)
 
 
 /* Atribuicao
- * ID=literal;
+ * ID=expressao();
  */
 void atribuicao(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: atribuicao\n");
-	/*push("atribuicao");*/
+	DEBUGSIN((char *)"atribuicao");
 
-	/* lendo array: id[i] */
-	if (tokenAtual.token == A_Colchete) {
-		lexan();
-		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-			lexan();
-			casaToken(F_Colchete); lexan();
-		} else {
-			erroSintatico(ERRO_SINTATICO);
-		}
-	}
-	casaToken(Igual); lexan();
-	if (tokenAtual.token == Identificador) {
-		lexan();
-		/* lendo array: id[i] */
-		if (tokenAtual.token == A_Colchete) {
-			lexan();
-			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-				lexan();
-				casaToken(F_Colchete); lexan();
-			} else {
-				erroSintatico(ERRO_SINTATICO);
-			}
-		}
-		casaToken(PtVirgula); lexan();
+	NOVO_FATOR(pai);
+	NOVO_FATOR(expr);  /* fator da expressao do lado direito */
+	Tipo tipoId = regLex.endereco->simbolo.tipo;
+	pai->tipo = tipoId;
 
-	} else if (casaToken(Literal)) {
+	/* codegen
+	 * salva no pai o endereco de id
+	 * para caso leia outro id na expressao de atribuicao
+	 *
+	 * zera os temporarios
+	 */
+	pai->endereco = regLex.endereco->simbolo.memoria;
+	zeraTemp();
+
+	/* lendo array: id[expressao()] */
+	if (regLex.token == A_Colchete) {
 		lexan();
-		casaToken(PtVirgula); lexan();
+
+		NOVO_FATOR(aux);
+
+		aux = expressao();
+		/* acao semantica */
+		verificaTipo(aux->tipo, TP_Integer);
+
+		/* marca como array */
+		atrPos(1);
+		casaToken(F_Colchete);
+		fatorGeraArray(pai, aux, regLex.endereco->simbolo.lexema);
 	}
+
+	casaToken(Igual);
+
+
+	expr = expressao();
+
+	/* acao semantica */
+	verificaTipo(expr->tipo, tipoId);
+	verificaAtrVetor();
+
+	/* codegen */
+	genAtribuicao(pai,expr);
+
+	del(pilha);
+	casaToken(PtVirgula);
 } 
 
 /* Repeticao
@@ -1176,73 +2506,107 @@ void atribuicao(void)
 void repeticao(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: repeticao\n");
-	/*push("repeticao");*/
+	DEBUGSIN((char *)"repeticao");
 
-	casaToken(Identificador); lexan();
-	if (tokenAtual.token == A_Colchete) {
-		/* lendo array: id[i] */
+	Tipo t = regLex.endereco->simbolo.tipo;
+	NOVO_FATOR(pai);
+	pai->tipo = t;
+	NOVO_FATOR(filho);
+	NOVO_FATOR(filho2);
+
+	lexAux = regLex.lexema;
+
+	/* codegen
+	 * salva o endereco do id no pai
+	 * para caso leia outro id na expressao de atribuicao
+	 * e zera temporarios
+	 */
+	pai->endereco = regLex.endereco->simbolo.memoria;
+	pai->tipo = t;
+	zeraTemp();
+
+	/* acao semantica */
+	verificaDeclaracao(lexAux);
+	verificaConst(lexAux);
+	verificaTipo(t,TP_Integer);
+
+	casaToken(Identificador);
+
+	/* lendo array: id[i] */
+	if (regLex.token == A_Colchete) {
 		lexan();
-		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-			lexan();
-			if (casaToken(F_Colchete)) {
-				lexan();
-			}
-		} else {
-			erroSintatico(ERRO_SINTATICO);
-		}
+
+		NOVO_FATOR(aux);
+		aux = expressao();
+
+		/* acao semantica */
+		verificaTipo(aux->tipo,TP_Integer);
+
+		/* codegen */
+		acessoArray(pai, aux);
+
+		casaToken(F_Colchete);
 	}
 
 	/* ja leu ( id|id[i] ) e pode fechar o comando */
-	casaToken(Igual);   lexan();
-	casaToken(Literal); lexan();
-	casaToken(To);      lexan();
+	casaToken(Igual);
 
-	if (tokenAtual.token == Literal) {
-		lexan();
-		repeticao1();
-	} else if (tokenAtual.token == Identificador) {
-		lexan();
-		if (tokenAtual.token == A_Colchete) {
-			/* lendo array: id[i] */
-			lexan();
-			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-				lexan();
-				if (casaToken(F_Colchete)) {
-					lexan();
-				}
-			} else {
-				erroSintatico(ERRO_SINTATICO);
-			}
-		}
-		/* ja leu ( id|id[i] ) e pode fechar o comando */
-		repeticao1();
+	filho = expressao();
 
-	}
+	/* codegen */
+	genAtribuicao(pai, filho);
+
+	/* acao semantica */
+	verificaTipo(filho->tipo,TP_Integer);
+
+	casaToken(To);
+
+	filho2 = expressao();
+
+	/* codegen */
+	rot inicio = novoRot();
+	rot fim = novoRot();
+	genRepeticao(pai,filho2,inicio,fim);
+
+	repeticao1(pai, inicio, fim);
+
+	del(pilha);
 }
 
 /* 
- * R2 na gramatica
- *
  * step literal do comandos2();
  * ou
  * do comandos2();
  */
-void repeticao1(void)
+void repeticao1(struct Fator *pai, rot inicio, rot fim)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: repeticao1\n");
-	/*push("repeticao1");*/
+	DEBUGSIN((char *)"repeticao1");
 
-	if (tokenAtual.token == Step) {
+	Tipo t;
+	char *step = (char *)"1";
+
+	if (regLex.token == Step) {
 		lexan();
-		casaToken(Literal); lexan();
-		casaToken(Do);      lexan();
-		comandos2();
-	} else if (casaToken(Do)) {
-		lexan();
-		comandos2();
+
+		/* guarda o step */
+		t = regLex.tipo;
+		step = regLex.lexema;
+
+		casaToken(Literal);
+
+		/* acao semantica */
+		verificaTipo(t, TP_Integer);
+
 	}
+
+	casaToken(Do);
+	comandos2();
+
+	/* codegen */
+	genFimRepeticao(pai, inicio, fim, step);
+
+	del(pilha);
 }
 
 /* R1 na gramatica
@@ -1253,10 +2617,9 @@ void repeticao1(void)
 void comandos2(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: comandos2\n");
-	/*push("comandos2");*/
+	DEBUGSIN((char *)"comandos2");
 
-	switch(tokenAtual.token)
+	switch(regLex.token)
 	{
 		case Identificador:
 			lexan();
@@ -1285,33 +2648,32 @@ void comandos2(void)
 
 		case Write:
 			lexan();
-			escrita();
+			escrita(0);
 			break;
 
 		case Writeln:
 			lexan();
-			escritaLn();
+			escrita(1);
 			break;
 
 		case A_Chaves:
 			lexan();
 			blocoComandos();
 			/* o } ja foi lido por alguem na chamada antiga chamou */
-			if (casaToken(F_Chaves)) {
-				lexan();
-			}
+			casaToken(F_Chaves);
 			break;
 
-		case F_Chaves:
+	case F_Chaves:
 			/* encontrou o fim do bloco de comandos atual,
 			 * retorna e deixa o metodo que chamou tratar o }
 			 */
-			return;
+	return;
 
-		default:
-			if (lex) erroSintatico(ERRO_SINTATICO);
-			else erroSintatico(ERRO_SINTATICO_EOF);
+	default:
+	if (lex) erroSintatico(ER_SIN);
+	else erroSintatico(ER_SIN_EOF);
 	}
+del(pilha);
 }
 
 /* Teste
@@ -1320,36 +2682,53 @@ void comandos2(void)
 void teste(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: teste\n");
-	/*push("teste");*/
+	DEBUGSIN((char *)"teste");
 
-	expressao();
+	NOVO_FATOR(expr);
+	rot falso = novoRot();
+	rot fim = novoRot();
+
+	/* codegen */
+	zeraTemp();
+
+	expr = expressao();
+
+	/* acao semantica */
+	verificaTipo(expr->tipo, TP_Logico);
+
+	/* codegen */
+	genTeste(expr, falso, fim);
+
 	/* then foi lido antes de retornar de expressao() */
 	casaToken(Then);
-	lexan();
+
 	comandos2();
 
-	if (tokenAtual.token == F_Chaves)
+	if (regLex.token == F_Chaves)
 		lexan(); 
 
-	teste1();
+	teste1(falso, fim);
+	del(pilha);
 }
 
 /* else comandos2()
  * ou fim do if
  * blocoComandos()
  */
-void teste1(void)
+void teste1(rot falso, rot fim)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: teste1\n");
-	/*push("teste1");*/
+	DEBUGSIN((char *)"teste1");
 
-	lexan();
-	if (tokenAtual.token == Else) {
+	genElseTeste(falso, fim);
+
+	if (regLex.token == Else) {
 		lexan();
 		comandos2();
 	}
+
+	genFimTeste(fim);
+	del(pilha);
 }
 
 /* Comando de leitura
@@ -1358,27 +2737,39 @@ void teste1(void)
 void leitura(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: leitura\n");
-	/*push("leitura");*/
+	DEBUGSIN((char *)"leitura");
+	NOVO_FATOR(pai);
+	NOVO_FATOR(expr);
+	char *lexId;
 
-	casaToken(A_Parenteses);  lexan();
-	casaToken(Identificador); lexan();
+	casaToken(A_Parenteses);
 
-	if (tokenAtual.token == A_Colchete) {
+	lexId = regLex.lexema;
+	casaToken(Identificador);
+
+	/* codegen */
+	pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;
+	pai->tipo = buscaTipo(lexId);
+	zeraTemp();
+
+	if (regLex.token == A_Colchete) {
 		/* lendo array: id[i] */
 		lexan();
-		if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-			lexan();
-			casaToken(F_Colchete); lexan();
-		} else {
-			erroSintatico(ERRO_SINTATICO);
-		}
+		expr = expressao();
+		casaToken(F_Colchete);
+
+		/* acao semantica */
+		verificaTipo(expr->tipo, TP_Integer);
+		fatorGeraArray(pai, expr, lexId);
 	}
+
 	/* ja leu ( id|id[i] ) e pode fechar o comando */
-	if (casaToken(F_Parenteses)) {
-		lexan();
-		casaToken(PtVirgula); lexan();
-	}
+	casaToken(F_Parenteses);
+	casaToken(PtVirgula);
+
+	genEntrada(pai);
+
+	del(pilha);
 }
 
 /* Comando nulo
@@ -1387,212 +2778,503 @@ void leitura(void)
 void nulo(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: nulo\n");
-	/*push("nulo");*/
+	DEBUGSIN((char *)"nulo");
 
-	casaToken(PtVirgula); lexan();
+	casaToken(PtVirgula);
+	del(pilha);
 }
 
 /* Comando de escrita
  * write(id|const)
  */
-void escrita(void)
+void escrita(int ln)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("escrita\n");
-	/*push("escrita");*/
+	DEBUGSIN((char *)"escrita");
 
-	casaToken(A_Parenteses); lexan();
-	expressao2();
-	casaToken(F_Parenteses); lexan();
-	casaToken(PtVirgula);    lexan();
+	zeraTemp();
+	casaToken(A_Parenteses);
+	expressao2(ln);
+	casaToken(F_Parenteses);
+	casaToken(PtVirgula);
+	del(pilha);
 }
 
-/* Funciona como um wrapper para o escrita.
- * a sintaxe dos dois é a mesma porém o escritaLn
- * deve colocar a quebra de linha no final.
- * Isso será tratado posteriormente, ao implementar
- * a geração de código
- * TODO colocar quebra de linha na geracao de codigo
+/* le uma expressao e retorna o tipo final
+ * Expressão
+ * X -> Xs [ O Xs ]
+ * O  -> = | <> | < | > | >= | <=
  */
-void escritaLn(void)
+struct Fator *expressao(void)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("escritaLn\n");
-	/*push("escritaLn");*/
+	DEBUGSIN((char *)"expressao");
 
-	escrita();
-}
+	NOVO_FATOR(ret);
+	NOVO_FATOR(filho);
 
-void expressao(void)
-{
-	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("expressao\n");
-	/*push("expressao");*/
+	filho = expressaoS();
+	
+	/* codegen */
+	atualizaPai(ret,filho);
 
-	if (tokenAtual.token == A_Parenteses) {
+	/* operacoes tipo x tipo -> logico */
+	if (regLex.token == Igual || regLex.token == Diferente) {
+
+		/* codegen */
+		guardaOp(ret);
+
 		lexan();
-		expressao();
-		lexan();
-		casaToken(F_Parenteses); lexan();
-	} else if (tokenAtual.token == Identificador) {
-		 /* id */
-		lexan();
-		/* lendo array: id[i] */
-		if (tokenAtual.token == A_Colchete) {
-			lexan();
-			if (tokenAtual.token == Identificador || tokenAtual.token == Literal) {
-				lexan();
-				casaToken(F_Colchete); lexan();
-				expressao1();
-			} else {
-				erroSintatico(ERRO_SINTATICO);
-			}
-		} else {
-			expressao1();
-		}
-	} else if (casaToken(Literal)) {
-		lexan();
-		expressao1();
+
+		NOVO_FATOR(filho2);
+		filho2 = expressaoS();
+
+		/* acao semantica */
+		verificaTipo(ret->tipo, filho2->tipo);
+
+		/* codegen */
+		genOpTermos(ret,filho2);
+
+		ret->tipo = TP_Logico;
 	}
-}
 
-void expressao1(void)
-{
-	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: expressao1\n");
-	/*push("expressao1");*/
-
-	/* op id|literal */
-	if (tokenAtual.token == MaiorIgual ||
-		tokenAtual.token == MenorIgual ||
-		tokenAtual.token == Maior      ||
-		tokenAtual.token == Menor      ||
-		tokenAtual.token == Diferente  ||
-		tokenAtual.token == Or         ||
-		tokenAtual.token == Mais       ||
-		tokenAtual.token == Menos      ||
-		tokenAtual.token == Porcento   ||
-		tokenAtual.token == Barra      ||
-		tokenAtual.token == And        ||
-		tokenAtual.token == Vezes      ||
-		tokenAtual.token == Not        ||
-		tokenAtual.token == Igual)
+	/* operacoes tipo int x int -> logico */
+	else if (regLex.token == Menor || regLex.token == Maior ||
+			regLex.token == MaiorIgual || regLex.token == MenorIgual) 
 	{
+
+		/* codegen */
+		guardaOp(ret);
+
 		lexan();
-		expressao(); 
+
+		NOVO_FATOR(filho2);
+		filho2 = expressaoS();
+
+		/* acao semantica */
+		verificaTipo(ret->tipo,TP_Integer);
+		verificaTipo(filho2->tipo,TP_Integer);
+
+		/* codegen */
+		genOpTermos(ret,filho2);
+
+		ret->tipo = TP_Logico;
 	}
-	/* leu lambda */
-	/* id sozinho, retorna (lambda) */
+
+
+	del(pilha);
+	return ret;
 }
+
+/* Expressao simples
+ * Xs -> [-] T {( + | - | ‘or’) T}
+ */
+struct Fator *expressaoS(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGSIN((char *)"expressaoS");
+
+	int menos = 0;
+	int notOp = 0;
+	NOVO_FATOR(ret);
+	NOVO_FATOR(filho);
+
+	if (regLex.token == Menos) {
+		menos = 1;
+		lexan();
+	} else if (regLex.token == Not) {
+		notOp = 1;
+		lexan();
+	}
+
+	filho = termo();
+
+	/* codegen */
+	atualizaPai(ret,filho);
+	if (menos) {
+		/* acao semantica */
+		verificaTipo(filho->tipo, TP_Integer);
+		fatorGeraMenos(ret,filho);
+	} else if (notOp) {
+		verificaTipo(toLogico(filho->tipo), TP_Logico);
+		fatorGeraNot(ret,filho);
+	}
+
+
+	/* operacoes int x int -> int */
+	if (regLex.token == Mais || regLex.token == Menos) {
+
+		/* codegen */
+		guardaOp(ret);
+
+		lexan();
+
+		NOVO_FATOR(filho2);
+		filho2 = termo();
+
+		/* acao semantica */
+		verificaTipo(ret->tipo, TP_Integer);
+		verificaTipo(filho2->tipo, TP_Integer);
+
+		/* codegen */
+		genOpTermos(ret,filho2);
+
+		ret->tipo = TP_Integer;
+	}
+	
+	/* operacoes logico x logico -> logico */
+	else if (regLex.token == Or) {
+
+		/* codegen */
+		guardaOp(ret);
+		lexan();
+
+		NOVO_FATOR(filho2);
+		filho2 = termo();
+		
+		/* acao semantica */
+		verificaTipo(toLogico(ret->tipo), TP_Logico);
+		verificaTipo(toLogico(filho2->tipo), TP_Logico);
+
+		/* codegen */
+		genOpTermos(ret,filho2);
+
+		ret->tipo = TP_Logico;
+	}
+
+	del(pilha);
+	return ret;
+}
+
+void acaoFilhoTermo2(struct Fator *atual, Tipo gerado)
+{
+		/* codegen */
+		guardaOp(atual);
+
+		lexan();
+
+		NOVO_FATOR(filho2);
+		filho2 = fator();
+
+		/* acao semantica */
+		verificaTipo(atual->tipo, gerado);
+		verificaTipo(filho2->tipo,  gerado);
+
+		/* codegen */
+		genOpTermos(atual,filho2);
+
+}
+
+/* Termo
+ * T  -> F {( * | / | % | ‘and’ ) F}
+ */
+struct Fator *termo(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGSIN((char *)"termo");
+
+	NOVO_FATOR(atual);
+	NOVO_FATOR(filho);
+
+	filho = fator();
+
+	/* codegen */
+	atualizaPai(atual,filho);
+
+	/* operacoes int x int -> int */
+	if (regLex.token == Vezes ||
+			 regLex.token == Barra || regLex.token == Porcento )
+	{
+		acaoFilhoTermo2(atual, TP_Integer);
+	}
+	/* operacoes logico x logico -> logico */
+	else if (regLex.token == And) {
+		acaoFilhoTermo2(atual, TP_Logico);
+	}
+
+	del(pilha);
+	return atual;
+}
+
+/* Fator
+ * F  -> ‘(‘ X ‘)’ | literal | id ['[' X ']']
+ */
+struct Fator *fator(void)
+{
+	/* DEBUGGER E PILHA */
+	DEBUGSIN((char *)"fator");
+
+	NOVO_FATOR(ret);
+
+	int array = 0;
+	char *lexId;
+
+	if (regLex.token == A_Parenteses) {
+
+		lexan();
+		NOVO_FATOR(expr);
+		expr = expressao();
+
+		/* codegen */
+		fatorGeraExp(ret,expr);
+		
+		casaToken(F_Parenteses);
+
+	/* fator -> literal */
+	} else if (regLex.token == Literal) {
+
+		lexAux = removeComentario(lexemaLido);
+		ret->tipo = regLex.tipo;
+
+		/* codegen */
+		fatorGeraLiteral(ret,lexAux);
+		
+		lexan();
+
+	/* fator -> id */
+	} else if (regLex.token == Identificador) {
+		lexId = regLex.lexema;
+
+		/* acao semantica */
+		verificaDeclaracao(lexId);
+
+		lexan();
+
+		NOVO_FATOR(aux);
+		/* lendo array: id[expressao()] */
+		if (regLex.token == A_Colchete) {
+			lexan();
+
+			aux = expressao();
+
+			/* acao semantica */
+			verificaTipo(aux->tipo, TP_Integer);
+
+			/* marca como array */
+			atrPos(1); array = 1;
+
+			casaToken(F_Colchete);
+		}
+
+		/* codegen */
+		if (array)
+			fatorGeraArray(ret,aux,lexId);
+		else
+			fatorGeraId(ret,lexId);
+
+		ret->tipo = pesquisarRegistro(lexId)->simbolo.tipo;
+	}
+
+	del(pilha);
+	return ret;
+}
+
 
 /* lista de expressoes */
-void expressao2(void)
+void expressao2(int ln)
 {
 	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: expressao2\n");
-	/*push("expressao2");*/
+	DEBUGSIN((char *)"expressao2");
+	NOVO_FATOR(expr);
 
-	expressao();
-	expressao3();
-}
+	expr = expressao();
+	genSaida(expr, ln);
 
-/* mais uma expressao ou lambda */
-void expressao3(void)
-{
-	/* DEBUGGER E PILHA */
-	if (DEBUG_SIN) printf("SIN: expressao3\n");
-	/*push("expressao3");*/
-
-	if (tokenAtual.token == Virgula) {
+	if (regLex.token == Virgula) {
 		lexan();
-		expressao2();
+		expressao2(ln);
 	}
-	/* else lambda */
+
+	del(pilha);
 }
 
+
+/* testa a inserção de um registro na tabela */
+void testeInsercao(void)
+{
+	printf((char *)"Testando inserção simples......");
+	char *lex = (char *)"teste";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	if (inserido == NULL)
+		printf((char *)"ERRO: Inserção falhou\n");
+	else
+		printf((char *)"OK\n");
+}
+
+/* testa a inserção de um registro que cause uma colisão na tabela */
+void testeColisao(void)
+{
+	printf((char *)"Testando inserção com colisão..");
+	char *lex = (char *)"teste2";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	struct Celula *colisao = adicionarRegistro(lex, Identificador);
+	if (inserido->prox != colisao)
+		printf((char *)"ERRO: Colisão falhou\n");
+	else
+		printf((char *)"OK\n");
+}
+
+/* testa a busca por um registro que está no início da lista, ou seja,
+ * sem colisões.
+ */
+void testeBuscaSimples(void)
+{
+	printf((char *)"Testando busca simples.........");
+	char *lex = (char *)"teste3";
+	struct Celula *inserido = adicionarRegistro(lex, Identificador);
+	struct Celula *encontrado = pesquisarRegistro(lex);
+	if (encontrado != inserido)
+		printf((char *)"ERRO: Busca simples falhou\n");
+	else
+		printf((char *)"OK\n");
+}
+
+/* testa a busca por um registro que está no meio da lista, ou seja,
+ * quando houveram colisões.
+ */
+void testeBuscaEmColisao(void)
+{
+	printf((char *)"Testando busca em colisão......");
+	/* strings que colidem e são diferentes */
+	char *lex = (char *)"not";
+	char *lex2 = (char *)"%";
+	/*guarda somente o registro que colidiu, que é o que buscamos*/
+	adicionarRegistro(lex, Identificador);
+	struct Celula *inserido = adicionarRegistro(lex2, Identificador);
+	struct Celula *encontrado = pesquisarRegistro(lex2);
+	if (encontrado != inserido)
+		printf((char *)"ERRO: Busca em colisão falhou.\n \
+					  ponteiro inserido: %p\n \
+				      ponteiro encontrado: %p\n", inserido, encontrado);
+	else
+		printf((char *)"OK\n");
+}
+
+/* testa a busca por um registro que não está na lista
+ */
+void testeBuscaVazia(void)
+{
+	printf((char *)"Testando busca vazia...........");
+	/* strings que colidem e são diferentes */
+	char *lex = (char *)"esse lexema não está na tabela";
+	struct Celula *encontrado = pesquisarRegistro(lex);
+	if (encontrado != NULL)
+		printf((char *)"ERRO: Busca em colisão falhou.\n");
+	else
+		printf((char *)"OK\n");
+}
+
+/* roda todos os testes da tabela de simbolos */
+void testesTabelaSimbolos(void)
+{
+	testeInsercao();
+	testeColisao();
+	testeBuscaSimples();
+	testeBuscaEmColisao();
+	testeBuscaVazia();
+	limparTabela();
+}
+
+/* testa o analisador lexico lendo o arquivo todo
+ * e printando todos os lexemas encontrados
+ */
+void testeLexan(void)
+{
+	while(lex){
+		lexan();
+		printf((char *)"atual: %s\n",regLex.lexema);
+	}
+}
+
+/* DEFINIÇÃO DE FUNÇÕES */
 
 /*
  * pára o programa e reporta o erro
  */
 void abortar(void)
 {
+#ifdef DEBUG_SIN
+	printPilha(pilha);
+#endif
+#ifdef DEBUG_TS
+	mostrarTabelaSimbolos();
+#endif
+
+	/* remove o arquivo pois o codigo gerado eh invalido */
+	remove(asmNome);
+
 	switch(erro) {
-		case ERRO_LEXICO:
-			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
+		case ER_LEX:
+			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
 			break;
-		case ERRO_SINTATICO:
-			printf("%d\n%s [%s].\n", linha, erroMsg, tokenAtual.lexema);
+
+		case ER_SIN:            /* Fallthrough */
+		case ER_LEX_N_ID:       /* Fallthrough */
+		case ER_SIN_NDEC:       /* Fallthrough */
+		case ER_SIN_JADEC:      /* Fallthrough */
+		case ER_SIN_C_INC:
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeComentario(lexemaLido));
 			break;
-		case ERRO_LEXICO_INV:   /* Fallthrough */
-		case ERRO_LEXICO_EOF:   /* Fallthrough */
-		case ERRO_SINTATICO_EOF:
-			printf("%d\n%s. \n", linha, erroMsg);
+
+		case ER_LEX_INVD:        /* Fallthrough */
+		case ER_LEX_EOF:         /* Fallthrough */
+		case ER_SIN_EOF:         /* Fallthrough */
+		case ER_SIN_TAMVET:      /* Fallthrough */
+		case ER_SIN_T_INC:
+			printf("%d\n%s.\n", linha+1, erroMsg);
 			break;
 	}
 	exit(erro);
 }
 
-/* pára o programa e reporta linhas compiladas */
+/* escreve o que estiver no buffer em progAsm e
+ * reporta linhas compiladas
+ */
 void sucesso(void)
 {
-	printf("%d linhas compiladas.\n", --linha);
-	exit(SUCESSO);
+	flush();
+	printf("%d linhas compiladas.\n", linha-1);
 }
 
-void adicionarReservados(void)
-{
-	adicionarRegistro((char *)"const",Const);
-	adicionarRegistro((char *)"var",Var);
-	adicionarRegistro((char *)"integer",Integer);
-	adicionarRegistro((char *)"char",Char);
-	adicionarRegistro((char *)"for",For);
-	adicionarRegistro((char *)"if",If);
-	adicionarRegistro((char *)"else",Else);
-	adicionarRegistro((char *)"and",And);
-	adicionarRegistro((char *)"or",Or);
-	adicionarRegistro((char *)"not",Not);
-	adicionarRegistro((char *)"=",Igual);
-	adicionarRegistro((char *)"to",To);
-	adicionarRegistro((char *)"(",A_Parenteses);
-	adicionarRegistro((char *)")",F_Parenteses);
-	adicionarRegistro((char *)"<",Menor);
-	adicionarRegistro((char *)">",Maior);
-	adicionarRegistro((char *)"<>",Diferente);
-	adicionarRegistro((char *)">=",MaiorIgual);
-	adicionarRegistro((char *)"<=",MenorIgual);
-	adicionarRegistro((char *)",",Virgula);
-	adicionarRegistro((char *)"+",Mais);
-	adicionarRegistro((char *)"-",Menos);
-	adicionarRegistro((char *)"*",Vezes);
-	adicionarRegistro((char *)"/",Barra);
-	adicionarRegistro((char *)";",PtVirgula);
-	adicionarRegistro((char *)"{",A_Chaves);
-	adicionarRegistro((char *)"}",F_Chaves);
-	adicionarRegistro((char *)"then",Then);
-	adicionarRegistro((char *)"readln",Readln);
-	adicionarRegistro((char *)"step",Step);
-	adicionarRegistro((char *)"write",Write);
-	adicionarRegistro((char *)"writeln",Writeln);
-	adicionarRegistro((char *)"%",Porcento);
-	adicionarRegistro((char *)"[",A_Colchete);
-	adicionarRegistro((char *)"]",F_Colchete);
-	adicionarRegistro((char *)"do",Do);
-}
 
 int main(int argc, char *argv[])
 {
-	/*testesTabelaSimbolos();*/
+	char c;
 
+	while((c = getopt(argc,argv,"f:o:")) != -1) {
+		switch(c) {
+			case 'f':
+				fonteNome = optarg;
+				progFonte = fopen(fonteNome, "r");
+				break;
+			case 'o':
+				asmNome = optarg;
+				progAsm = fopen(asmNome,"w");
+				break;
+			case '?':
+				if (optopt == 'f')
+					printf("Programa fonte não especificado.");
+				else if (optopt == 'o')
+					printf("Arquivo de saída não especificado.");
+				else
+					printf("Parametros não especificados");
+			default:
+					printf("\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
+					return 1;
+		}
+	}
+
+	if (progFonte == NULL || progAsm == NULL) {
+		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
+		return 1;
+	}
+
+
+	pilha = initPilha();
+
+	iniciarCodegen();
 	inicializarTabela();
-
-
-    /*mostrarTabelaSimbolos();*/
-	/* testeLexan();*/
-    
 	iniciarAnSin();
 
-
-	return 0;
-
+	return SUCESSO;
 }
