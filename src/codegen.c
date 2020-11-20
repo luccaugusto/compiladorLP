@@ -8,7 +8,7 @@
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int CD = 0x4000;    /* contator de dados em hexadecimal    */
-	int TP = 0x100;       /* contador de temporários             */
+	int TP = 0x0;       /* contador de temporários             */
 	rot RT = 1;         /* contador de rotulos                 */
 
 	/* declara novo temporario */
@@ -132,8 +132,8 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("iniciarCodegen");
 
-		buffer = malloc(sizeof(char) * MAX_BUF_SIZE);
-		aux = malloc(sizeof(char) * MAX_AUX_SIZE);
+		buffer = (char *)malloc(sizeof(char) * MAX_BUF_SIZE);
+		aux = (char *)malloc(sizeof(char) * MAX_AUX_SIZE);
 
 		/* Pilha */
 		CONCAT_BUF("SSEG SEGMENT STACK\t\t\t\t\t\t\t\t\t\t\t;inicio seg. pilha\n");

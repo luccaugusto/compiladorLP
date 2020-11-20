@@ -41,9 +41,6 @@ struct pilha_d *pilha;
 struct registroLex regLex; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
-int rotulo = 0;     /* rotulos do asm */
-int temporario = 0; /* temporarios do asm */
-
 /* DEFINIÇÃO DE FUNÇÕES */
 
 /*

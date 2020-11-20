@@ -52,7 +52,7 @@
 		adicionarRegistro("do",Do);
 	}
 	
-	struct Celula *adicionarRegistro(char *lexema, int token)
+	struct Celula *adicionarRegistro(char *lexema, Tokens token)
 	{
 		unsigned int pos = hash(lexema,TAM_TBL);
 		struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));

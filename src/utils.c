@@ -12,7 +12,7 @@
 	char minusculo(char l);
 	char *encurtar(char *);
 	char *removeAspas(char *);
-	int identificaToken(char *);
+	Tokens identificaToken(char *);
 	char *concatenar(char *, char *);
 	unsigned int hash(unsigned char *, int);
 	
@@ -66,9 +66,9 @@
 		return retorno;
 	}
 	
-	int identificaToken(char *lex)
+	Tokens identificaToken(char *lex)
 	{
-		int retorno = Identificador;
+		Tokens retorno = Identificador;
 	
 		if (strcmp(lex,"const") == 0)
 			retorno = Const;
