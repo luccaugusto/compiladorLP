@@ -315,9 +315,9 @@
 			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t;endereco do pai para concatenar\n", pai->endereco);
 
 			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
-			CONCAT_BUF("\tMOV CX, DS:[BX] \t\t\t\t\t\t;joga caractere em CX\n");
-			CONCAT_BUF("\tMOV DS:[DI], CX \t\t\t\t\t\t;transfere pro endereco a string\n");
-			CONCAT_BUF("\tCMP CX, 24h \t\t\t\t\t\t\t\t;verifica se chegou no fim\n");
+			CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t;joga caractere em CL\n");
+			CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t;transfere pro endereco a string\n");
+			CONCAT_BUF("\tCMP CL, 24h \t\t\t\t\t\t\t\t;verifica se chegou no fim\n");
 			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;fim da str\n", fim);
 			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
 			CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t;proximo caractere\n");
