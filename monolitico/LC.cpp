@@ -22,13 +22,12 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "../src/pilha.c"
-
 //define DEBUG_LEX
 //define DEBUG_SIN
 //define DEBUG_GEN
 
 /* MACROS */
+#define DEVOLVIDO_NULL -7
 #define ER_LEX -11
 #define ER_LEX_EOF -12
 #define ER_LEX_INVD -13
@@ -87,7 +86,7 @@
 #define SEPARADOR "=-=-=-=-=-=-=-="
 #define SUCESSO 0
 #ifdef DEBUG_SIN
-	#define DEBUGSIN(s) printf((char *)"SIN: %s\n",s); push(s,pilha);
+	#define DEBUGSIN(s) printf((char *)"SIN: %s\n",s);
 #else
 	#define DEBUGSIN(s)
 #endif
@@ -97,7 +96,7 @@
 	#define DEBUGLEX(...)
 #endif
 #ifdef DEBUG_GEN
-	#define DEBUGGEN(s) printf((char *)"GEN: %s\n",s); push(s,pilha);
+	#define DEBUGGEN(s) printf((char *)"GEN: %s\n",s);
 #else
 	#define DEBUGGEN(s)
 #endif
@@ -221,8 +220,8 @@ int estado_sin; /* estado de aceitacao ou nao do analisador sintatico */
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
 char *erroMsg; /*Mensagem de erro a ser exibida*/
 char *lexemaLido; /* lexema lido sem transformar em minusculo */
+char devolvido; /*caractere devolvido pelo lexan */
 
-struct pilha_d *pilha;
 struct registroLex regLex; 
 struct Celula *tabelaSimbolos[TAM_TBL];
 
@@ -311,7 +310,7 @@ struct Celula *adicionarRegistro(char *, Tokens);
 void lexan(void);
 
 /* utils */
-char getChar(void);
+char lexGetChar(void);
 int str2int(char*);
 int ehLetra(char l);
 int ehDigito(char l);
@@ -564,9 +563,9 @@ char *removeComentario(char *str)
 /* ************************** *
    LEITURA DE ARQUIVO 
  * ************************** */
-char getChar(void)
+char lexGetChar(void)
 {
-	int c = fgetc(progFonte);
+	int c = getchar();
 	char *l = (char *) &c;
 	if (!ehBranco(c)) lexemaLido = concatenar(lexemaLido,l);
 	return (char) c;
@@ -580,7 +579,6 @@ char getChar(void)
 void lexan(void)
 {
 	int estado = 0;
-	int posAtual = ftell(progFonte);
 
 	/* zera o lexemaLido */
 	lexemaLido = (char *)"";
@@ -589,7 +587,18 @@ void lexan(void)
 	regLex.lexema = (char *)"";
 	regLex.token = Nulo;
 
-	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(getChar())) != -1) { 
+	/* gasta o caractere devolvido se existir */
+	if (devolvido != DEVOLVIDO_NULL) {
+		letra = devolvido;
+		devolvido = DEVOLVIDO_NULL;
+	} else {
+		letra = minusculo(lexGetChar());
+	}
+
+	int k=0;
+
+	/* por algum motivo o k precisa existir para nao entrar em loop */
+	while (estado != ACEITACAO_LEX && !erro && letra && k++ < 80) { 
 
         /* \n é contabilizado sempre */
 		if (letra == '\n') {
@@ -598,6 +607,7 @@ void lexan(void)
 
 		if (estado == 0) {
 			if (ehBranco(letra)) {
+				letra = minusculo(lexGetChar());
 				continue;
 			} else if (letra == '/') {
 				/* comentário ou divisão */ 
@@ -721,7 +731,7 @@ void lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra; 
 					lexemaLido = encurtar(lexemaLido);
 				}
 			}
@@ -778,7 +788,7 @@ void lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -802,7 +812,7 @@ void lexan(void)
 				 * um caractere de um possivel proximo lexema
 				 */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual,SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -823,7 +833,7 @@ void lexan(void)
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -849,7 +859,7 @@ void lexan(void)
 				/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 				 * um caractere de um possivel proximo lexema */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -912,7 +922,7 @@ void lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -953,7 +963,7 @@ void lexan(void)
 				 * um caractere de um possivel proximo lexema
 			 	 */
 				if (! ehBranco(letra)) {
-					fseek(progFonte, posAtual, SEEK_SET);
+					devolvido = letra;
 					lexemaLido = encurtar(lexemaLido);
 				}
 
@@ -961,11 +971,14 @@ void lexan(void)
 			}
 		}
 
-		posAtual = ftell(progFonte);
+		/* se ja aceitou nao le o proximo */
+		if (estado != ACEITACAO_LEX)
+			letra = minusculo(lexGetChar());
+
 	}
 
 	/* leu EOF */
-	if (letra == -1) lex = 0;
+	if (!letra) lex = 0;
 
 	DEBUGLEX((char *)"LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
 }
@@ -1166,7 +1179,7 @@ void verificaClasse(char* lex)
 {
 	regLex.endereco = pesquisarRegistro(lex);
 
-	if (regLex.endereco->simbolo.classe == 0) {
+	if (regLex.endereco->simbolo.classe == CL_Nulo) {
 		regLex.endereco->simbolo.tipo = regLex.tipo;
 		regLex.endereco->simbolo.classe = regLex.classe;
 	} else {
@@ -1180,7 +1193,7 @@ void verificaClasse(char* lex)
  */
 void verificaDeclaracao(char *identificador)
 {
-	if (pesquisarRegistro(identificador)->simbolo.classe == 0)
+	if (pesquisarRegistro(identificador)->simbolo.classe == CL_Nulo)
 		erroSintatico(ER_SIN_NDEC);
 }
 
@@ -2105,7 +2118,6 @@ void declaracao(void)
 		blocoComandos();
 		fimDeArquivo();
 	}
-	del(pilha);
 }
 
 
@@ -2180,15 +2192,14 @@ void blocoComandos()
 
 		case F_Chaves:
 			/* encontrou o fim do bloco de comandos atual,
-			 * retorna e deixa o metodo que chamou tratar o }
+			 * retorna e deixa o metodo que chamou tratar o '}'
 			 */
 			estado_sin = ACEITACAO_SIN;
 			return;
 
-	default:
+		default:
 			return;
-}
-del(pilha);
+	}
 }
 
 /* EOF */
@@ -2210,7 +2221,6 @@ void fimDeArquivo(void)
 	fimComandos();
 
 	sucesso();
-	del(pilha);
 }
 
 /***********************************************
@@ -2261,7 +2271,6 @@ void constante(void)
 			);
 
 	casaToken(PtVirgula); lido = 1;
-	del(pilha);
 }
 
 /* var char|integer listaIds();
@@ -2285,7 +2294,6 @@ void variavel(void)
 		erroSintatico(ER_SIN);
 	}
 	estado_sin = ACEITACAO_SIN;
-	del(pilha);
 }
 
 
@@ -2436,7 +2444,6 @@ void listaIds(void)
 				lido = 1;
 		}
 	}
-	del(pilha);
 }
 
 /***********************************************
@@ -2496,7 +2503,6 @@ void atribuicao(void)
 	/* codegen */
 	genAtribuicao(pai,expr);
 
-	del(pilha);
 	casaToken(PtVirgula);
 } 
 
@@ -2570,7 +2576,6 @@ void repeticao(void)
 
 	repeticao1(pai, inicio, fim);
 
-	del(pilha);
 }
 
 /* 
@@ -2606,7 +2611,6 @@ void repeticao1(struct Fator *pai, rot inicio, rot fim)
 	/* codegen */
 	genFimRepeticao(pai, inicio, fim, step);
 
-	del(pilha);
 }
 
 /* R1 na gramatica
@@ -2673,7 +2677,6 @@ void comandos2(void)
 	if (lex) erroSintatico(ER_SIN);
 	else erroSintatico(ER_SIN_EOF);
 	}
-del(pilha);
 }
 
 /* Teste
@@ -2708,7 +2711,6 @@ void teste(void)
 		lexan(); 
 
 	teste1(falso, fim);
-	del(pilha);
 }
 
 /* else comandos2()
@@ -2728,7 +2730,6 @@ void teste1(rot falso, rot fim)
 	}
 
 	genFimTeste(fim);
-	del(pilha);
 }
 
 /* Comando de leitura
@@ -2769,7 +2770,6 @@ void leitura(void)
 
 	genEntrada(pai);
 
-	del(pilha);
 }
 
 /* Comando nulo
@@ -2781,7 +2781,6 @@ void nulo(void)
 	DEBUGSIN((char *)"nulo");
 
 	casaToken(PtVirgula);
-	del(pilha);
 }
 
 /* Comando de escrita
@@ -2797,7 +2796,6 @@ void escrita(int ln)
 	expressao2(ln);
 	casaToken(F_Parenteses);
 	casaToken(PtVirgula);
-	del(pilha);
 }
 
 /* le uma expressao e retorna o tipo final
@@ -2862,7 +2860,6 @@ struct Fator *expressao(void)
 	}
 
 
-	del(pilha);
 	return ret;
 }
 
@@ -2942,7 +2939,6 @@ struct Fator *expressaoS(void)
 		ret->tipo = TP_Logico;
 	}
 
-	del(pilha);
 	return ret;
 }
 
@@ -2992,7 +2988,6 @@ struct Fator *termo(void)
 		acaoFilhoTermo2(atual, TP_Logico);
 	}
 
-	del(pilha);
 	return atual;
 }
 
@@ -3065,7 +3060,6 @@ struct Fator *fator(void)
 		ret->tipo = pesquisarRegistro(lexId)->simbolo.tipo;
 	}
 
-	del(pilha);
 	return ret;
 }
 
@@ -3085,7 +3079,6 @@ void expressao2(int ln)
 		expressao2(ln);
 	}
 
-	del(pilha);
 }
 
 
@@ -3205,7 +3198,7 @@ void abortar(void)
 
 	switch(erro) {
 		case ER_LEX:
-			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
+			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
 			break;
 
 		case ER_SIN:            /* Fallthrough */
@@ -3213,7 +3206,7 @@ void abortar(void)
 		case ER_SIN_NDEC:       /* Fallthrough */
 		case ER_SIN_JADEC:      /* Fallthrough */
 		case ER_SIN_C_INC:
-			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeComentario(lexemaLido));
+			printf("%d\n%s [%s].\n", linha, erroMsg, removeComentario(lexemaLido));
 			break;
 
 		case ER_LEX_INVD:        /* Fallthrough */
@@ -3221,7 +3214,7 @@ void abortar(void)
 		case ER_SIN_EOF:         /* Fallthrough */
 		case ER_SIN_TAMVET:      /* Fallthrough */
 		case ER_SIN_T_INC:
-			printf("%d\n%s.\n", linha+1, erroMsg);
+			printf("%d\n%s.\n", linha, erroMsg);
 			break;
 	}
 	exit(erro);
@@ -3239,38 +3232,6 @@ void sucesso(void)
 
 int main(int argc, char *argv[])
 {
-	char c;
-
-	while((c = getopt(argc,argv,"f:o:")) != -1) {
-		switch(c) {
-			case 'f':
-				fonteNome = optarg;
-				progFonte = fopen(fonteNome, "r");
-				break;
-			case 'o':
-				asmNome = optarg;
-				progAsm = fopen(asmNome,"w");
-				break;
-			case '?':
-				if (optopt == 'f')
-					printf("Programa fonte não especificado.");
-				else if (optopt == 'o')
-					printf("Arquivo de saída não especificado.");
-				else
-					printf("Parametros não especificados");
-			default:
-					printf("\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
-					return 1;
-		}
-	}
-
-	if (progFonte == NULL || progAsm == NULL) {
-		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
-		return 1;
-	}
-
-
-	pilha = initPilha();
 
 	iniciarCodegen();
 	inicializarTabela();
