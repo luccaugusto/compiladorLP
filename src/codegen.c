@@ -57,14 +57,14 @@
 		rot falso = novoRot();
 	
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================inicio de comparacao %s===================\n", op);
-		CONCAT_BUF("CMP AX, BX\n");
-		CONCAT_BUF("%s R%d\t\t\t\t\t\t\t\t;comparacao verdadeiro\n", op, verdadeiro);
-		CONCAT_BUF("MOV AX, 0\n");
-		CONCAT_BUF("JMP R%d\t\t\t\t\t\t\t\t;comparacao falso\n",falso);
+		CONCAT_BUF("\tCMP AX, BX\n");
+		CONCAT_BUF("\t%s R%d\t\t\t\t\t\t\t\t;comparacao verdadeiro\n", op, verdadeiro);
+		CONCAT_BUF("\tMOV AX, 0\n");
+		CONCAT_BUF("\tJMP R%d\t\t\t\t\t\t\t\t;comparacao falso\n",falso);
 
-		CONCAT_BUF("R%d\t\t\t\t\t\t\t\t;verdadeiro\n",verdadeiro);
-		CONCAT_BUF("MOV AX, 1\n");
-		CONCAT_BUF("R%d\t\t\t\t\t\t\t\t;falso\n",falso);
+		CONCAT_BUF("\tR%d:\t\t\t\t\t\t\t\t;verdadeiro\n",verdadeiro);
+		CONCAT_BUF("\tMOV AX, 1\n");
+		CONCAT_BUF("\tR%d:\t\t\t\t\t\t\t\t;falso\n",falso);
 	
 		pai->endereco = novoTemp(TAM_INT);
 		pai->tipo = TP_Logico;
@@ -404,15 +404,15 @@
 		rot fim = novoRot();
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
+		CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t;buffer para receber a string\n", buffer);
+		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", pai->tamanho);
+		CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t; interrupcao para leitura do teclado\n");
+		CONCAT_BUF("\tINT 21h\n");
 		/* string */
 		if (pai->tipo == TP_Char) {
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
-			CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t;buffer para receber a string\n", buffer);
-			CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", pai->tamanho);
-			CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
-			CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t; interrupcao para leitura do teclado\n");
-			CONCAT_BUF("\tINT 21h\n");
 
 			CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t;contador de posicoes\n");
@@ -453,7 +453,7 @@
 			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t;inicio\n",inicio);
 			CONCAT_BUF("\tPUSH DX \t\t\t\t\t\t\t\t;empilha sinal\n");
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t;reg. multiplicação\n");
-			CONCAT_BUF("\tR%d: meio\n",meio);
+			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t;meio\n",meio);
 			CONCAT_BUF("\tCMP CX, 24h \t\t\t\t\t\t\t\t;verifica fim string\n");
 			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;salta fim se fim string\n",fim);
 			CONCAT_BUF("\tIMUL BX \t\t\t\t\t\t\t\t;mult. 10\n");
