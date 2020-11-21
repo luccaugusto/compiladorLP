@@ -8,7 +8,7 @@
 	#define A_SEG_PUB CONCAT_BUF("dseg SEGMENT PUBLIC\n");
 	#define F_SEG_PUB CONCAT_BUF("dseg ENDS\n");
 	#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
-	#define MAX_BUF_SIZE 2048
+	#define MAX_BUF_SIZE 1024
 	#define MAX_AUX_SIZE 256
 
 	/* Geração de código */
