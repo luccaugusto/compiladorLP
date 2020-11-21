@@ -12,6 +12,8 @@
 	char minusculo(char l);
 	char *encurtar(char *);
 	char *removeAspas(char *);
+	char *removeBranco(char *);
+	char *removeComentario(char *);
 	Tokens identificaToken(char *);
 	char *concatenar(char *, char *);
 	unsigned int hash(unsigned char *, int);
@@ -111,6 +113,33 @@
 	/* ************************** *
 	   MANIPULACAO DE STRING 
 	 * ************************** */
+
+	/* remove brancos que nao estejam entre strings */
+	char *removeBranco(char *str)
+	{
+		char *ret;
+		int t = strlen(str);
+		int c = 0;
+		int concat = 0;
+	
+		ret = (char *)malloc(sizeof(char) * t);	
+
+		for (int i=0; i<t; ++i) {
+
+			/* se eh inicio de string nao concatena ate o fim de string */
+			if (str[i] == '"')
+				concat = !concat; /* toogle */
+	
+			/* concatena o caractere se nao for branco ou se for para concatenar brancos */
+			if ( !ehBranco(str[i]) || concat)
+				ret[c++] = str[i];
+	
+		}
+		/* finaliza string */
+		ret[c] = '\0';
+	
+		return (char *)realloc(ret,strlen(ret));
+	}
 
 	/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
 	char *removeAspas(char *str)
@@ -247,7 +276,7 @@
 	{
 		int c = fgetc(progFonte);
 		char *l = (char *) &c;
-		if (!ehBranco(c)) lexemaLido = concatenar(lexemaLido,l);
+		lexemaLido = concatenar(lexemaLido,l);
 		return (char) c;
 	}
 #endif

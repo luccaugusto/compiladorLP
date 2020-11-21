@@ -273,8 +273,9 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("constante");
 	
-		/* salva o lexema atual para verificacao da classe */
+		/* salva o lexema atual e o tipo para verificacao da classe */
 		lexAux = regLex.lexema;
+		Tipo t = regLex.tipo;
 	
 		int negativo = 0;
 	
@@ -284,7 +285,7 @@
 		casaToken(Identificador);
 	
 		/* Ação semantica */
-		verificaClasse(lexAux);
+		verificaClasse(lexAux, t);
 	
 		casaToken(Igual);
 	
@@ -324,11 +325,12 @@
 	
 		estado_sin = N_ACEITACAO_SIN;
 		if (regLex.token == Char || regLex.token == Integer) {
+
 			if (regLex.token == Char) regLex.tipo = TP_Char;
 			else regLex.tipo = TP_Integer;
 	
 			lexan();
-			listaIds();
+			listaIds(regLex.tipo);
 		} else {
 			erroSintatico(ER_SIN);
 		}
@@ -341,8 +343,13 @@
 	 * id,id,...;
 	 * id=literal,...|;
 	 * id[int],...|;
+	 *
+	 * recebe o ultimo tipo lido como parametro
+	 * pois o tipo do registro lexico pode mudar
+	 * em casos id = literal, nesse caso regLex.tipo
+	 * vai ser o tipo do literal
 	 */
-	void listaIds(void)
+	void listaIds(Tipo ultimoTipo)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("listaIds");
@@ -351,7 +358,7 @@
 		int negativo = 0;
 	
 		/* acao semantica */
-		verificaClasse(regLex.lexema);
+		verificaClasse(regLex.lexema, ultimoTipo);
 	
 		casaToken(Identificador);
 		if (regLex.token == Virgula){
@@ -367,7 +374,7 @@
 					);
 	
 			lexan();
-			listaIds();
+			listaIds(ultimoTipo);
 	
 		} else if (regLex.token == PtVirgula) {
 			/* lendo fim de um comando */
@@ -424,7 +431,7 @@
 			if (regLex.token == Virgula) {
 				/* outro id */
 				lexan();
-				listaIds();
+				listaIds(ultimoTipo);
 			} else {
 				/* terminou de ler o comando */
 				casaToken(PtVirgula);
@@ -466,7 +473,7 @@
 			if (regLex.token == Virgula) {
 				/* outro id */
 				lexan();
-				listaIds();
+				listaIds(ultimoTipo);
 			} else {
 				/* terminou de ler o comando */
 				casaToken(PtVirgula);
@@ -558,7 +565,6 @@
 	
 		Tipo t = regLex.endereco->simbolo.tipo;
 		NOVO_FATOR(pai);
-		pai->tipo = t;
 		NOVO_FATOR(filho);
 		NOVO_FATOR(filho2);
 	
@@ -573,12 +579,12 @@
 		pai->tipo = t;
 		zeraTemp();
 
+		casaToken(Identificador);
+
 		/* acao semantica */
 		verificaDeclaracao(lexAux);
 		verificaConst(lexAux);
 		verificaTipo(t,TP_Integer);
-
-		casaToken(Identificador);
 	
 		/* lendo array: id[i] */
 		if (regLex.token == A_Colchete) {
@@ -794,6 +800,9 @@
 
 		lexId = regLex.lexema;
 		casaToken(Identificador);
+
+		/* acao semantica */
+		verificaConst(lexId);
 
 		/* codegen */
 		pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;

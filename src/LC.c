@@ -68,7 +68,7 @@ void abortar(void)
 		case ER_SIN_NDEC:       /* Fallthrough */
 		case ER_SIN_JADEC:      /* Fallthrough */
 		case ER_SIN_C_INC:
-			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeComentario(lexemaLido));
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeBranco(removeComentario(lexemaLido)));
 			break;
 
 		case ER_LEX_INVD:        /* Fallthrough */

@@ -13,7 +13,7 @@
 	void verificaTam(int);
 	void defClasse(Classe);
 	void verificaTipo(Tipo, Tipo);
-	void verificaClasse(char *);
+	void verificaClasse(char *, Tipo);
 	void verificaDeclaracao(char *);
 	
 	void defTipo(Tipo tipo)
@@ -71,12 +71,12 @@
 	 * caso a classe ja esteja definida, significa que a variavel
 	 * ou constante ja foi declarada
 	 */
-	void verificaClasse(char* lex)
+	void verificaClasse(char* lex, Tipo tipo)
 	{
 		regLex.endereco = pesquisarRegistro(lex);
 	
 		if (regLex.endereco->simbolo.classe == 0) {
-			regLex.endereco->simbolo.tipo = regLex.tipo;
+			regLex.endereco->simbolo.tipo = tipo;
 			regLex.endereco->simbolo.classe = regLex.classe;
 		} else {
 			erroSintatico(ER_SIN_JADEC);

@@ -237,8 +237,10 @@
 		char *valor; /* string de valor ou ?  */
 		int n_bytes; /* numero de bytes usado */
 
-		/* marca o endereco de memoria na tabela de simbolos */
+		/* marca o endereco de memoria, tipo e tamanho na tabela de simbolos */
 		regLex.endereco->simbolo.memoria = CD;
+		regLex.endereco->simbolo.tipo = t;
+		regLex.endereco->simbolo.tamanho = tam;
 
 		/* string de tipo para o comentario */
 		if (t == TP_Integer) {

@@ -299,7 +299,7 @@
 						 * portanto nao atualiza o tipo do registro
 						 * lexico se nao tem tipo
 						 */
-						if (regLex.tipo != 0)
+						if (regLex.endereco->simbolo.tipo != 0)
 							regLex.tipo = regLex.endereco->simbolo.tipo;
 						regLex.tamanho = regLex.endereco->simbolo.tamanho;
 					}
@@ -379,7 +379,7 @@
 				} else {
 	
 					regLex.token = Literal;
-					regLex.tipo = TP_Char;
+					regLex.tipo = TP_Integer;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
