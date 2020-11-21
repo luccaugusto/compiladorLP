@@ -78,10 +78,10 @@
 				erroMsg = "identificador ja declarado";
 				break;
 			case ER_SIN_TAMVET:
-				erroMsg = "tamanho do vetor excede o maximo permitido";
+				erroMsg = "tamanho do vetor excede o máximo permitido";
 				break;
 			case ER_SIN_C_INC:
-				erroMsg = "classe de identificador incompativel";
+				erroMsg = "classe de identificador incompatível";
 				break;
 			case ER_SIN_T_INC :
 				erroMsg = "tipos incompativeis";
@@ -799,10 +799,12 @@
 		casaToken(A_Parenteses);
 
 		lexId = regLex.lexema;
-		casaToken(Identificador);
-
 		/* acao semantica */
 		verificaConst(lexId);
+		verificaDeclaracao(lexId);
+
+		casaToken(Identificador);
+
 
 		/* codegen */
 		pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;

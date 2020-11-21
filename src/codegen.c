@@ -156,7 +156,10 @@
 		buffer = concatenar(buffer, aux);
 		buf_size = strlen(buffer);
 
-		aux[0] = '\0'; /* limpa aux */
+ 		/* limpa aux */
+		free(aux);
+		aux = (char *)malloc(sizeof(char) * MAX_AUX_SIZE);
+		aux[0] = '\0';
 	}
 
 	/* escreve buffer no arquivo progAsm 

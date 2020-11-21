@@ -885,7 +885,7 @@ void lexan(void)
         } else if (estado == 8) {
             /*lexema de identificador
             concatena ate finalizar o identificador ou palavra reservada */
-            if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
+            if (ehLetra(letra) ||  letra == '_' || letra == '.' || ehDigito(letra)) {
                 lexemaLex = concatenar(lexemaLex, l);;
             } else {
 				estado = ACEITACAO_LEX;
@@ -2080,7 +2080,7 @@ void erroSintatico(int tipo)
 			erroMsg = (char *)"tamanho do vetor excede o maximo permitido";
 			break;
 		case ER_SIN_C_INC:
-			erroMsg = (char *)"classe de identificador incompativel";
+			erroMsg = (char *)"classe de identificador incompatível";
 			break;
 		case ER_SIN_T_INC :
 			erroMsg = (char *)"tipos incompativeis";
@@ -2780,10 +2780,12 @@ void leitura(void)
 	casaToken(A_Parenteses);
 
 	lexId = lexemaLex;
-	casaToken(Identificador);
-
 	/* acao semantica */
 	verificaConst(lexId);
+	verificaDeclaracao(lexId);
+
+	casaToken(Identificador);
+
 
 	/* codegen */
 	pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;
