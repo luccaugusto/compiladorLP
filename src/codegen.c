@@ -299,6 +299,28 @@
 		CD+=n_bytes;
 	}
 
+	void atribuicaoString(int end1, int end2, int fimStr)
+	{
+		rot inicio = novoRot();
+		rot fim = novoRot();
+	
+		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de strings===================\n");
+		CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t\t\t;endereco da string para bx\n", end1);
+		CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;endereco do pai para concatenar\n", end2);
+	
+		CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
+		CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t\t;joga caractere em CL\n");
+		CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t\t;transfere pro endereco a string\n");
+		CONCAT_BUF("\tCMP CL, 0%Xh \t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
+		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
+		CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
+		CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;proximo caractere\n");
+		CONCAT_BUF("\tJMP R%d\n", inicio);
+		CONCAT_BUF("\tR%d:\n", fim);
+		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de strings===================\n");
+	
+	}
+
 	void genAtribuicao(struct Fator *pai, struct Fator *fator)
 	{
 		/* DEBUGGER E PILHA */
@@ -312,23 +334,7 @@
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de inteiros e logicos===================\n");
 		} else {
 			/* string, move caractere por caractere */
-			rot inicio = novoRot();
-			rot fim = novoRot();
-
-			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de strings===================\n");
-			CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t;endereco da string para bx\n", fator->endereco);
-			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t;endereco do pai para concatenar\n", pai->endereco);
-
-			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
-			CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t;joga caractere em CL\n");
-			CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t;transfere pro endereco a string\n");
-			CONCAT_BUF("\tCMP CL, 24h \t\t\t\t\t\t\t\t;verifica se chegou no fim\n");
-			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;fim da str\n", fim);
-			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
-			CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t;proximo caractere\n");
-			CONCAT_BUF("\tJMP R%d\n", inicio);
-			CONCAT_BUF("\tR%d:\n", fim);
-			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de strings===================\n");
+			atribuicaoString(fator->endereco, pai->endereco, 0x24);
 		}
 	}
 
@@ -416,6 +422,8 @@
 		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t\t\t;interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
 
+		proxLinha(); /* proxima linha */
+
 		/* string */
 		if (pai->tipo == TP_Char) {
 
@@ -426,20 +434,22 @@
 			CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
+
+			atribuicaoString(buffer+2,pai->endereco, 0x0A);
 			
-			CONCAT_BUF("\tR%d:\n",inicio); /* inicio do loop */
-			CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
-			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
-			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
-			CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
-			CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t\t;move o caractere para DI\n");
-			CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t\t;move DI para o endereco do pai\n");
-			CONCAT_BUF("\tADD DX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no offset\n");
-			CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
-			CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
-			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
-			CONCAT_BUF("\tMOV CX, 24h\n");
-			CONCAT_BUF("\tMOV DS:[BX], CX \t\t\t\t\t\t\t;coloca $ no final \n");
+			//CONCAT_BUF("\tR%d:\n",inicio); /* inicio do loop */
+			//CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
+			//CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
+			//CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
+			//CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
+			//CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t\t;move o caractere para DI\n");
+			//CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t\t;move DI para o endereco do pai\n");
+			//CONCAT_BUF("\tADD DX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no offset\n");
+			//CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
+			//CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
+			//CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
+			//CONCAT_BUF("\tMOV CX, 24h\n");
+			//CONCAT_BUF("\tMOV DS:[BX], CX \t\t\t\t\t\t\t;coloca $ no final \n");
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
 		}
 
@@ -480,7 +490,6 @@
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== fim entrada de inteiros===================\n");
 		}
 
-		proxLinha();
 	}
 
 	/* geracao de codigo para saida de texto */

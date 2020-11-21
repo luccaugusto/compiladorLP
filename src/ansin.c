@@ -795,20 +795,23 @@
 		NOVO_FATOR(pai);
 		NOVO_FATOR(expr);
 		char *lexId;
+		struct Celula *registro;
 	
 		casaToken(A_Parenteses);
 
 		lexId = regLex.lexema;
+		registro = pesquisarRegistro(lexId);
+
 		/* acao semantica */
 		verificaConst(lexId);
 		verificaDeclaracao(lexId);
 
 		casaToken(Identificador);
 
-
 		/* codegen */
-		pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;
-		pai->tipo = buscaTipo(lexId);
+		pai->endereco = registro->simbolo.memoria;
+		pai->tipo = registro->simbolo.tipo;
+		pai->tamanho = registro->simbolo.tamanho;
 		zeraTemp();
 	
 		if (regLex.token == A_Colchete) {
