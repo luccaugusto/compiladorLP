@@ -1,2 +1,2 @@
 10
-classe de identificador incompatível [MAXITER].
+classe de identificador incompatível [MAXITER].
