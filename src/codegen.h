@@ -17,6 +17,7 @@
 	int novoTemp(int);
 	int novoRot(void);
 	void zeraTemp(void);
+	void atribuicaoString(int, int, int, int);
 	void genAtribuicao(struct Fator *, struct Fator *);
 	void genExp(struct Fator *, char*);
 	void genDeclaracao(Tipo, Classe, int, char*, int);

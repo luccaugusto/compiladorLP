@@ -14,13 +14,29 @@ Contém as especificações da linguagem, automato do analisador léxico e a gra
 ## Monolitico
 Essa pasta contém uma versão monolítica do programa, sem divisões de arquivos. Não é a versão oficial, é uma versão necessária para submissão no verde, plataforma de testes da PUC.
 
-Definitivamente não está elegante e está um tanto confuso, sem divisão de arquivos o programa se torna difícil de manter.
+Definitivamente não está elegante e está um tanto confuso, além de não gerar código.
 
 ## Src
-Esta pasta contém todos os arquivos de headers e funções do compilador organizados de forma mais compreensiva. É a versão "oficial", o monolítico é a junção dos arquivos desta pasta.
+Arquivos fonte do programa.
+### LC.c e LC.h
+Contém a main e variáveis mais globais.
+### semac.c
+Funções de ações semanticas.
+### lexan.c e lexan.h
+Funções e macros do analisador léxico.
+### codegen.c e codegen.h
+Funções e macros para a geração de código asm.
+### ansin.c e ansin.h
+Funções que implementam a gramática e a análise sintática.
+### ts.c e ts.h
+Tabela de símbolos.
+### pilha.c
+Implementação de uma pilha. Utilizada para debug.
+### testes.c
+Testes da tabela de símbolos e lexan.
 
 ## Exemplos
-Esta pasta contém arquivos de exemplo de códigos na linguagem L. Estes arquivos foram utilizados para testar o compilador.
+Esta pasta contém arquivos de exemplo de códigos na linguagem L. Existem tanto arquivos válidos quanto inválidos, utilizados para testar o compilador. Na pasta testes existem arquivos fonte e na pasta saída existem as saídas corretas correspondentes a cada arquivo de testes. Testes automatizados são realizados pelo script autoteste.sh
 
 ## 8086
 Esta pasta contem arquivos do MASM para ser executado pelo dosbox, simulando o ambiente DOS, já que o programa gera código para este ambiente.

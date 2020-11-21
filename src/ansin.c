@@ -1141,12 +1141,15 @@
 		NOVO_FATOR(expr);
 	
 		expr = expressao();
-		genSaida(expr, ln);
+		genSaida(expr, 0);
 
 		if (regLex.token == Virgula) {
 			lexan();
-			expressao2(ln);
+			expressao2(0);
 		}
+
+		if (ln)
+			proxLinha();
 
 		del(pilha);
 	}
