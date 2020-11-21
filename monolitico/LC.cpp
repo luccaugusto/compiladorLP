@@ -63,7 +63,8 @@
 #define TAM_TBL 256
 #define A_SEG_PUB CONCAT_BUF((char *)"dseg SEGMENT PUBLIC\n");
 #define F_SEG_PUB CONCAT_BUF((char *)"dseg ENDS\n");
-#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
+//define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
+#define CONCAT_BUF(...)
 #define MAX_BUF_SIZE 2048
 #define MAX_AUX_SIZE 256
 
@@ -253,7 +254,7 @@ void teste1(rot, rot);
 void leitura(void);
 void escrita(int);
 void variavel(void);
-void listaIds(void);
+void listaIds(Tipo);
 void constante(void);
 void comandos2(void);
 void repeticao(void);
@@ -327,6 +328,8 @@ int ehBranco(char l);
 char minusculo(char l);
 char *encurtar(char *);
 char *removeAspas(char *);
+char *removeBranco(char *);
+char *removeComentario(char *);
 Tokens identificaToken(char *);
 char *concatenar(char *, char *);
 int hash(char *, int);
@@ -337,7 +340,7 @@ Tipo toLogico(Tipo);
 void verificaTam(int);
 void defClasse(Classe);
 void verificaTipo(Tipo, Tipo);
-void verificaClasse(char *);
+void verificaClasse(char *, Tipo);
 void verificaDeclaracao(char *);
 
 /* testes */
@@ -518,6 +521,32 @@ int str2int(char *str)
 	return ret;
 }
 
+/* remove brancos que nao estejam entre strings */
+char *removeBranco(char *str)
+{
+	char *ret;
+	int t = strlen(str);
+	int c = 0;
+	int concat = 0;
+
+	ret = (char *)malloc(sizeof(char) * t);	
+
+	for (int i=0; i<t; ++i) {
+		/* se eh inicio de string nao concatena ate o fim de string */
+		if (str[i] == '"')
+			concat = !concat; /* toogle */
+
+		/* concatena o caractere se nao for branco ou se for para concatenar brancos */
+		if ( !ehBranco(str[i]) || concat)
+			ret[c++] = str[i];
+
+	}
+	/* finaliza string */
+	ret[c] = '\0';
+
+	return (char *)realloc(ret,strlen(ret));
+}
+
 /* remove comentarios do lexemaLido */
 char *removeComentario(char *str)
 {
@@ -558,7 +587,6 @@ char *removeComentario(char *str)
 		ret = str;
 	}
 
-
 	return ret;
 }
 
@@ -568,8 +596,10 @@ char *removeComentario(char *str)
 char lexGetChar(void)
 {
 	int c = getchar();
+	/* EOF */
+	if (c == -1) lex = 0;
 	char *l = (char *) &c;
-	if (!ehBranco(c)) lexemaLido = concatenar(lexemaLido,l);
+	lexemaLido = concatenar(lexemaLido,l);
 	return (char) c;
 }
 
@@ -601,8 +631,8 @@ void lexan(void)
 	char *l = (char *) &letra;
 
 	/* por algum motivo o k precisa existir para nao entrar em loop */
-	while (estado != ACEITACAO_LEX && !erro && letra && k++ < 80) { 
-
+	while (estado != ACEITACAO_LEX && !erro && (letra > 0) && k++ < 80) { 
+		l = (char *) &letra;
 
         /* \n é contabilizado sempre */
 		if (letra == '\n') {
@@ -611,8 +641,7 @@ void lexan(void)
 
 		if (estado == 0) {
 			if (ehBranco(letra)) {
-				letra = minusculo(lexGetChar());
-				continue;
+				goto fimloop;
 			} else if (letra == '/') {
 				/* comentário ou divisão */ 
 				lexemaLex = concatenar(lexemaLex, l);;
@@ -975,6 +1004,7 @@ void lexan(void)
 			}
 		}
 
+fimloop:
 		/* se ja aceitou nao le o proximo */
 		if (estado != ACEITACAO_LEX)
 			letra = minusculo(lexGetChar());
@@ -982,7 +1012,7 @@ void lexan(void)
 	}
 
 	/* leu EOF */
-	if (!letra) lex = 0;
+	if (letra <= 0) lex = 0;
 
 	DEBUGLEX((char *)"LEX: lexema:%s token:%d tipo:%d tam: %d\n",lexemaLex,tokenLex,tipoLex,tamanhoLex);
 }
@@ -1179,12 +1209,12 @@ void verificaTipo(Tipo A, Tipo B)
  * caso a classe ja esteja definida, significa que a variavel
  * ou constante ja foi declarada
  */
-void verificaClasse(char* lex)
+void verificaClasse(char* lex, Tipo tipo)
 {
 	enderecoLex = pesquisarRegistro(lex);
 
 	if (enderecoLex->simbolo.classe == CL_Nulo) {
-		enderecoLex->simbolo.tipo = tipoLex;
+		enderecoLex->simbolo.tipo = tipo;
 		enderecoLex->simbolo.classe = classeLex;
 	} else {
 		erroSintatico(ER_SIN_JADEC);
@@ -1375,8 +1405,8 @@ void buf_concatenar(void)
 	if ((buf_size+strlen(aux)) >= MAX_BUF_SIZE)
 		flush();
 
-	buffer = concatenar(buffer, aux);
-	buf_size = strlen(buffer);
+	//buffer = concatenar(buffer, aux);
+	//buf_size = strlen(buffer);
 
 	aux[0] = '\0'; /* limpa aux */
 }
@@ -1389,10 +1419,10 @@ void flush(void)
 	/* DEBUGGER E PILHA */
 	DEBUGGEN((char *)"flush");
 
-	fprintf(progAsm, "%s",buffer);
+	//printf("%s",buffer);
 
 	/* limpa o buffer */
-	buffer[0] = '\0';
+	//buffer[0] = '\0';
 }
 
 /* inicia o bloco de declaracoes asm */
@@ -2239,8 +2269,9 @@ void constante(void)
 	/* DEBUGGER E PILHA */
 	DEBUGSIN((char *)"constante");
 
-	/* salva o lexema atual para verificacao da classe */
+	/* salva o lexema atual e o tipo para verificacao da classe */
 	lexAux = lexemaLex;
+	Tipo t = tipoLex;
 
 	int negativo = 0;
 
@@ -2250,7 +2281,7 @@ void constante(void)
 	casaToken(Identificador);
 
 	/* Ação semantica */
-	verificaClasse(lexAux);
+	verificaClasse(lexAux, t);
 
 	casaToken(Igual);
 
@@ -2293,7 +2324,7 @@ void variavel(void)
 		else tipoLex = TP_Integer;
 
 		lexan();
-		listaIds();
+		listaIds(tipoLex);
 	} else {
 		erroSintatico(ER_SIN);
 	}
@@ -2306,7 +2337,7 @@ void variavel(void)
  * id=literal,...|;
  * id[int],...|;
  */
-void listaIds(void)
+void listaIds(Tipo ultimoTipo)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGSIN((char *)"listaIds");
@@ -2315,7 +2346,7 @@ void listaIds(void)
 	int negativo = 0;
 
 	/* acao semantica */
-	verificaClasse(lexemaLex);
+	verificaClasse(lexemaLex, ultimoTipo);
 
 	casaToken(Identificador);
 	if (tokenLex == Virgula){
@@ -2331,7 +2362,7 @@ void listaIds(void)
 				);
 
 		lexan();
-		listaIds();
+		listaIds(ultimoTipo);
 
 	} else if (tokenLex == PtVirgula) {
 		/* lendo fim de um comando */
@@ -2388,7 +2419,7 @@ void listaIds(void)
 		if (tokenLex == Virgula) {
 			/* outro id */
 			lexan();
-			listaIds();
+			listaIds(ultimoTipo);
 		} else {
 			/* terminou de ler o comando */
 			casaToken(PtVirgula);
@@ -2430,7 +2461,7 @@ void listaIds(void)
 		if (tokenLex == Virgula) {
 			/* outro id */
 			lexan();
-			listaIds();
+			listaIds(ultimoTipo);
 		} else {
 			/* terminou de ler o comando */
 			casaToken(PtVirgula);
@@ -2520,7 +2551,6 @@ void repeticao(void)
 
 	Tipo t = enderecoLex->simbolo.tipo;
 	NOVO_FATOR(pai);
-	pai->tipo = t;
 	NOVO_FATOR(filho);
 	NOVO_FATOR(filho2);
 
@@ -2751,6 +2781,9 @@ void leitura(void)
 
 	lexId = lexemaLex;
 	casaToken(Identificador);
+
+	/* acao semantica */
+	verificaConst(lexId);
 
 	/* codegen */
 	pai->endereco = pesquisarRegistro(lexId)->simbolo.memoria;
@@ -3191,7 +3224,7 @@ void testeLexan(void)
 void abortar(void)
 {
 #ifdef DEBUG_SIN
-	printPilha(pilha);
+	//printPilha(pilha);
 #endif
 #ifdef DEBUG_TS
 	mostrarTabelaSimbolos();
@@ -3202,7 +3235,7 @@ void abortar(void)
 
 	switch(erro) {
 		case ER_LEX:
-			printf("%d\n%s [%c].\n", linha, erroMsg, letra);
+			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
 			break;
 
 		case ER_SIN:            /* Fallthrough */
@@ -3210,7 +3243,7 @@ void abortar(void)
 		case ER_SIN_NDEC:       /* Fallthrough */
 		case ER_SIN_JADEC:      /* Fallthrough */
 		case ER_SIN_C_INC:
-			printf("%d\n%s [%s].\n", linha, erroMsg, removeComentario(lexemaLido));
+			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeBranco(removeComentario(lexemaLido)));
 			break;
 
 		case ER_LEX_INVD:        /* Fallthrough */
@@ -3218,7 +3251,7 @@ void abortar(void)
 		case ER_SIN_EOF:         /* Fallthrough */
 		case ER_SIN_TAMVET:      /* Fallthrough */
 		case ER_SIN_T_INC:
-			printf("%d\n%s.\n", linha, erroMsg);
+			printf("%d\n%s.\n", linha+1, erroMsg);
 			break;
 	}
 	exit(erro);
