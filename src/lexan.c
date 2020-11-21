@@ -274,7 +274,7 @@
 	        } else if (estado == 8) {
 	            /*lexema de identificador
 	            concatena ate finalizar o identificador ou palavra reservada */
-	            if (ehLetra(letra) ||  letra == '_' || letra == '.' ) {
+	            if (ehLetra(letra) ||  letra == '_' || letra == '.' || ehDigito(letra)) {
 	                regLex.lexema = concatenar(regLex.lexema, &letra);
 	            } else {
 					estado = ACEITACAO_LEX;
