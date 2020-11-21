@@ -184,7 +184,7 @@
 		int tamFim = strlen(fim);
 	
 		/* acrescenta a posicao do \0 */
-		retorno = (char *) malloc(tamInicio+tamFim+1);
+		retorno = (char *) malloc(sizeof(char) * (tamInicio+tamFim+1));
 	
 		for (int i=0; i<tamInicio; ++i)
 			retorno[i] = inicio[i];

@@ -119,11 +119,11 @@
 	void proxLinha()
 	{
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================gera quebra de linha===================\n");
-		CONCAT_BUF("MOV AH, 02h\n");
-		CONCAT_BUF("MOV DL, 0Dh\n");
-		CONCAT_BUF("INT 21h\n");
-		CONCAT_BUF("MOV DL, 0Ah\n");
-		CONCAT_BUF("INT 21h\n");
+		CONCAT_BUF("\tMOV AH, 02h\n");
+		CONCAT_BUF("\tMOV DL, 0Dh\n");
+		CONCAT_BUF("\tINT 21h\n");
+		CONCAT_BUF("\tMOV DL, 0Ah\n");
+		CONCAT_BUF("\tINT 21h\n");
 	}
 
 	/* inicia o buffer */
@@ -404,16 +404,18 @@
 
 		/* buffer para entrada do teclado, tam max = 255 */
 		int buffer = novoTemp(pai->tamanho+3);
+		int tam = (pai->tamanho == 0) ? 255 : pai->tamanho;
 		rot inicio = novoRot();
 		rot meio = novoRot();
 		rot fim = novoRot();
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
 		CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t;buffer para receber a string\n", buffer);
-		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", pai->tamanho);
+		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", tam);
 		CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
 		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t; interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
+
 		/* string */
 		if (pai->tipo == TP_Char) {
 

@@ -826,6 +826,7 @@
 		casaToken(F_Parenteses);
 		casaToken(PtVirgula);
 
+		/* codegen */
 		genEntrada(pai);
 	
 		del(pilha);
