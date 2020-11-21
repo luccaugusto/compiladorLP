@@ -410,10 +410,10 @@
 		rot fim = novoRot();
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
-		CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t;buffer para receber a string\n", buffer);
-		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t;tamanho do buffer \n", tam);
-		CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
-		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t; interrupcao para leitura do teclado\n");
+		CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
+		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
+		CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t\t\t;interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
 
 		/* string */
@@ -421,25 +421,25 @@
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
 
-			CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
-			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t;contador de posicoes\n");
-			CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
+			CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
+			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t\t\t\t;contador de posicoes\n");
+			CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
 			
 			CONCAT_BUF("\tR%d:\n",inicio); /* inicio do loop */
-			CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
-			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
-			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
-			CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
-			CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t;move o caractere para DI\n");
-			CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t;move DI para o endereco do pai\n");
-			CONCAT_BUF("\tADD DX, 1 \t\t\t\t\t\t\t\t;soma 1 no offset\n");
-			CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
-			CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
-			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t;fim do loop\n", fim);
+			CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
+			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
+			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
+			CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
+			CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t\t;move o caractere para DI\n");
+			CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t\t;move DI para o endereco do pai\n");
+			CONCAT_BUF("\tADD DX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no offset\n");
+			CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
+			CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
+			CONCAT_BUF("\tR%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
 			CONCAT_BUF("\tMOV CX, 24h\n");
-			CONCAT_BUF("\tMOV DS:[BX], CX \t\t\t\t\t\t;coloca $ no final \n");
+			CONCAT_BUF("\tMOV DS:[BX], CX \t\t\t\t\t\t\t;coloca $ no final \n");
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
 		}
 
@@ -645,7 +645,7 @@
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== - (exp)===================\n");
 		CONCAT_BUF("\tMOV AX, DS:[0%Xh]\n", filho->endereco);
 		
-		CONCAT_BUF("\tneg AX \t\t\t\t\t\t\t\t;negacao aritmetica \n");
+		CONCAT_BUF("\tneg AX \t\t\t\t\t\t\t\t\t\t;negacao aritmetica \n");
 		CONCAT_BUF("\tMOV DS:[0%Xh], AX\n",pai->endereco);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim - (exp)===================\n");
 	}
@@ -677,7 +677,7 @@
 		DEBUGGEN("genOpTermos");
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio operacoes===================\n");
-		CONCAT_BUF("\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t;operando 1 em AX\n",pai->endereco);
+		CONCAT_BUF("\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t\t;operando 1 em AX\n",pai->endereco);
 		CONCAT_BUF("\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t\t;operando 2 em BX\n",filho->endereco);
 
 		char *op;        /* codigo assembly da operacao */
