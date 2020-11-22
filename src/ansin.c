@@ -273,18 +273,20 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("constante");
 	
+		/* suporte acao semantica */
 		/* salva o lexema atual e o tipo para verificacao da classe */
 		lexAux = regLex.lexema;
 		Tipo t = regLex.tipo;
 	
 		int negativo = 0;
 	
+		/* suporte acao semantica */
 		defClasse(CL_Const);
 	
 		estado_sin = N_ACEITACAO_SIN;
 		casaToken(Identificador);
 	
-		/* Ação semantica */
+		/* acao semantica */
 		verificaClasse(lexAux, t);
 	
 		casaToken(Igual);
@@ -295,6 +297,7 @@
 			lexan(); 
 		}
 	
+		/* suporte acao semantica */
 		/* atribui tipo a constante */
 		atrTipo();
 	
@@ -320,12 +323,13 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("variavel");
 	
-		/* Ação semantica */
+		/* suporte acao semantica */
 		defClasse(CL_Var);
 	
 		estado_sin = N_ACEITACAO_SIN;
 		if (regLex.token == Char || regLex.token == Integer) {
 
+			/* suporte acao semantica */
 			if (regLex.token == Char) regLex.tipo = TP_Char;
 			else regLex.tipo = TP_Integer;
 	
