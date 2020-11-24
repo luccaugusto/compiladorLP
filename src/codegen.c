@@ -478,10 +478,15 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_entrada");
 
-		/* buffer para entrada do teclado, tam max = 255 */
-		int buffer = novo_temp(pai->tamanho+3);
 		/* trata tamanho e 1 no caso de inteiros */
 		int tam = pai->tamanho <= 1 ? 255 : pai->tamanho;
+
+		/* ajusta o tamanho com as 2 posicoes que o sistema usa
+		 * e de acordo com o tamanho do tipo */
+		tam = 3 + (pai->tipo == TP_Integer ? (tam)*TAM_INT : (tam)*TAM_CHA);
+
+		/* buffer para entrada do teclado, tam max = 255 */
+		int buffer = novo_temp(tam);
 		rot inicio = novo_rot();
 		rot meio = novo_rot();
 		rot fim = novo_rot();
@@ -500,14 +505,19 @@
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
 
-			CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
+			CONCAT_BUF("\tMOV CH, 0\n");
+			CONCAT_BUF("\tMOV CL, DS:[%d] \t\t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t\t\t\t;contador de posicoes\n");
-			CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
+			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;troca o enter por '$'\n");
+			CONCAT_BUF("\tMOV BX, CX\t\t\t\t\t\t\t\t\t\t;coloca em BX o numero de caracteres lidos\n");
+			CONCAT_BUF("\tADD BX, %d\t\t\t\t\t\t\t\t\t\t;adiciona o endereco+2 para chegar na posicao da quebra de linha\n", buffer+2);
+			CONCAT_BUF("\tMOV DL, 24h \t\t\t\t\t\t\t\t;fim de string\n");
+			CONCAT_BUF("\tMOV DS:[BX], DL \t\t\t\t\t\t\t;grava '$'\n");
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
 
-			atribuicao_string(buffer+2,pai->endereco, 0x0A, tam);
-			
+			atribuicao_string(buffer+2, pai->endereco, 0x0A, tam-3);
+
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
 		}
 
