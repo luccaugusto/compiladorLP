@@ -29,7 +29,7 @@
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int CD = 0x4000;    /* contator de dados em hexadecimal    */
-	int TP = 0x0;       /* contador de temporários             */
+	int TP = OFFSET;    /* contador de temporários             */
 	rot RT = 1;         /* contador de rotulos                 */
 
 	/* declara novo temporario */
@@ -231,6 +231,13 @@
 
 		/* fim declaracao */
 		CONCAT_BUF("DSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. dados\n");
+
+		/* adiciona o offset da posicao de memória
+		 * por algum motivo o dosbox está alocando memória 0x4100 posições
+		 * depois do CD
+		 */
+		CD+=OFFSET;
+
 		/* comandos */
 		CONCAT_BUF("CSEG SEGMENT PUBLIC\t\t\t\t\t\t\t\t\t\t\t;inicio seg. codigo\n");
 		CONCAT_BUF("\tASSUME CS:CSEG, DS: DSEG\n");
@@ -626,7 +633,7 @@
 				CONCAT_BUF("\tbyte \"%s$\" \t\t\t\t\t\t\t\t;string %s em %d\n",remove_aspas(val),val,CD);
 			F_SEG_PUB
 			
-			fator->endereco = CD+OFFSET;
+			fator->endereco = CD;
 			fator->tamanho = reg_lex.tamanho;
 
 			CD += (fator->tamanho+1) * TAM_CHA;
