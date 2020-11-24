@@ -354,6 +354,9 @@
 	 * pois o tipo do registro lexico pode mudar
 	 * em casos id = literal, nesse caso reg_lex.tipo
 	 * vai ser o tipo do literal
+	 *
+	 * retorna 1 caso outra declaracao de tipos
+	 * foi encontrada, 0 caso contrario
 	 */
 	int lista_ids(Tipo ultimoTipo)
 	{
@@ -584,6 +587,8 @@
 		DEBUGSIN("repeticao");
 	
 		Tipo t = reg_lex.endereco->simbolo.tipo;
+		Tipo t2;
+		char *step = "1";
 		NOVO_FATOR(pai);
 		NOVO_FATOR(filho);
 		NOVO_FATOR(filho2);
@@ -642,24 +647,6 @@
 		rot fim = novo_rot();
 		gen_repeticao(pai,filho2,inicio,fim);
 	
-		repeticao1(pai, inicio, fim);
-	
-		del(pilha);
-	}
-	
-	/* 
-	 * step literal do comandos2();
-	 * ou
-	 * do comandos2();
-	 */
-	void repeticao1(struct Fator *pai, rot inicio, rot fim)
-	{
-		/* DEBUGGER E PILHA */
-		DEBUGSIN("repeticao1");
-	
-		Tipo t;
-		char *step = "1";
-	
 		if (reg_lex.token == Step) {
 			lexan();
 
@@ -679,9 +666,10 @@
 
 		/* codegen */
 		gen_fim_repeticao(pai, inicio, fim, step);
-
+	
 		del(pilha);
 	}
+	
 	
 	/* R1 na gramatica
 	 * { bloco_comandos() }

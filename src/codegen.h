@@ -18,39 +18,38 @@
 	#define OFFSET 0x4100
 
 	/* Geração de código */
-	void flush(void);
-	void buf_concatenar(void);
-	int novo_temp(int);
+	int novo_temp(int t);
 	int novo_rot(void);
 	void zera_temp(void);
-	void atribuicao_string(int, int, int, int);
-	void gen_atribuicao(struct Fator *, struct Fator *);
-	void gen_exp(struct Fator *, char*);
-	void gen_declaracao(Tipo, Classe, int, char*, int);
-	void gen_repeticao(struct Fator *, struct Fator *, rot, rot);
-	void gen_fim_repeticao(struct Fator *, rot, rot, char *);
-	void gen_teste(struct Fator *, rot, rot);
-	void gen_else_teste(rot, rot);
-	void gen_fim_teste(rot);
-	void init_declaracao(void);
+	void aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai);
+	void comp(char *op, struct Fator *pai);
+	void comp_char(struct Fator *pai);
+	void prox_linha(void);
 	void iniciar_codegen(void);
-	void fim_comandos(void);
+	void buf_concatenar(void);
+	void flush(void);
+	void init_declaracao(void);
 	void fim_dec_init_com(void);
-	void fator_gera_id(struct Fator *, char *);
-	void fator_gera_literal(struct Fator *, char *);
-	void fator_gera_exp(struct Fator *,struct Fator *);
-	void fator_gera_not(struct Fator *, struct Fator *);
-	void fator_gera_array(struct Fator *,struct Fator *, char *);
-	void fator_gera_menos(struct Fator *, struct Fator *);
-
-	void atualiza_pai(struct Fator *, struct Fator *);
-	void guarda_op(struct Fator *);
-	void gen_op_termos(struct Fator *, struct Fator *);
-
-	extern char *buffer;
-	extern char *aux;
-
-	extern int MD;
-	extern int DS;
+	void fim_comandos(void);
+	void acesso_array(struct Fator *pai, struct Fator *filho);
+	void gen_declaracao(Tipo t, Classe c, int tam, char *val, int negativo);
+	void atribuicao_string(int end1, int end2, int fimStr, int tamMax);
+	void gen_atribuicao(struct Fator *pai, struct Fator *fator);
+	void gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim);
+	void gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,char *step);
+	void gen_teste(struct Fator *filho, rot falso, rot fim);
+	void gen_else_teste(rot falso, rot fim);
+	void gen_fim_teste(rot fim);
+	void gen_entrada(struct Fator *pai);
+	void gen_saida(struct Fator *pai, int ln);
+	void fator_gera_literal(struct Fator *fator, char *val);
+	void fator_gera_id(struct Fator *fator, char *id);
+	void fator_gera_array(struct Fator *fator, struct Fator *expr, char *id);
+	void fator_gera_exp(struct Fator *fator, struct Fator *expr);
+	void fator_gera_not(struct Fator *pai, struct Fator *filho);
+	void fator_gera_menos(struct Fator *pai, struct Fator *filho);
+	void atualiza_pai(struct Fator *pai, struct Fator *filho);
+	void guarda_op(struct Fator *pai);
+	void gen_op_termos(struct Fator *pai, struct Fator *filho);
 
 #endif

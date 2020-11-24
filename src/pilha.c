@@ -5,6 +5,7 @@
 	 * Atualmente utilizada para Debugar o analisador sintatico
 	 */
 	
+	/* Tipos */
 	struct elemento {
 		char *str; /* nome do metodo na pilha */
 	};
@@ -14,14 +15,16 @@
 		int tam;
 	};
 	
-	void del(struct pilha_d *);
+	/* declaracao de funcoes */
+	void del(struct pilha_d *pilha);
 	struct pilha_d *init_pilha(void);
-	void print_pilha(struct pilha_d *);
-	void deleta_pilha(struct pilha_d *);
-	void push(char *, struct pilha_d *);
-	struct elemento *pop(struct pilha_d *);
+	void print_pilha(struct pilha_d *pilha);
+	void deleta_pilha(struct pilha_d *pilha);
+	void push(char *, struct pilha_d *pilha);
+	struct elemento *pop(struct pilha_d *pilha);
 	
-	
+
+	/* definicao de funcoes */
 	/* inicia a pilha com um elemento apenas */
 	struct pilha_d *init_pilha(void)
 	{

@@ -28,32 +28,30 @@
 	extern char* lexAux;
 	extern struct pilha_d *pilha;
 	
-	/* manipulacao do registro lexico */
-	void atr_pos(int);
-	
-	/* Analisador Sintatico */
-	void nulo(void);
-	void teste(void);
-	void ansin(void);
-	void teste1(rot, rot);
-	void leitura(void);
-	void escrita(int);
-	void variavel(void);
-	int lista_ids(Tipo);
-	void constante(void);
-	void comandos2(void);
-	void repeticao(void);
-	struct Fator *expressao(void);
-	struct Fator *fator(void);
-	struct Fator *termo(void);
-	struct Fator *expressao_s(void);
-	void expressao2(int);
-	void repeticao1(struct Fator *, rot, rot);
-	void declaracao(void);
-	void atribuicao(void);
-	void bloco_comandos(void);
+	void atr_pos(int pos);
+	void atr_tipo();
+	int casa_token(Tokens esperado);
+	void erro_sintatico(int tipo);
 	void iniciar_ansin(void);
+	void declaracao(void);
+	void bloco_comandos();
 	void fim_de_arquivo(void);
-	void erro_sintatico(int);
-	int casa_token(Tokens);
+	void constante(void);
+	void variavel(void);
+	int lista_ids(Tipo ultimoTipo);
+	void atribuicao(void);
+	void repeticao(void);
+	void comandos2(void);
+	void teste(void);
+	void teste1(rot falso, rot fim);
+	void leitura(void);
+	void nulo(void);
+	void escrita(int ln);
+	struct Fator *expressao(void);
+	struct Fator *expressao_s(void);
+	void acaoFilhoTermo2(struct Fator *atual, Tipo gerado);
+	struct Fator *termo(void);
+	struct Fator *fator(void);
+	void expressao2(int ln);
+
 #endif

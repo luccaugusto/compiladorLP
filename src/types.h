@@ -4,9 +4,9 @@
 #define _TYPES
 
 	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
-											s->endereco = novo_temp(2); \
-											s->tipo = reg_lex.tipo; \
-											s->op = 0
+                                        s->endereco = novo_temp(2); \
+                                        s->tipo = reg_lex.tipo; \
+                                        s->op = 0
 
 	typedef int rot;
 

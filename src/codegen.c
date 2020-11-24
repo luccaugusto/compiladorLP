@@ -18,7 +18,7 @@
 		return (TP-t);
 	}
 
-	int novo_rot()
+	int novo_rot(void)
 	{
 		return RT++;
 	}
@@ -116,7 +116,7 @@
 	}
 
 	/* move cursor para linha de baixo */
-	void prox_linha()
+	void prox_linha(void)
 	{
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================gera quebra de linha===================\n");
 		CONCAT_BUF("\tMOV AH, 02h\n");

@@ -5,18 +5,18 @@
 	#include "lexan.h"
 
 	char lex_get_char(void);
-	int str2int(char*);
+	int str2int(char *srt);
 	int eh_letra(char l);
 	int eh_digito(char l);
 	int eh_branco(char l);
 	char minusculo(char l);
-	char *encurtar(char *);
-	char *remove_aspas(char *);
-	char *remove_branco(char *);
-	char *removeComentario(char *);
-	Tokens identifica_token(char *);
-	char *concatenar(char *, char *);
-	unsigned int hash(unsigned char *, int);
+	char *encurtar(char *str);
+	char *remove_aspas(char *str);
+	char *remove_branco(char *str);
+	char *removeComentario(char *str);
+	Tokens identifica_token(char *lex);
+	char *concatenar(char *inicio, char *fim);
+	unsigned int hash(unsigned char *str, int mod);
 	
 	extern FILE *prog_fonte;
 	extern char *lexema_lido;

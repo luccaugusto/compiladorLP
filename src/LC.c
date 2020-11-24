@@ -19,7 +19,7 @@
 #include "testes.c"
 #include "lexan.c"
 #include "ansin.c"
-#include "LC.h"
+
 
 FILE *prog_fonte;
 char *fonte_nome;
