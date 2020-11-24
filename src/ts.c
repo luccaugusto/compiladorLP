@@ -1,10 +1,14 @@
 /* Implementacao da tabela de simbolos */
 #ifndef _TS
 #define _TS
-	#define SEPARADOR "=-=-=-=-=-=-=-="
 	
-	#include "ts.h"
+	#include "types.h"
 	#include "utils.c"
+	#define TAM_TBL 254
+	//define DEBUG_TS 0
+
+
+	extern struct Celula *tabelaSimbolos[TAM_TBL];
 	
 	/* retorna o tipo do identificador */
 	Tipo buscaTipo(char *identificador)
@@ -94,7 +98,7 @@
 	/* printa a tabela de simbolos */
 	void mostrarTabelaSimbolos(void)
 	{
-		printf(SEPARADOR"TABELA DE SÍMBOLOS"SEPARADOR"\n");
+		printf("=============TABELA DE SÍMBOLOS=============\n");
 		for (int i=0; i<TAM_TBL; ++i) {
 			if (tabelaSimbolos[i] != NULL) {
 				printf("|\t%d\t|-> %s[%d]", i, tabelaSimbolos[i]->simbolo.lexema,tabelaSimbolos[i]->simbolo.tamanho);

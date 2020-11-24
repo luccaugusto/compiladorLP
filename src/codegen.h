@@ -2,6 +2,11 @@
 #define _CODEGEN_H
 
 	//define DEBUG_GEN
+	#ifdef DEBUG_GEN
+		#define DEBUGGEN(s) printf("GEN: %s\n",s); push(s,pilha);
+	#else
+		#define DEBUGGEN(s)
+	#endif
 
 	#define TAM_INT 2
 	#define TAM_CHA 1

@@ -8,14 +8,6 @@
 	#include "types.h"
 	#include "ansin.h"
 	
-	void defTipo(Tipo);
-	Tipo toLogico(Tipo);
-	void verificaTam(int);
-	void defClasse(Classe);
-	void verificaTipo(Tipo, Tipo);
-	void verificaClasse(char *, Tipo);
-	void verificaDeclaracao(char *);
-	
 	void defTipo(Tipo tipo)
 	{
 		regLex.tipo = tipo;

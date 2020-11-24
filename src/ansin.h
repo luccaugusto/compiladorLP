@@ -13,6 +13,11 @@
 	#define ACEITACAO_SIN 32
 	
 	//define DEBUG_SIN
+	#ifdef DEBUG_SIN
+		#define DEBUGSIN(s) printf("SIN: %s\n",s); push(s,pilha);
+	#else
+		#define DEBUGSIN(s)
+	#endif
 	
 	#include "types.h"
 	

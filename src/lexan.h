@@ -32,6 +32,11 @@
 			letra != '.'    \
 	
 	//define DEBUG_LEX
+	#ifdef DEBUG_LEX
+		#define DEBUGLEX(...) printf(__VA_ARGS__);
+	#else
+		#define DEBUGLEX(...)
+	#endif
 	
 	extern struct registroLex regLex;
 	extern FILE *progFonte;
