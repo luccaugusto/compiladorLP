@@ -2080,7 +2080,7 @@ void erroSintatico(int tipo)
 			erroMsg = (char *)"tamanho do vetor excede o maximo permitido";
 			break;
 		case ER_SIN_C_INC:
-			erroMsg = (char *)"classe de identificador incompatível";
+			erroMsg = (char *)"classe de identificador incompativel";
 			break;
 		case ER_SIN_T_INC :
 			erroMsg = (char *)"tipos incompativeis";
