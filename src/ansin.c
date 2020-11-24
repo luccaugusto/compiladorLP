@@ -430,8 +430,11 @@
 						);
 
 				lexan();
+
+				/* Lista de declaracoes tipo Var integer c; char d; 
+				 * ou fim do comando
+				 */
 				id = 0;
-				/* Lista de declaracoes tipo Var integer c; char d; */
 				if (reg_lex.token == Integer || reg_lex.token == Char) {
 					ret = 1;
 				} else {

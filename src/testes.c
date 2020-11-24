@@ -15,8 +15,8 @@
 /* HEADERS */
 #include <stdio.h>
 
-#include "ts.c"
-#include "lexan.c"
+#include "ts.h"
+#include "lexan.h"
 
 /* DECLARACAO DE FUNCOES */
 /* testes */
