@@ -29,7 +29,7 @@
 	extern struct pilha_d *pilha;
 	
 	/* manipulacao do registro lexico */
-	void atrPos(int);
+	void atr_pos(int);
 	
 	/* Analisador Sintatico */
 	void nulo(void);
@@ -39,21 +39,21 @@
 	void leitura(void);
 	void escrita(int);
 	void variavel(void);
-	int listaIds(Tipo);
+	int lista_ids(Tipo);
 	void constante(void);
 	void comandos2(void);
 	void repeticao(void);
 	struct Fator *expressao(void);
 	struct Fator *fator(void);
 	struct Fator *termo(void);
-	struct Fator *expressaoS(void);
+	struct Fator *expressao_s(void);
 	void expressao2(int);
 	void repeticao1(struct Fator *, rot, rot);
 	void declaracao(void);
 	void atribuicao(void);
-	void blocoComandos(void);
-	void iniciarAnSin(void);
-	void fimDeArquivo(void);
-	void erroSintatico(int);
-	int casaToken(Tokens);
+	void bloco_comandos(void);
+	void iniciar_ansin(void);
+	void fim_de_arquivo(void);
+	void erro_sintatico(int);
+	int casa_token(Tokens);
 #endif

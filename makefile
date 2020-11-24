@@ -19,7 +19,7 @@ runm:
 no_debug:
 	sed -i "s/#define DEBUG_LEX/\/\/define DEBUG_LEX/g" src/lexan.h
 	sed -i "s/#define DEBUG_SIN/\/\/define DEBUG_SIN/g" src/ansin.h
-	sed -i "s/#define DEBUG_TS/\/\/define DEBUG_TS/g"   src/ts.h
+	sed -i "s/#define DEBUG_TS/\/\/define DEBUG_TS/g"   src/ts.c
 	sed -i "s/#define DEBUG_GEN/\/\/define DEBUG_GEN/g" src/codegen.h
 
 debug:
@@ -31,7 +31,7 @@ debug_full:
 	sed -i "s/\/\/define DEBUG_LEX/#define DEBUG_LEX/g" src/lexan.h
 	sed -i "s/\/\/define DEBUG_SIN/#define DEBUG_SIN/g" src/ansin.h
 	sed -i "s/\/\/define DEBUG_GEN/#define DEBUG_GEN/g" src/codegen.h
-	sed -i "s/\/\/define DEBUG_TS/#define DEBUG_TS/g"   src/ts.h
+	sed -i "s/\/\/define DEBUG_TS/#define DEBUG_TS/g"   src/ts.c
 
 debug_gdb:
 	gcc -o LCDEBUG.out src/LC.c -g

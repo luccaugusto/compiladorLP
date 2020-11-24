@@ -8,64 +8,64 @@
 	//define DEBUG_TS 0
 
 	/* Tabela de símbolos */
-	Tipo buscaTipo(char *);
-	void limparTabela(void);
-	void inicializarTabela(void);
-	void adicionarReservados(void);
-	void mostrarTabelaSimbolos(void);
-	void limparLista(struct Celula *);
-	struct Celula *pesquisarRegistro(char *);
-	struct Celula *adicionarRegistro(char *, Tokens);
+	Tipo busca_tipo(char *);
+	void limpar_tabela(void);
+	void iniciar_tabela(void);
+	void adicionar_reservados(void);
+	void mostrar_tabela_simbolos(void);
+	void limpar_lista(struct Celula *);
+	struct Celula *pesquisar_registro(char *);
+	struct Celula *adicionar_registro(char *, Tokens);
 
-	extern struct Celula *tabelaSimbolos[TAM_TBL];
+	extern struct Celula *tabela_simbolos[TAM_TBL];
 	
 	/* retorna o tipo do identificador */
-	Tipo buscaTipo(char *identificador)
+	Tipo busca_tipo(char *identificador)
 	{
-		return pesquisarRegistro(identificador)->simbolo.tipo;
+		return pesquisar_registro(identificador)->simbolo.tipo;
 	}
 	
-	void adicionarReservados(void)
+	void adicionar_reservados(void)
 	{
-		adicionarRegistro("const",Const);
-		adicionarRegistro("var",Var);
-		adicionarRegistro("integer",Integer);
-		adicionarRegistro("char",Char);
-		adicionarRegistro("for",For);
-		adicionarRegistro("if",If);
-		adicionarRegistro("else",Else);
-		adicionarRegistro("and",And);
-		adicionarRegistro("or",Or);
-		adicionarRegistro("not",Not);
-		adicionarRegistro("=",Igual);
-		adicionarRegistro("to",To);
-		adicionarRegistro("(",A_Parenteses);
-		adicionarRegistro(")",F_Parenteses);
-		adicionarRegistro("<",Menor);
-		adicionarRegistro(">",Maior);
-		adicionarRegistro("<>",Diferente);
-		adicionarRegistro(">=",MaiorIgual);
-		adicionarRegistro("<=",MenorIgual);
-		adicionarRegistro(",",Virgula);
-		adicionarRegistro("+",Mais);
-		adicionarRegistro("-",Menos);
-		adicionarRegistro("*",Vezes);
-		adicionarRegistro("/",Barra);
-		adicionarRegistro(";",PtVirgula);
-		adicionarRegistro("{",A_Chaves);
-		adicionarRegistro("}",F_Chaves);
-		adicionarRegistro("then",Then);
-		adicionarRegistro("readln",Readln);
-		adicionarRegistro("step",Step);
-		adicionarRegistro("write",Write);
-		adicionarRegistro("writeln",Writeln);
-		adicionarRegistro("%",Porcento);
-		adicionarRegistro("[",A_Colchete);
-		adicionarRegistro("]",F_Colchete);
-		adicionarRegistro("do",Do);
+		adicionar_registro("const",Const);
+		adicionar_registro("var",Var);
+		adicionar_registro("integer",Integer);
+		adicionar_registro("char",Char);
+		adicionar_registro("for",For);
+		adicionar_registro("if",If);
+		adicionar_registro("else",Else);
+		adicionar_registro("and",And);
+		adicionar_registro("or",Or);
+		adicionar_registro("not",Not);
+		adicionar_registro("=",Igual);
+		adicionar_registro("to",To);
+		adicionar_registro("(",A_Parenteses);
+		adicionar_registro(")",F_Parenteses);
+		adicionar_registro("<",Menor);
+		adicionar_registro(">",Maior);
+		adicionar_registro("<>",Diferente);
+		adicionar_registro(">=",MaiorIgual);
+		adicionar_registro("<=",MenorIgual);
+		adicionar_registro(",",Virgula);
+		adicionar_registro("+",Mais);
+		adicionar_registro("-",Menos);
+		adicionar_registro("*",Vezes);
+		adicionar_registro("/",Barra);
+		adicionar_registro(";",PtVirgula);
+		adicionar_registro("{",A_Chaves);
+		adicionar_registro("}",F_Chaves);
+		adicionar_registro("then",Then);
+		adicionar_registro("readln",Readln);
+		adicionar_registro("step",Step);
+		adicionar_registro("write",Write);
+		adicionar_registro("writeln",Writeln);
+		adicionar_registro("%",Porcento);
+		adicionar_registro("[",A_Colchete);
+		adicionar_registro("]",F_Colchete);
+		adicionar_registro("do",Do);
 	}
 	
-	struct Celula *adicionarRegistro(char *lexema, Tokens token)
+	struct Celula *adicionar_registro(char *lexema, Tokens token)
 	{
 		unsigned int pos = hash(lexema,TAM_TBL);
 		struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
@@ -78,20 +78,20 @@
 		cel->prox = NULL;
 		cel->simbolo = *simb;
 		
-		if (tabelaSimbolos[pos] == NULL) {
-			tabelaSimbolos[pos] = cel;
+		if (tabela_simbolos[pos] == NULL) {
+			tabela_simbolos[pos] = cel;
 		}else{
-			tabelaSimbolos[pos]->prox = cel;
+			tabela_simbolos[pos]->prox = cel;
 		}
 		return cel;
 	}
 	
-	struct Celula *pesquisarRegistro(char *procurado)
+	struct Celula *pesquisar_registro(char *procurado)
 	{
 		int encontrado = 0;
 		unsigned int pos = hash(procurado,TAM_TBL);
 		struct Celula *retorno = NULL;
-		struct Celula *prox = tabelaSimbolos[pos];
+		struct Celula *prox = tabela_simbolos[pos];
 	
 		while (!encontrado && prox != NULL) {
 			if (prox->simbolo.lexema != NULL && strcmp(prox->simbolo.lexema, procurado) == 0) {
@@ -105,13 +105,13 @@
 	}
 	
 	/* printa a tabela de simbolos */
-	void mostrarTabelaSimbolos(void)
+	void mostrar_tabela_simbolos(void)
 	{
 		printf("=============TABELA DE SÍMBOLOS=============\n");
 		for (int i=0; i<TAM_TBL; ++i) {
-			if (tabelaSimbolos[i] != NULL) {
-				printf("|\t%d\t|-> %s[%d]", i, tabelaSimbolos[i]->simbolo.lexema,tabelaSimbolos[i]->simbolo.tamanho);
-				struct Celula *prox = tabelaSimbolos[i]->prox;
+			if (tabela_simbolos[i] != NULL) {
+				printf("|\t%d\t|-> %s[%d]", i, tabela_simbolos[i]->simbolo.lexema,tabela_simbolos[i]->simbolo.tamanho);
+				struct Celula *prox = tabela_simbolos[i]->prox;
 				while (prox != NULL){
 					printf(" -> %s",prox->simbolo.lexema);
 					prox = prox->prox;
@@ -121,18 +121,18 @@
 		}
 	}
 	
-	void inicializarTabela(void)
+	void iniciar_tabela(void)
 	{
-	    adicionarReservados();
+	    adicionar_reservados();
 	}
 	
 	/* limpa a lista encadeada recursivamente.
 	 * Utilizado somente para fins de testes
 	 */
-	void limparLista(struct Celula *cel)
+	void limpar_lista(struct Celula *cel)
 	{
 		if (cel != NULL) {
-			limparLista(cel->prox);
+			limpar_lista(cel->prox);
 			free(cel);
 		}
 	}
@@ -140,13 +140,13 @@
 	/* limpa a tabela de símbolos
 	 * usado para fins de testes
 	 */
-	void limparTabela(void)
+	void limpar_tabela(void)
 	{
 		for (int i=0; i<TAM_TBL; ++i) {
-			if (tabelaSimbolos[i] != NULL) {
-				limparLista(tabelaSimbolos[i]->prox);
-				free(tabelaSimbolos[i]);
-				tabelaSimbolos[i] = NULL;
+			if (tabela_simbolos[i] != NULL) {
+				limpar_lista(tabela_simbolos[i]->prox);
+				free(tabela_simbolos[i]);
+				tabela_simbolos[i] = NULL;
 			}
 		}
 	}

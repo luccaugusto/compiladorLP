@@ -7,8 +7,8 @@
 	/* VARIÁVEIS GLOBAIS */
 	
 	/* parametros da linha de comando */
-	extern FILE *progFonte;
-	extern FILE *progAsm;
+	extern FILE *prog_fonte;
+	extern FILE *prog_asm;
 	
 	extern int lex;
 	extern int erro;
@@ -17,12 +17,12 @@
 	extern int estado_sin; /* estado de aceitacao ou nao do analisador sintatico */
 	
 	extern char letra; /*posicao da proxima letra a ser lida no arquivo*/
-	extern char *erroMsg; /*Mensagem de erro a ser exibida*/
-	extern char *lexemaLido; /* lexema lido sem transformar em minusculo */
+	extern char *erro_msg; /*Mensagem de erro a ser exibida*/
+	extern char *lexema_lido; /* lexema lido sem transformar em minusculo */
 	
 	extern struct pilha_d *pilha;
-	extern struct registroLex regLex; 
-	extern struct Celula *tabelaSimbolos[TAM_TBL];
+	extern struct registro_lex reg_lex; 
+	extern struct Celula *tabela_simbolos[TAM_TBL];
 
 	extern int MD; /* memoria de dados */
 

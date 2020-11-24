@@ -21,10 +21,10 @@
 #include "ansin.c"
 #include "LC.h"
 
-FILE *progFonte;
-char *fonteNome;
-FILE *progAsm;
-char *asmNome;
+FILE *prog_fonte;
+char *fonte_nome;
+FILE *prog_asm;
+char *asm_nome;
 
 /* VARIAVEIS GLOBAIS */
 int lex = 1;
@@ -34,12 +34,12 @@ int linha = 0; /*linha do arquivo*/
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 
 char letra; /*posicao da proxima letra a ser lida no arquivo*/
-char *erroMsg; /*Mensagem de erro a ser exibida*/
-char *lexemaLido; /* lexema lido sem transformar em minusculo */
+char *erro_msg; /*Mensagem de erro a ser exibida*/
+char *lexema_lido; /* lexema lido sem transformar em minusculo */
 
 struct pilha_d *pilha;
-struct registroLex regLex; 
-struct Celula *tabelaSimbolos[TAM_TBL];
+struct registro_lex reg_lex; 
+struct Celula *tabela_simbolos[TAM_TBL];
 
 /* DEFINIÇÃO DE FUNÇÕES */
 
@@ -49,18 +49,18 @@ struct Celula *tabelaSimbolos[TAM_TBL];
 void abortar(void)
 {
 #ifdef DEBUG_SIN
-	printPilha(pilha);
+	print_pilha(pilha);
 #endif
 #ifdef DEBUG_TS
-	mostrarTabelaSimbolos();
+	mostrar_tabela_simbolos();
 #endif
 
 	/* remove o arquivo pois o codigo gerado eh invalido */
-	remove(asmNome);
+	remove(asm_nome);
 
 	switch(erro) {
 		case ER_LEX:
-			printf("%d\n%s [%c].\n", linha+1, erroMsg, letra);
+			printf("%d\n%s [%c].\n", linha+1, erro_msg, letra);
 			break;
 
 		case ER_SIN:            /* Fallthrough */
@@ -68,7 +68,7 @@ void abortar(void)
 		case ER_SIN_NDEC:       /* Fallthrough */
 		case ER_SIN_JADEC:      /* Fallthrough */
 		case ER_SIN_C_INC:
-			printf("%d\n%s [%s].\n", linha+1, erroMsg, removeBranco(removeComentario(lexemaLido)));
+			printf("%d\n%s [%s].\n", linha+1, erro_msg, remove_branco(removeComentario(lexema_lido)));
 			break;
 
 		case ER_LEX_INVD:        /* Fallthrough */
@@ -76,13 +76,13 @@ void abortar(void)
 		case ER_SIN_EOF:         /* Fallthrough */
 		case ER_SIN_TAMVET:      /* Fallthrough */
 		case ER_SIN_T_INC:
-			printf("%d\n%s.\n", linha+1, erroMsg);
+			printf("%d\n%s.\n", linha+1, erro_msg);
 			break;
 	}
 	exit(erro);
 }
 
-/* escreve o que estiver no buffer em progAsm e
+/* escreve o que estiver no buffer em prog_asm e
  * reporta linhas compiladas
  */
 void sucesso(void)
@@ -99,12 +99,12 @@ int main(int argc, char *argv[])
 	while((c = getopt(argc,argv,"f:o:")) != -1) {
 		switch(c) {
 			case 'f':
-				fonteNome = optarg;
-				progFonte = fopen(fonteNome, "r");
+				fonte_nome = optarg;
+				prog_fonte = fopen(fonte_nome, "r");
 				break;
 			case 'o':
-				asmNome = optarg;
-				progAsm = fopen(asmNome,"w");
+				asm_nome = optarg;
+				prog_asm = fopen(asm_nome,"w");
 				break;
 			case '?':
 				if (optopt == 'f')
@@ -119,17 +119,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (progFonte == NULL || progAsm == NULL) {
+	if (prog_fonte == NULL || prog_asm == NULL) {
 		printf("Parametros não especificados\nUso: LC -f <programa fonte> -o <arquivo de saída>\n");
 		return 1;
 	}
 
 
-	pilha = initPilha();
+	pilha = init_pilha();
 
-	iniciarCodegen();
-	inicializarTabela();
-	iniciarAnSin();
+	iniciar_codegen();
+	iniciar_tabela();
+	iniciar_ansin();
 
 	return SUCESSO;
 }

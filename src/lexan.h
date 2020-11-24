@@ -7,9 +7,9 @@
 	#define ER_LEX_N_ID -14
 	#define ACEITACAO_LEX 13
 	#define C_INVALIDO letra != '/' &&\
-			!ehBranco(letra)&&\
-			!ehDigito(letra)&&\
-			!ehLetra(letra) &&\
+			!eh_branco(letra)&&\
+			!eh_digito(letra)&&\
+			!eh_letra(letra) &&\
 			letra != '_'    &&\
 			letra != '.'    &&\
 			letra != '<'    &&\
@@ -38,8 +38,8 @@
 		#define DEBUGLEX(...)
 	#endif
 	
-	extern struct registroLex regLex;
-	extern FILE *progFonte;
+	extern struct registro_lex reg_lex;
+	extern FILE *prog_fonte;
 	extern int erro;
 	extern int lex;
 	

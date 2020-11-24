@@ -15,15 +15,15 @@
 	};
 	
 	void del(struct pilha_d *);
-	struct pilha_d *initPilha(void);
-	void printPilha(struct pilha_d *);
-	void deletaPilha(struct pilha_d *);
+	struct pilha_d *init_pilha(void);
+	void print_pilha(struct pilha_d *);
+	void deleta_pilha(struct pilha_d *);
 	void push(char *, struct pilha_d *);
 	struct elemento *pop(struct pilha_d *);
 	
 	
 	/* inicia a pilha com um elemento apenas */
-	struct pilha_d *initPilha(void)
+	struct pilha_d *init_pilha(void)
 	{
 		struct pilha_d *pilha = (struct pilha_d *) malloc(sizeof(struct pilha_d));
 		pilha->elementos = (struct elemento *) malloc(sizeof(struct elemento));
@@ -87,14 +87,14 @@
 	
 	}
 	
-	void deletaPilha(struct pilha_d *pilha)
+	void deleta_pilha(struct pilha_d *pilha)
 	{
 		free(pilha->elementos);
 		free(pilha);
 	}
 	
 	/* exibe a pilha na tela */
-	void printPilha(struct pilha_d *pilha)
+	void print_pilha(struct pilha_d *pilha)
 	{
 		printf("=-------=-------=\n");
 		if (pilha != NULL && pilha->elementos != NULL) {

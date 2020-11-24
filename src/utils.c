@@ -4,22 +4,22 @@
 	#include "types.h"
 	#include "lexan.h"
 
-	char getChar(void);
+	char lex_get_char(void);
 	int str2int(char*);
-	int ehLetra(char l);
-	int ehDigito(char l);
-	int ehBranco(char l);
+	int eh_letra(char l);
+	int eh_digito(char l);
+	int eh_branco(char l);
 	char minusculo(char l);
 	char *encurtar(char *);
-	char *removeAspas(char *);
-	char *removeBranco(char *);
+	char *remove_aspas(char *);
+	char *remove_branco(char *);
 	char *removeComentario(char *);
-	Tokens identificaToken(char *);
+	Tokens identifica_token(char *);
 	char *concatenar(char *, char *);
 	unsigned int hash(unsigned char *, int);
 	
-	extern FILE *progFonte;
-	extern char *lexemaLido;
+	extern FILE *prog_fonte;
+	extern char *lexema_lido;
 
 	
 	/* ************************** *
@@ -41,7 +41,7 @@
 	/* ************************** *
 	           REGEX LIKE 
 	 * ************************** */
-	int ehDigito(char l)
+	int eh_digito(char l)
 	{
 		/* valores de 0-9 em ascii */
 		int retorno = 0;
@@ -50,7 +50,7 @@
 		return retorno;
 	}
 	
-	int ehLetra(char l)
+	int eh_letra(char l)
 	{
 		/* valores de a-z em ascii */
 		int retorno = 0;
@@ -59,7 +59,7 @@
 		return retorno;
 	}
 	
-	int ehBranco(char l)
+	int eh_branco(char l)
 	{
 		/* valores de tab, line feed, <CR>, espaço em ascii */
 		int retorno = 0;
@@ -68,7 +68,7 @@
 		return retorno;
 	}
 	
-	Tokens identificaToken(char *lex)
+	Tokens identifica_token(char *lex)
 	{
 		Tokens retorno = Identificador;
 	
@@ -115,7 +115,7 @@
 	 * ************************** */
 
 	/* remove brancos que nao estejam entre strings */
-	char *removeBranco(char *str)
+	char *remove_branco(char *str)
 	{
 		char *ret;
 		int t = strlen(str);
@@ -131,7 +131,7 @@
 				concat = !concat; /* toogle */
 	
 			/* concatena o caractere se nao for branco ou se for para concatenar brancos */
-			if ( !ehBranco(str[i]) || concat)
+			if ( !eh_branco(str[i]) || concat)
 				ret[c++] = str[i];
 	
 		}
@@ -142,7 +142,7 @@
 	}
 
 	/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
-	char *removeAspas(char *str)
+	char *remove_aspas(char *str)
 	{
 		char *retorno;
 		int tamstr = strlen(str);
@@ -225,7 +225,7 @@
 		return ret;
 	}
 	
-	/* remove comentarios do lexemaLido */
+	/* remove comentarios do lexema_lido */
 	char *removeComentario(char *str)
 	{
 		char *ret;
@@ -272,11 +272,11 @@
 	/* ************************** *
 	   LEITURA DE ARQUIVO 
 	 * ************************** */
-	char getChar(void)
+	char lex_get_char(void)
 	{
-		int c = fgetc(progFonte);
+		int c = fgetc(prog_fonte);
 		char *l = (char *) &c;
-		lexemaLido = concatenar(lexemaLido,l);
+		lexema_lido = concatenar(lexema_lido,l);
 		return (char) c;
 	}
 #endif

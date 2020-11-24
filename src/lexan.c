@@ -12,16 +12,16 @@
 	void lexan(void)
 	{
 		int estado = 0;
-		int posAtual = ftell(progFonte);
+		int pos_atual = ftell(prog_fonte);
 	
-		/* zera o lexemaLido */
-		lexemaLido = "";
+		/* zera o lexema_lido */
+		lexema_lido = "";
 	
 		/* zera o token e o lexema */
-		regLex.lexema = "";
-		regLex.token = 0;
+		reg_lex.lexema = "";
+		reg_lex.token = 0;
 	
-		while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(getChar())) != -1) { 
+		while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(lex_get_char())) != -1) { 
 	
 	        /* \n é contabilizado sempre */
 			if (letra == '\n') {
@@ -29,114 +29,114 @@
 			} 
 	
 			if (estado == 0) {
-				if (ehBranco(letra)) {
+				if (eh_branco(letra)) {
 					continue;
 				} else if (letra == '/') {
 					/* comentário ou divisão */ 
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 1;
 				} else if (letra == '_' || letra == '.') {
 					/* inicio de identificador */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 7;
 				} else if (letra == '<') {
 					/* menor ou menor ou igual ou diferente*/
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 4;
 				} else if (letra == '>') {
 					/* maior ou maior ou igual */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 5;
 				} else if (letra == '"') {
 					/* inicio de string */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
-					regLex.tamanho = 1;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
+					reg_lex.tamanho = 1;
 					estado = 9;
 				} else if (letra == '0') {
 					/* possivel hexadecimal */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 10;
-				} else if (ehDigito(letra)) {
+				} else if (eh_digito(letra)) {
 					/* inicio de literal */ 
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 6;
 				} else if (letra == ',') {
-					regLex.token = Virgula;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Virgula;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 				} else if (letra == ';') {
-					regLex.token = PtVirgula;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = PtVirgula;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '+') {
-					regLex.token = Mais;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Mais;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '-') {
-					regLex.token = Menos;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Menos;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '*') {
-					regLex.token = Vezes;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Vezes;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '(') {
-					regLex.token = A_Parenteses;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = A_Parenteses;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == ')') {
-					regLex.token = F_Parenteses;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = F_Parenteses;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '{') {
-					regLex.token = A_Chaves;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = A_Chaves;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '}') {
-					regLex.token = F_Chaves;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = F_Chaves;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '[') {
-					regLex.token = A_Colchete;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = A_Colchete;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == ']') {
-					regLex.token = F_Colchete;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = F_Colchete;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '%') {
-					regLex.token = Porcento;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Porcento;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 					
 				} else if (letra == '=') {
-					regLex.token = Igual;
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.token = Igual;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = ACEITACAO_LEX;
 				} else if (letra == '_' || letra == '.') {
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 7;
-				} else if (ehLetra(letra)) {
+				} else if (eh_letra(letra)) {
 	                /*inicio palavra*/
-	                regLex.lexema = concatenar(regLex.lexema, &letra);
+	                reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 8;
 				} else if (!letra) {
 					estado = ACEITACAO_LEX;
 				} else {
 					/* lexema nao identificado */
 					erro = ER_LEX_N_ID;
-					erroMsg = "lexema nao identificado";
-					lexemaLido = encurtar(lexemaLido);
+					erro_msg = "lexema nao identificado";
+					lexema_lido = encurtar(lexema_lido);
 					abortar();
 				}
 	            
@@ -147,14 +147,14 @@
 				} else {
 					/* simbolo '/' encontrado */
 					estado = ACEITACAO_LEX;
-					regLex.token = Barra;
+					reg_lex.token = Barra;
 
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
 				 	 */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 				}
 			} else if (estado == 2) {
@@ -164,12 +164,12 @@
 				} else if (letra == -1) {
 					/*EOF encontrado*/
 					erro = ER_LEX_EOF;
-					erroMsg = "fim de arquivo nao esperado";
+					erro_msg = "fim de arquivo nao esperado";
 					abortar();
 				} else if (C_INVALIDO) {
 					/* caractere inválido */
 					erro = ER_LEX_INVD;
-					erroMsg = "caractere invalido";
+					erro_msg = "caractere invalido";
 					abortar();
 					
 				} 
@@ -177,14 +177,14 @@
 				if (letra == '/') {
 					/* de fato fim de comentario volta ao inicio para ignorar*/
 					estado = 0;
-					regLex.lexema = "";
+					reg_lex.lexema = "";
 				} else if (letra == '*') {
 					/* ** no comentario, espera pela barra */
 					estado = 3;
 				} else if (letra == -1) {
 					/*EOF encontrado*/
 					erro = ER_LEX_EOF;
-					erroMsg = "fim de arquivo nao esperado";
+					erro_msg = "fim de arquivo nao esperado";
 					abortar();
 				} else {
 					/* simbolo '*' dentro do comentario */
@@ -195,26 +195,26 @@
 					/* lexemas de comparacao <= ou <> */
 					estado = ACEITACAO_LEX;
 	
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 	
 					if (letra == '=')
-						regLex.token = MenorIgual;
+						reg_lex.token = MenorIgual;
 					else
-						regLex.token = Diferente;
+						reg_lex.token = Diferente;
 	
-				} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
+				} else if (eh_branco(letra) || eh_digito(letra) || eh_letra(letra)) {
 					/* lexema de comparacao < */
 					estado = ACEITACAO_LEX;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
 				 	 */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
-					regLex.token = Menor;
+					reg_lex.token = Menor;
 				} else if (letra == -1) {
 					/*EOF encontrado, assume que encontrou <*/
 					estado = ACEITACAO_LEX;
@@ -224,21 +224,21 @@
 					/* lexema de comparacao >= */
 					estado = ACEITACAO_LEX;
 	
-					regLex.lexema = concatenar(regLex.lexema, &letra);
-					regLex.token = MaiorIgual;
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
+					reg_lex.token = MaiorIgual;
 	
-				} else if (ehBranco(letra) || ehDigito(letra) || ehLetra(letra)) {
+				} else if (eh_branco(letra) || eh_digito(letra) || eh_letra(letra)) {
 					/* lexema de comparacao > */
 					estado = ACEITACAO_LEX;
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
 					 */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual,SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual,SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
-					regLex.token = Maior;
+					reg_lex.token = Maior;
 				} else if (letra == -1) {
 					/*EOF encontrado, assume que encontrou >*/
 					estado = ACEITACAO_LEX;
@@ -248,157 +248,157 @@
 				/* Inteiros */
 				/* le ate encontrar diferente de numero */
 	
-				if (ehDigito(letra)) {
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+				if (eh_digito(letra)) {
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 				} else {
 					estado = ACEITACAO_LEX;
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
-	                regLex.token = Literal;
-					regLex.tipo = TP_Integer;
+	                reg_lex.token = Literal;
+					reg_lex.tipo = TP_Integer;
 				}
 			} else if (estado == 7) {
 	            /*lexema identificador _ . 
 	            concatena até achar uma letra ou numero */
 	            if (letra == '_' || letra == '.') {
-	                regLex.lexema = concatenar(regLex.lexema, &letra);
-	            } else if (ehLetra(letra) || ehDigito(letra)) {
-	                regLex.lexema = concatenar(regLex.lexema, &letra);
+	                reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
+	            } else if (eh_letra(letra) || eh_digito(letra)) {
+	                reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 8;
 	            }
 	        } else if (estado == 8) {
 	            /*lexema de identificador
 	            concatena ate finalizar o identificador ou palavra reservada */
-	            if (ehLetra(letra) ||  letra == '_' || letra == '.' || ehDigito(letra)) {
-	                regLex.lexema = concatenar(regLex.lexema, &letra);
+	            if (eh_letra(letra) ||  letra == '_' || letra == '.' || eh_digito(letra)) {
+	                reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 	            } else {
 					estado = ACEITACAO_LEX;
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
-					regLex.tamanho = 1;
-					regLex.pos = -1;
-	                regLex.token = identificaToken(regLex.lexema);
+					reg_lex.tamanho = 1;
+					reg_lex.pos = -1;
+	                reg_lex.token = identifica_token(reg_lex.lexema);
 	
 	                //adicionar novo token (identificador)
-					regLex.endereco = pesquisarRegistro(regLex.lexema);
-	                if (regLex.endereco == NULL) {
-	                   regLex.endereco = adicionarRegistro(regLex.lexema,regLex.token);
-					   regLex.endereco->simbolo.tipo = regLex.tipo;
+					reg_lex.endereco = pesquisar_registro(reg_lex.lexema);
+	                if (reg_lex.endereco == NULL) {
+	                   reg_lex.endereco = adicionar_registro(reg_lex.lexema,reg_lex.token);
+					   reg_lex.endereco->simbolo.tipo = reg_lex.tipo;
 					} else {
 						/* palavras reservadas nao possuem tipo,
 						 * portanto nao atualiza o tipo do registro
 						 * lexico se nao tem tipo
 						 */
-						if (regLex.endereco->simbolo.tipo != 0)
-							regLex.tipo = regLex.endereco->simbolo.tipo;
-						regLex.tamanho = regLex.endereco->simbolo.tamanho;
+						if (reg_lex.endereco->simbolo.tipo != 0)
+							reg_lex.tipo = reg_lex.endereco->simbolo.tipo;
+						reg_lex.tamanho = reg_lex.endereco->simbolo.tamanho;
 					}
 				} 
 	        } else if (estado == 9) {
 	            /*lexema de String
 	            concatena até encontrar o fechamento das aspas */
 	
-				regLex.lexema = concatenar(regLex.lexema, &letra);
-				regLex.tamanho++;
+				reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
+				reg_lex.tamanho++;
 	            if (letra == '"') {
-	            	regLex.token = Literal;
-					regLex.tipo = TP_Char;
+	            	reg_lex.token = Literal;
+					reg_lex.tipo = TP_Char;
 	                estado = ACEITACAO_LEX;
 	            } else if (letra == EOF) {
 					/*EOF encontrado*/
 					erro = ER_LEX_EOF;
-					erroMsg = "fim de arquivo nao esperado.";
+					erro_msg = "fim de arquivo nao esperado.";
 					abortar();
 				} else if (C_INVALIDO) {
 					/* caractere inválido */
 					erro = ER_LEX_INVD;
-					erroMsg = "caractere invalido";
+					erro_msg = "caractere invalido";
 					abortar();
 					
 				}
 	        } else if (estado == 10) {
 				/* hexadecimal */
 				if (letra == 'x') {           /* de fato hexadecimal */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 11;
-				} else if (ehDigito(letra)) {   /* numero começando com 0 */ 
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+				} else if (eh_digito(letra)) {   /* numero começando com 0 */ 
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 6;
-				} else if (!ehLetra(letra) && !ehDigito(letra)) {
+				} else if (!eh_letra(letra) && !eh_digito(letra)) {
 					/* valor 0 */
 	
-					regLex.token = Literal;
-					regLex.tipo = TP_Integer;
+					reg_lex.token = Literal;
+					reg_lex.tipo = TP_Integer;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
 				 	 */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
 					estado = ACEITACAO_LEX;
 					
 				} else {
 					erro = ER_LEX_N_ID;
-					erroMsg = "lexema nao identificado";
-					lexemaLido = encurtar(lexemaLido);
+					erro_msg = "lexema nao identificado";
+					lexema_lido = encurtar(lexema_lido);
 					abortar();
 				}
 	
 			} else if (estado == 11) {
 				/* parte numerica do hexadecimal deve conter pelo menos um numero ou A-F */
-				if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+				if (eh_digito(letra) || (97 <= letra && letra <= 102)) {
 					/* leu 0x[A-F0-9] */
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 					estado = 12;
 				} else {
 					/* leu só 0x, invalido */
 					erro = ER_LEX_N_ID;
-					erroMsg = "lexema nao identificado";
-					lexemaLido = encurtar(lexemaLido);
+					erro_msg = "lexema nao identificado";
+					lexema_lido = encurtar(lexema_lido);
 					abortar();
 				}
 			} else if (estado == 12) {
 				/* resto do valor hexadecimal */
-				if (ehDigito(letra) || (97 <= letra && letra <= 102)) {
+				if (eh_digito(letra) || (97 <= letra && letra <= 102)) {
 	
-					regLex.lexema = concatenar(regLex.lexema, &letra);
+					reg_lex.lexema = concatenar(reg_lex.lexema, &letra);
 	
 				} else {
 	
-					regLex.token = Literal;
-					regLex.tipo = TP_Integer;
+					reg_lex.token = Literal;
+					reg_lex.tipo = TP_Integer;
 	
 					/* retorna o ponteiro do arquivo para a posicao anterior pois consumiu
 					 * um caractere de um possivel proximo lexema
 				 	 */
-					if (! ehBranco(letra)) {
-						fseek(progFonte, posAtual, SEEK_SET);
-						lexemaLido = encurtar(lexemaLido);
+					if (! eh_branco(letra)) {
+						fseek(prog_fonte, pos_atual, SEEK_SET);
+						lexema_lido = encurtar(lexema_lido);
 					}
 	
 					estado = ACEITACAO_LEX;
 				}
 			}
 	
-			posAtual = ftell(progFonte);
+			pos_atual = ftell(prog_fonte);
 		}
 
 		/* leu EOF */
 		if (letra == -1) lex = 0;
 	
-		DEBUGLEX("LEX: lexema:%s token:%d tipo:%d tam: %d\n",regLex.lexema,regLex.token,regLex.tipo,regLex.tamanho);
+		DEBUGLEX("LEX: lexema:%s token:%d tipo:%d tam: %d\n",reg_lex.lexema,reg_lex.token,reg_lex.tipo,reg_lex.tamanho);
 	}
 #endif

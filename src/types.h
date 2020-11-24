@@ -4,8 +4,8 @@
 #define _TYPES
 
 	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
-											s->endereco = novoTemp(2); \
-											s->tipo = regLex.tipo; \
+											s->endereco = novo_temp(2); \
+											s->tipo = reg_lex.tipo; \
 											s->op = 0
 
 	typedef int rot;
@@ -84,7 +84,7 @@
 	 * os demais atributos se alteram conforme o comando 
 	 * vai sendo identificado pelo analisador sintatico
 	 */
-	struct registroLex {
+	struct registro_lex {
 		int pos;                     /* posicao a ser acessada no array, 0 se qualquer outra coisa */
 		int tamanho;                 /* tamanho do array, arrays de tamanho 1 sao variaveis        */
 		char *lexema;                /* lexema atual do registro do comando atual                  */
