@@ -47,7 +47,7 @@
 
 		}
 
-		CONCAT_BUF("\tMOV DS:[0%Xh], %s\t\t\t\t\t\t\t;grava o resultado da operacao no endereco\n", pai->endereco, RR);
+		CONCAT_BUF("\tMOV DS:[%d], %s\t\t\t\t\t\t\t;grava o resultado da operacao no endereco\n", pai->endereco, RR);
 	}
 
 	/* comparacoes nao string */
@@ -69,7 +69,7 @@
 		pai->endereco = novoTemp(TAM_INT);
 		pai->tipo = TP_Logico;
 	
-		CONCAT_BUF("MOV DS:[0%Xh], AX\t\t\t\t\t\t\t\t;guarda no endereco o resultado da expressao\n", pai->endereco);
+		CONCAT_BUF("MOV DS:[%d], AX\t\t\t\t\t\t\t\t;guarda no endereco o resultado da expressao\n", pai->endereco);
 	}
 
 	void compChar(struct Fator *pai)
@@ -112,7 +112,7 @@
 		pai->endereco = novoTemp(TAM_INT);
 		pai->tipo = TP_Logico;
 	
-		CONCAT_BUF("\tMOV DS:[0%Xh], AX\t\t\t\t\t\t\t\t;salva no endereco o resultado\n", pai->endereco);
+		CONCAT_BUF("\tMOV DS:[%d], AX\t\t\t\t\t\t\t\t;salva no endereco o resultado\n", pai->endereco);
 	}
 
 	/* move cursor para linha de baixo */
@@ -137,7 +137,7 @@
 
 		/* Pilha */
 		CONCAT_BUF("SSEG SEGMENT STACK\t\t\t\t\t\t\t\t\t\t\t;inicio seg. pilha\n");
-		CONCAT_BUF("\tbyte 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t\t;dimensiona pilha\n",CD);
+		CONCAT_BUF("\tbyte %d DUP(?)\t\t\t\t\t\t\t\t\t\t;dimensiona pilha\n",CD);
 		CONCAT_BUF("SSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. pilha\n");
 
 	}
@@ -184,7 +184,7 @@
 
 		/* dados */
 		CONCAT_BUF("dseg SEGMENT PUBLIC\t\t\t\t\t\t\t\t\t\t\t;inicio seg. dados\n");
-		CONCAT_BUF("\tbyte 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t\t;temporarios\n",CD);
+		CONCAT_BUF("\tbyte %d DUP(?)\t\t\t\t\t\t\t\t\t\t;temporarios\n",CD);
 	}
 
 	/* finaliza o bloco de declaracoes asm 
@@ -220,9 +220,9 @@
 	void acessoArray(struct Fator *pai, struct Fator *filho)
 	{
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================acesso a array===================\n");
-		CONCAT_BUF("\tMOV AX, 0%Xh \t\t\t\t\t\t;endereco base\n", pai->endereco);
+		CONCAT_BUF("\tMOV AX, %d \t\t\t\t\t\t;endereco base\n", pai->endereco);
 		/* adiciona o resultado da expressao ao inicio do array para encontrar a posicao de acesso */
-		CONCAT_BUF("\tADD AX, DS:[0%Xh] \t\t\t\t\t\t\t\t;soma com offset\n", filho->endereco);
+		CONCAT_BUF("\tADD AX, DS:[%d] \t\t\t\t\t\t\t\t;soma com offset\n", filho->endereco);
 		CONCAT_BUF("\tfim acesso a array");
 	}
 
@@ -241,7 +241,7 @@
 		int n_bytes; /* numero de bytes usado */
 
 		/* marca o endereco de memoria, tipo e tamanho na tabela de simbolos */
-		regLex.endereco->simbolo.memoria = CD;
+		regLex.endereco->simbolo.memoria = CD+OFFSET; /* offset para acessar a posicao correta de memoria, por que eu nao sei */
 		regLex.endereco->simbolo.tipo = t;
 		regLex.endereco->simbolo.tamanho = tam;
 
@@ -290,9 +290,9 @@
 
 		/* arrays */
 		if (tam > 1) {
-			CONCAT_BUF("\t%s 0%Xh DUP(?)\t\t\t\t\t\t\t\t\t;var. Vet %s. em 0%Xh\n", nome, tam, tipo, CD);
+			CONCAT_BUF("\t%s %d DUP(?)\t\t\t\t\t\t\t\t\t;var. Vet %s. em %d\n", nome, tam, tipo, regLex.endereco->simbolo.memoria);
 		} else {
-			CONCAT_BUF("\t%s %s\t\t\t\t\t\t\t\t\t\t\t\t; %s. %s. em 0%Xh\n", nome, valor, classe, tipo, CD);
+			CONCAT_BUF("\t%s %s\t\t\t\t\t\t\t\t\t\t\t\t; %s. %s. em %d\n", nome, valor, classe, tipo, regLex.endereco->simbolo.memoria);
 		}
 
 		/* incrementa a posicao de memoria com o numero de bytes utilizado */
@@ -305,15 +305,15 @@
 		rot fim = novoRot();
 	
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de strings===================\n");
-		CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t\t\t;endereco da string para bx\n", end1);
-		CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;endereco do pai para concatenar\n", end2);
+		CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t;endereco da string para bx\n", end1);
+		CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t\t\t;endereco do pai para concatenar\n", end2);
 	
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
 		CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t\t;joga caractere em CL\n");
 		CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t\t;transfere pro endereco a string\n");
-		CONCAT_BUF("\tCMP CL, 0%Xh \t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
+		CONCAT_BUF("\tCMP CL, %d \t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
 		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
-		CONCAT_BUF("\tCMP BX, 0%Xh \t\t\t\t\t\t\t\t;verifica se atingiu o tamanho maximo\n", tamMax);
+		CONCAT_BUF("\tCMP BX, %d \t\t\t\t\t\t\t\t;verifica se atingiu o tamanho maximo\n", tamMax);
 		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
 		CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
 		CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;proximo caractere\n");
@@ -331,12 +331,12 @@
 		/* int e logico */
 		if (pai->tipo == TP_Integer || pai->tipo == TP_Logico) {
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de inteiros e logicos===================\n");
-			CONCAT_BUF("\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t\t;endereco do resultado para ax\n", fator->endereco);
-			CONCAT_BUF("\tMOV DS:[0%Xh], AX \t\t\t\t\t\t;ax para posicao de memoria da variavel\n", pai->endereco);
+			CONCAT_BUF("\tMOV AX, DS:[%d] \t\t\t\t\t\t\t;endereco do resultado para ax\n", fator->endereco);
+			CONCAT_BUF("\tMOV DS:[%d], AX \t\t\t\t\t\t;ax para posicao de memoria da variavel\n", pai->endereco);
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de inteiros e logicos===================\n");
 		} else {
 			/* string, move caractere por caractere */
-			atribuicaoString(fator->endereco, pai->endereco, 0x24, pai->tamanho);
+			atribuicaoString(fator->endereco, pai->endereco, 0x24, (pai->tamanho == 0 ? 255 : pai->tamanho));
 		}
 	}
 
@@ -351,8 +351,8 @@
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio da repeticao===================\n");
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;inicio do loop \n", inicio);
-		CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
-		CONCAT_BUF("\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t;move o resultado da TO EXP para BX \n", filho->endereco);
+		CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
+		CONCAT_BUF("\tMOV BX, DS:[%d] \t\t\t\t\t\t;move o resultado da TO EXP para BX \n", filho->endereco);
 		CONCAT_BUF("\tCMP CX, BX \t\t\t\t\t\t\t\t\t;compara os valores \n");
 		CONCAT_BUF("\tJG R%d \t\t\t\t\t\t\t\t\t\t;vai para o fim se id > exp \n", fim);
 	}
@@ -366,9 +366,9 @@
 		DEBUGGEN("genFimRepeticao");
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim da repeticao===================\n");
-		CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
+		CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
 		CONCAT_BUF("\tADD CX, %s \t\t\t\t\t\t\t\t\t;soma o step\n", step);
-		CONCAT_BUF("\tMOV DS:[0%Xh], CX \t\t\t\t\t\t;guarda o valor de id \n", pai->endereco);
+		CONCAT_BUF("\tMOV DS:[%d], CX \t\t\t\t\t\t;guarda o valor de id \n", pai->endereco);
 		CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;volta para o inicio\n", inicio);
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
 	}
@@ -380,7 +380,7 @@
 		DEBUGGEN("genTeste");
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do teste===================\n");
-		CONCAT_BUF("\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t;move para ax o resultado da expressao logica\n", filho->endereco);
+		CONCAT_BUF("\tMOV AX, DS:[%d] \t\t\t\t\t\t;move para ax o resultado da expressao logica\n", filho->endereco);
 		CONCAT_BUF("\tCMP AX, 0 \t\t\t\t\t\t\t\t;checa se eh falso \n");
 		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;vai para falso \n", falso);
 	}
@@ -418,9 +418,9 @@
 		rot fim = novoRot();
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
-		CONCAT_BUF("\tMOV DX, 0%Xh \t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
-		CONCAT_BUF("\tMOV AL, 0%Xh \t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
-		CONCAT_BUF("\tMOV DS:[0%Xh], AL \t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+		CONCAT_BUF("\tMOV DX, %d \t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
+		CONCAT_BUF("\tMOV AL, %d \t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
+		CONCAT_BUF("\tMOV DS:[%d], AL \t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
 		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t\t\t;interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
 
@@ -431,9 +431,9 @@
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
 
-			CONCAT_BUF("\tMOV CX, DS:[0%Xh] \t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
+			CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t\t\t\t;contador de posicoes\n");
-			CONCAT_BUF("\tMOV BX, 0%Xh \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
+			CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
 
@@ -442,7 +442,7 @@
 			//CONCAT_BUF("R%d:\n",inicio); /* inicio do loop */
 			//CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
 			//CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
-			//CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
+			//CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
 			//CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
 			//CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t\t;move o caractere para DI\n");
 			//CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t\t;move DI para o endereco do pai\n");
@@ -458,7 +458,7 @@
 		/* inteiro */
 		else if (pai->tipo == TP_Integer) {
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio entrada de inteiros===================\n");
-			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t;posição do string\n",buffer+2);
+			CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t;posição do string\n",buffer+2);
 			CONCAT_BUF("\tMOV AX, 0 \t\t\t\t\t\t;acumulador\n");
 			CONCAT_BUF("\tMOV BX, 10 \t\t\t\t\t\t;base decimal\n");
 			CONCAT_BUF("\tMOV DX, 1 \t\t\t\t\t\t;valor sinal +\n");
@@ -487,7 +487,7 @@
 			CONCAT_BUF("\tIMUL BX \t\t\t\t\t\t\t\t;mult. sinal\n");
 
  			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere resultado para o pai===================\n");
-			CONCAT_BUF("\tMOV BX, 0%Xh\n", pai->endereco);
+			CONCAT_BUF("\tMOV BX, %d\n", pai->endereco);
 			CONCAT_BUF("\tMOV DS:[BX], AX\n");
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== fim entrada de inteiros===================\n");
 		}
@@ -511,8 +511,8 @@
 			endereco = novoTemp(pai->tamanho);
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================saida de inteiros===================\n");
-			CONCAT_BUF("\tMOV AX, DS:[0%Xh]\t\t\t\t\t\t\t;carrega para AX o valor\n", pai->endereco);
-			CONCAT_BUF("\tMOV DI, 0%Xh \t\t\t\t\t\t\t\t;end. string temp.\n",endereco);
+			CONCAT_BUF("\tMOV AX, DS:[%d]\t\t\t\t\t\t\t;carrega para AX o valor\n", pai->endereco);
+			CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t\t\t;end. string temp.\n",endereco);
 			CONCAT_BUF("\tMOV CX, 0 \t\t\t\t\t\t\t\t\t;contador\n");
 			CONCAT_BUF("\tCMP AX, 0 \t\t\t\t\t\t\t\t\t;verifica sinal\n");
 			CONCAT_BUF("\tJGE R%d \t\t\t\t\t\t\t\t\t\t;salta se número positivo\n", inicio);
@@ -545,7 +545,7 @@
 		}
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================exibe string===================\n");
-		CONCAT_BUF("\tMOV DX, 0%Xh\n", endereco);
+		CONCAT_BUF("\tMOV DX, %d\n", endereco);
 		CONCAT_BUF("\tMOV AH, 09h\n");
 		CONCAT_BUF("\tINT 21h	\n");
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim saida===================\n");
@@ -564,10 +564,10 @@
 		/* string */
 		if (fator->tipo == TP_Char) {
 			A_SEG_PUB
-				CONCAT_BUF("\tbyte \"%s$\" \t\t\t\t\t\t\t\t;string %s em 0%Xh\n",removeAspas(val),val,CD);
+				CONCAT_BUF("\tbyte \"%s$\" \t\t\t\t\t\t\t\t;string %s em %d\n",removeAspas(val),val,CD);
 			F_SEG_PUB
 			
-			fator->endereco = CD;
+			fator->endereco = CD+OFFSET;
 			fator->tamanho = regLex.tamanho;
 
 			CD += (fator->tamanho+1) * TAM_CHA;
@@ -577,7 +577,7 @@
 			fator->endereco = novoTemp(TAM_INT);
 			fator->tamanho = 1;
 			CONCAT_BUF("\tMOV AX, %s \t\t\t\t\t\t\t\t\t;literal para AX\n",val);
-			CONCAT_BUF("\tMOV DS:[0%Xh], AX \t\t\t\t\t\t\t;ax para memoria\n",fator->endereco);
+			CONCAT_BUF("\tMOV DS:[%d], AX \t\t\t\t\t\t\t;ax para memoria\n",fator->endereco);
 		}
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim gera literal===================\n");
 	}
@@ -605,20 +605,20 @@
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================acessar array===================\n");
 		
-		CONCAT_BUF("\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t;move para BX o endereco da expressao que vai conter o indice \n", expr->endereco);
+		CONCAT_BUF("\tMOV BX, DS:[%d] \t\t\t\t\t\t;move para BX o endereco da expressao que vai conter o indice \n", expr->endereco);
 
 	
 		if (fator->tipo == TP_Integer)
-			CONCAT_BUF("\tADD BX, DS:[0%Xh] \t\t\t\t\t\t\t\t;int usa 2 bytes, portanto contamos a posicao\n", expr->endereco);
+			CONCAT_BUF("\tADD BX, DS:[%d] \t\t\t\t\t\t\t\t;int usa 2 bytes, portanto contamos a posicao\n", expr->endereco);
 
 
-		CONCAT_BUF("\tADD BX, 0%Xh \t\t\t\t\t\t\t\t;soma o endereco do id indice + posicao = endereco real \n", pesquisarRegistro(id)->simbolo.memoria);
+		CONCAT_BUF("\tADD BX, %d \t\t\t\t\t\t\t\t;soma o endereco do id indice + posicao = endereco real \n", pesquisarRegistro(id)->simbolo.memoria);
 
 
 		CONCAT_BUF("\tMOV BX, DS:[BX] \t\t\t\t\t\t;move para um registrador o valor na posicao de memoria calculada \n", fator->endereco);
 
 
-		CONCAT_BUF("\tMOV DS:[0%Xh], BX \t\t\t\t\t\t;move o que estiver no endereco real para o temporario \n", fator->endereco);
+		CONCAT_BUF("\tMOV DS:[%d], BX \t\t\t\t\t\t;move o que estiver no endereco real para o temporario \n", fator->endereco);
 	}
 
 	void fatorGeraExp(struct Fator *fator, struct Fator *expr)
@@ -640,11 +640,11 @@
 
 		pai->endereco = novoTemp(tam);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================nega expressao===================\n");
-		CONCAT_BUF("\tMOV AX, DS:[0%Xh]\n", filho->endereco);
+		CONCAT_BUF("\tMOV AX, DS:[%d]\n", filho->endereco);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================expressao not simulada com expressoes aritmeticas===================\n");
 		CONCAT_BUF("\tneg AX\n");
 		CONCAT_BUF("\tADD AX, 1\n");
-		CONCAT_BUF("\tMOV DS:[0%Xh], AX \t\t\t\t\t\t;move o resultado para o endereco de memoria\n",pai->endereco);
+		CONCAT_BUF("\tMOV DS:[%d], AX \t\t\t\t\t\t;move o resultado para o endereco de memoria\n",pai->endereco);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim nega expressao===================\n");
 	}
 
@@ -655,10 +655,10 @@
 
 		pai->endereco = novoTemp(TAM_INT);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== - (exp)===================\n");
-		CONCAT_BUF("\tMOV AX, DS:[0%Xh]\n", filho->endereco);
+		CONCAT_BUF("\tMOV AX, DS:[%d]\n", filho->endereco);
 		
 		CONCAT_BUF("\tneg AX \t\t\t\t\t\t\t\t\t\t;negacao aritmetica \n");
-		CONCAT_BUF("\tMOV DS:[0%Xh], AX\n",pai->endereco);
+		CONCAT_BUF("\tMOV DS:[%d], AX\n",pai->endereco);
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim - (exp)===================\n");
 	}
 
@@ -689,8 +689,8 @@
 		DEBUGGEN("genOpTermos");
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio operacoes===================\n");
-		CONCAT_BUF("\tMOV AX, DS:[0%Xh] \t\t\t\t\t\t\t;operando 1 em AX\n",pai->endereco);
-		CONCAT_BUF("\tMOV BX, DS:[0%Xh] \t\t\t\t\t\t\t;operando 2 em BX\n",filho->endereco);
+		CONCAT_BUF("\tMOV AX, DS:[%d] \t\t\t\t\t\t\t;operando 1 em AX\n",pai->endereco);
+		CONCAT_BUF("\tMOV BX, DS:[%d] \t\t\t\t\t\t\t;operando 2 em BX\n",filho->endereco);
 
 		char *op;        /* codigo assembly da operacao */
 		char *RD = "AX"; /* registrador Destino         */

@@ -34,7 +34,7 @@
 	void leitura(void);
 	void escrita(int);
 	void variavel(void);
-	void listaIds(Tipo);
+	int listaIds(Tipo);
 	void constante(void);
 	void comandos2(void);
 	void repeticao(void);

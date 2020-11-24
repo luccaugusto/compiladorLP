@@ -78,10 +78,10 @@
 				erroMsg = "identificador ja declarado";
 				break;
 			case ER_SIN_TAMVET:
-				erroMsg = "tamanho do vetor excede o máximo permitido";
+				erroMsg = "tamanho do vetor excede o maximo permitido";
 				break;
 			case ER_SIN_C_INC:
-				erroMsg = "classe de identificador incompatível";
+				erroMsg = "classe de identificador incompativel";
 				break;
 			case ER_SIN_T_INC :
 				erroMsg = "tipos incompativeis";
@@ -105,6 +105,8 @@
 	
 		/* inicia pelo primeiro simbolo da gramatica */
 		declaracao();
+		blocoComandos();
+		fimDeArquivo();
 	}
 	
 	/* Declaracao de variáveis ou constantes 
@@ -115,44 +117,44 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("declaracao");
-	
-		/* var ou const */
-		if (regLex.token == Var) {
-	
-			lido=0;
-			lexan();
-			variavel();
-			declaracao();
-	
-		} else if (regLex.token == Const) {
-	
-			lido=0;
-			lexan();
-			constante();
-			declaracao();
-	
-		} else {
-			/* existem casos especificos onde o
-			 * token do bloco de comandos ja foi lido
-			 * e portanto nao precisa ser lido aqui,
-			 * conferir listaIds para ver a lista desses
-			 * casos 
-			 *
-			 * se ainda nao leu, le
-			 * se ja leu, utiliza o lexema lido
-			 * e marca que nao leu
-			 * */
-			if (!lido) lexan();
-			else lido = 0;
-	
-			/* codegen: finaliza bloco de declaracoes e 
-			 * inicializa bloco do programa 
-			 */
-			fimDecInitCom();
-	
-			blocoComandos();
-			fimDeArquivo();
-		}
+
+		do {
+			/* var ou const */
+			if (regLex.token == Var) {
+
+				lido=0;
+				lexan();
+				variavel();
+
+			} else if (regLex.token == Const) {
+
+				lido=0;
+				lexan();
+				constante();
+
+			} 
+
+		} while (regLex.token == Var || regLex.token == Const);
+
+		/* else */
+		/* existem casos especificos onde o
+		 * token do bloco de comandos ja foi lido
+		 * e portanto nao precisa ser lido aqui,
+		 * conferir listaIds para ver a lista desses
+		 * casos 
+		 *
+		 * se ainda nao leu, le
+		 * se ja leu, utiliza o lexema lido
+		 * e marca que nao leu
+		 * */
+		if (!lido) lexan();
+		else lido = 0;
+
+		/* codegen: finaliza bloco de declaracoes e 
+		 * inicializa bloco do programa 
+		 */
+		fimDecInitCom();
+
 		del(pilha);
 	}
 	
@@ -164,79 +166,74 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("blocoComandos");
-	
-		switch(regLex.token)
-		{
-			case Identificador:
-				/* acao semantica */
-				verificaDeclaracao(regLex.lexema);
-				verificaConst(regLex.lexema);
 
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				atribuicao();
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
+		/* controla se o lexema lido inicia comando */
+		int ehComando = 1;
 	
-			case For:
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				repeticao();
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case If:
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				teste();
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case PtVirgula:
-				estado_sin = N_ACEITACAO_SIN;
-				nulo();
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case Readln:
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				leitura();
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case Write:
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				escrita(0);
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case Writeln:
-				estado_sin = N_ACEITACAO_SIN;
-				lexan();
-				escrita(1);
-				blocoComandos();
-				estado_sin = ACEITACAO_SIN;
-				break;
-	
-			case F_Chaves:
-				/* encontrou o fim do bloco de comandos atual,
-				 * retorna e deixa o metodo que chamou tratar o }
-				 */
-				estado_sin = ACEITACAO_SIN;
-				return;
-	
-		default:
-				return;
-	}
-	del(pilha);
+		do {
+
+			switch(regLex.token)
+			{
+				case Identificador:
+					/* acao semantica */
+					verificaDeclaracao(regLex.lexema);
+					verificaConst(regLex.lexema);
+
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					atribuicao();
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case For:
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					repeticao();
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case If:
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					teste();
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case PtVirgula:
+					estado_sin = N_ACEITACAO_SIN;
+					nulo();
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case Readln:
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					leitura();
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case Write:
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					escrita(0);
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				case Writeln:
+					estado_sin = N_ACEITACAO_SIN;
+					lexan();
+					escrita(1);
+					estado_sin = ACEITACAO_SIN;
+					break;
+
+				default:
+					ehComando = 0;
+			}
+
+		} while (ehComando);
+
+		del(pilha);
+
 	}
 	
 	/* EOF */
@@ -322,22 +319,27 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("variavel");
+		int ehVariavel = 1;
 	
 		/* suporte acao semantica */
 		defClasse(CL_Var);
-	
-		estado_sin = N_ACEITACAO_SIN;
-		if (regLex.token == Char || regLex.token == Integer) {
 
-			/* suporte acao semantica */
-			if (regLex.token == Char) regLex.tipo = TP_Char;
-			else regLex.tipo = TP_Integer;
-	
-			lexan();
-			listaIds(regLex.tipo);
-		} else {
-			erroSintatico(ER_SIN);
-		}
+		do {
+			estado_sin = N_ACEITACAO_SIN;
+			if (regLex.token == Char || regLex.token == Integer) {
+
+				/* suporte acao semantica */
+				if (regLex.token == Char) regLex.tipo = TP_Char;
+				else regLex.tipo = TP_Integer;
+
+				lexan();
+				ehVariavel = listaIds(regLex.tipo);
+			} else {
+				erroSintatico(ER_SIN);
+			}
+
+		} while (ehVariavel);
+
 		estado_sin = ACEITACAO_SIN;
 		del(pilha);
 	}
@@ -353,149 +355,163 @@
 	 * em casos id = literal, nesse caso regLex.tipo
 	 * vai ser o tipo do literal
 	 */
-	void listaIds(Tipo ultimoTipo)
+	int listaIds(Tipo ultimoTipo)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("listaIds");
 	
 		Tipo t;
 		int negativo = 0;
+		int id = 1; /* controle de lexema indica lista de ids */
+		int ret = 1;
 	
-		/* acao semantica */
-		verificaClasse(regLex.lexema, ultimoTipo);
-	
-		casaToken(Identificador);
-		if (regLex.token == Virgula){
-			/* Lendo id,id */
-	
-			/* codegen */
-			genDeclaracao(
-					regLex.endereco->simbolo.tipo,
-					regLex.classe,
-					regLex.endereco->simbolo.tamanho,
-					NULL,
-					negativo
-					);
-	
-			lexan();
-			listaIds(ultimoTipo);
-	
-		} else if (regLex.token == PtVirgula) {
-			/* lendo fim de um comando */
-	
-			/* codegen */
-			genDeclaracao(
-					regLex.endereco->simbolo.tipo,
-					regLex.classe,
-					regLex.endereco->simbolo.tamanho,
-					NULL,
-					negativo
-					);
-	
-			lexan();
-			/* Lista de declaracoes tipo Var integer c; char d; */
-			if (regLex.token == Integer || regLex.token == Char)
-				variavel();
-			else
-				/* fim do comando e marca lido como 1
-				 * pois leu um lexema que nao
-				 * foi utilizado aqui, portanto
-				 * o proximo metodo nao precisa ler
-				 * este lexema
-				 * */
-				lido = 1;
-	
-		} else if (regLex.token == Igual) {
-			/* lendo id=literal */
-			lexan();
-	
-			/* literal negativo */
-			if (regLex.token == Menos) {
-				negativo = 1;
-				lexan();
-			}
-	
-			t = regLex.tipo;
-			lexAux = regLex.lexema;
-	
-			casaToken(Literal);
-	
+		do {
 			/* acao semantica */
-			verificaTipo(regLex.endereco->simbolo.tipo, t);
-	
-			/* codegen */
-			genDeclaracao(
-					t,
-					regLex.classe,
-					regLex.endereco->simbolo.tamanho,
-					lexAux,
-					negativo
-					);
-	
-			if (regLex.token == Virgula) {
-				/* outro id */
+			verificaClasse(regLex.lexema, ultimoTipo);
+
+			casaToken(Identificador);
+			if (regLex.token == Virgula){
+				/* Lendo id,id */
+
+				/* codegen */
+				genDeclaracao(
+						regLex.endereco->simbolo.tipo,
+						regLex.classe,
+						regLex.endereco->simbolo.tamanho,
+						NULL,
+						negativo
+						);
+
 				lexan();
-				listaIds(ultimoTipo);
-			} else {
-				/* terminou de ler o comando */
-				casaToken(PtVirgula);
-	
+
+			} else if (regLex.token == PtVirgula) {
+				/* lendo fim de um comando */
+
+				/* codegen */
+				genDeclaracao(
+						regLex.endereco->simbolo.tipo,
+						regLex.classe,
+						regLex.endereco->simbolo.tamanho,
+						NULL,
+						negativo
+						);
+
+				lexan();
+				id = 0;
 				/* Lista de declaracoes tipo Var integer c; char d; */
-				if (regLex.token == Integer || regLex.token == Char)
-					variavel();
-				else
+				if (regLex.token == Integer || regLex.token == Char) {
+					ret = 1;
+				} else {
 					/* fim do comando e marca lido como 1
 					 * pois leu um lexema que nao
 					 * foi utilizado aqui, portanto
 					 * o proximo metodo nao precisa ler
 					 * este lexema
 					 * */
+					ret = 0;
 					lido = 1;
-			}
-		} else {
-			/* lendo id[literal] */
-			casaToken(A_Colchete);
-	
-			lexAux = regLex.lexema;
-			casaToken(Literal);
-	
-			/* acao semantica */
-			verificaTam(str2int(lexAux));
-	
-			casaToken(F_Colchete);
-	
-			/* codegen */
-			genDeclaracao(
-					regLex.endereco->simbolo.tipo,
-					regLex.classe,
-					regLex.endereco->simbolo.tamanho,
-					NULL,
-					negativo
-					);
-	
-	
-			if (regLex.token == Virgula) {
-				/* outro id */
+				}
+
+			} else if (regLex.token == Igual) {
+				/* lendo id=literal */
 				lexan();
-				listaIds(ultimoTipo);
+
+				/* literal negativo */
+				if (regLex.token == Menos) {
+					negativo = 1;
+					lexan();
+				}
+
+				t = regLex.tipo;
+				lexAux = regLex.lexema;
+
+				casaToken(Literal);
+
+				/* acao semantica */
+				verificaTipo(regLex.endereco->simbolo.tipo, t);
+
+				/* codegen */
+				genDeclaracao(
+						t,
+						regLex.classe,
+						regLex.endereco->simbolo.tamanho,
+						lexAux,
+						negativo
+						);
+
+				if (regLex.token == Virgula) {
+					/* outro id */
+					lexan();
+
+				} else {
+					/* terminou de ler o comando */
+					casaToken(PtVirgula);
+
+					id = 0;
+					/* Lista de declaracoes tipo Var integer c; char d; */
+					if (regLex.token == Integer || regLex.token == Char) {
+						ret = 1;
+					} else {
+						/* fim do comando e marca lido como 1
+						 * pois leu um lexema que nao
+						 * foi utilizado aqui, portanto
+						 * o proximo metodo nao precisa ler
+						 * este lexema
+						 * */
+						lido = 1;
+						ret = 0;
+					}
+				}
 			} else {
-				/* terminou de ler o comando */
-				casaToken(PtVirgula);
-	
-				/* Lista de declaracoes tipo Var integer c; char d; */
-				if (regLex.token == Integer || regLex.token == Char)
-					variavel();
-				else
-					/* fim do comando e marca lido como 1
-					 * pois leu um lexema que nao
-					 * foi utilizado aqui, portanto
-					 * o proximo metodo nao precisa ler
-					 * este lexema
-					 * */
-					lido = 1;
+				/* lendo id[literal] */
+				casaToken(A_Colchete);
+
+				lexAux = regLex.lexema;
+				casaToken(Literal);
+
+				/* acao semantica */
+				verificaTam(str2int(lexAux));
+
+				casaToken(F_Colchete);
+
+				/* codegen */
+				genDeclaracao(
+						regLex.endereco->simbolo.tipo,
+						regLex.classe,
+						regLex.endereco->simbolo.tamanho,
+						NULL,
+						negativo
+						);
+
+
+				if (regLex.token == Virgula) {
+					/* outro id */
+					lexan();
+
+				} else {
+					/* terminou de ler o comando */
+					casaToken(PtVirgula);
+
+					id = 0;
+					/* Lista de declaracoes tipo Var integer c; char d; */
+					if (regLex.token == Integer || regLex.token == Char) {
+						ret = 1;
+					} else {
+						/* fim do comando e marca lido como 1
+						 * pois leu um lexema que nao
+						 * foi utilizado aqui, portanto
+						 * o proximo metodo nao precisa ler
+						 * este lexema
+						 * */
+						ret = 0;
+						lido = 1;
+					}
+				}
 			}
-		}
+		} while (id);
+
 		del(pilha);
+		return ret;
 	}
 	
 	/***********************************************
@@ -683,55 +699,49 @@
 				lexan();
 				atribuicao();
 				break;
-	
+
 			case For:
 				lexan();
 				repeticao();
 				break;
-	
+
 			case If:
 				lexan();
 				teste();
 				break;
-	
+
 			case PtVirgula:
 				lexan();
 				nulo();
 				break;
-	
+
 			case Readln:
 				lexan();
 				leitura();
 				break;
-	
+
 			case Write:
 				lexan();
 				escrita(0);
 				break;
-	
+
 			case Writeln:
 				lexan();
 				escrita(1);
 				break;
-	
+
 			case A_Chaves:
 				lexan();
 				blocoComandos();
-				/* o } ja foi lido por alguem na chamada antiga chamou */
 				casaToken(F_Chaves);
 				break;
-	
-		case F_Chaves:
-				/* encontrou o fim do bloco de comandos atual,
-				 * retorna e deixa o metodo que chamou tratar o }
-				 */
-		return;
-	
-		default:
-		if (lex) erroSintatico(ER_SIN);
-		else erroSintatico(ER_SIN_EOF);
+
+			default:
+				if (lex) erroSintatico(ER_SIN);
+				else erroSintatico(ER_SIN_EOF);
 		}
-	del(pilha);
+
+		del(pilha);
 	}
 	
 	/* Teste
@@ -761,9 +771,6 @@
 		casaToken(Then);
 	
 		comandos2();
-	
-		if (regLex.token == F_Chaves)
-			lexan(); 
 	
 		teste1(falso, fim);
 		del(pilha);
@@ -1147,13 +1154,17 @@
 		expr = expressao();
 		genSaida(expr, 0);
 
-		if (regLex.token == Virgula) {
+		while (regLex.token == Virgula) {
+
 			lexan();
-			expressao2(0);
+
+			expr = expressao();
+			genSaida(expr, 0);
+
 		}
 
-		if (ln)
-			proxLinha();
+		/* codegen */
+		if (ln) proxLinha();
 
 		del(pilha);
 	}

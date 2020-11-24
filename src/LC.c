@@ -16,10 +16,10 @@
 #include "utils.c"
 #include "ts.c"
 #include "codegen.c"
-#include "LC.h"
 #include "testes.c"
 #include "lexan.c"
 #include "ansin.c"
+#include "LC.h"
 
 FILE *progFonte;
 char *fonteNome;
