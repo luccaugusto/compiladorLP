@@ -1,9 +1,6 @@
 #ifndef _ANSIN_H
 #define _ANSIN_H
 
-	/* HEADERS */
-	#include "types.h"
-
 	/* MACROS */
 	//define DEBUG_SIN
 	#define N_ACEITACAO_SIN -31

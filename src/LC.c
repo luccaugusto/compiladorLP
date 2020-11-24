@@ -12,15 +12,15 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "types.h"
+#include "ts.h"
+#include "LC.h"
 #include "pilha.c"
 #include "utils.c"
-#include "ts.c"
-#include "codegen.c"
 #include "testes.c"
 #include "lexan.c"
+#include "codegen.c"
 #include "ansin.c"
-
-
 
 /* VARIAVEIS GLOBAIS */
 FILE *prog_fonte;

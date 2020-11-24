@@ -16,7 +16,6 @@
 	/* HEADERS */
 	#include "ansin.h"
 	#include "semac.c"
-	#include "codegen.c"
 	
 	/* VARIAVEIS GLOBAIS */
 	char* lexAux;

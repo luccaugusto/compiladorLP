@@ -1,6 +1,7 @@
 #ifndef _LEXAN
 #define _LEXAN
 	#include "lexan.h"
+	#include "ts.c"
 	
 	/* Implementacao do automato do analisador lexico
 	 * grava lex como 1 caso de sucesso,

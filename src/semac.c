@@ -6,7 +6,6 @@
 #define _SEMAC
 
 	/* HEADERS */
-	#include "types.h"
 	#include "ansin.h"
 
 	/* DEFINICAO DE FUNCOES */

@@ -2,7 +2,10 @@
 #define _PILHA
 
 	/* HEADERS */
-	#include <stdio.h>
+	/* Include comentado pois essa biblioteca 
+	 * ja foi incluida em LC.c
+	 * #include <stdio.h>
+	 */
 
 	/*
 	 * Implementacao de uma pilha das chamadas dos métodos.

@@ -4,7 +4,6 @@
 
 	/* HEADERS */
 	#include "codegen.h"
-	#include "LC.h"
 
 	/* VARIAVEIS GLOBAIS */
 	char *buffer;       /* buffer de criacao do codigo asm     */
