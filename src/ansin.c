@@ -624,9 +624,9 @@
 		Tipo t = reg_lex.endereco->simbolo.tipo;
 		Tipo t2;
 		NOVO_FATOR(pai);
-		NOVO_FATOR(filho);
-		NOVO_FATOR(filho2);
-		NOVO_FATOR(f_aux);
+		struct Fator *filho = NULL;
+		struct Fator *filho2 = NULL;
+		struct Fator *f_aux = NULL;
 	
 		lexAux = reg_lex.lexema;
 
@@ -661,6 +661,7 @@
 	
 			casa_token(F_Colchete);
 			free(f_aux);
+			f_aux = NULL;
 		}
 	
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
@@ -834,18 +835,26 @@
 		NOVO_FATOR(pai);
 		NOVO_FATOR(expr);
 		char *lexId;
+		char *l_aux;
 		struct Celula *registro;
 	
 		casa_token(A_Parenteses);
 
 		lexId = reg_lex.lexema;
+		l_aux = lexema_lido;
 		registro = pesquisar_registro(lexId);
+
+		casa_token(Identificador);
+
+		/* retorna lexema_lido para que em caso de erro a mensagem
+		 * mostre o lexema do identificador, e nao o que vier 
+		 * depois dele.
+		 */
+		lexema_lido = l_aux;
 
 		/* acao semantica */
 		verifica_const(lexId);
 		verifica_declaracao(lexId);
-
-		casa_token(Identificador);
 
 		/* codegen */
 		pai->endereco = registro->simbolo.memoria;
