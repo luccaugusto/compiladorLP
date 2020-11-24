@@ -1,4 +1,17 @@
-/* Definicao das funcoes utilitárias do projeto */
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo utils:
+ * Definições de funções utilitárias do compilador.
+ * 
+ * *************************************************************************/
+
 #ifndef _UTILS
 #define _UTILS
 	/* HEADERS */

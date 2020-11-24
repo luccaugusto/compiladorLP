@@ -1,3 +1,18 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo ts:
+ * Implementação da tabela de simbolos utilizada pelo compilador.
+ * Define os tokens e tipos, e implementa funções para manipular a tabela.
+ *
+ * *************************************************************************/
+
 #ifndef _TS_H
 #define _TS_H
 

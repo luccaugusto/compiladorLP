@@ -1,3 +1,17 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo semac:
+ * Implementação de ações semânticas da gramática.
+ * Verificações de tipos, classes e atualização de valores das estruturas.
+ *
+ * *************************************************************************/
 /* Acoes semanticas 
  * Cada metodo implementa a verificacao de uma acao semantica,
  * em caso de erro, chama a funcao erro_sintatico e aborta o programa

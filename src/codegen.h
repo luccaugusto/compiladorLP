@@ -1,3 +1,19 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo codegen:
+ * Este arquivo contém funções responsáveis pela geração de código.
+ * Existem funções que gerenciam variáveis de contadores de memória 
+ * e rótulos e funções que de fato geram código assembly.
+ *
+ * *************************************************************************/
+
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 

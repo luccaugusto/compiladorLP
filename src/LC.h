@@ -1,3 +1,18 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo LC:
+ * Arquivo principal do compilador. Lê os parâmetros da linha de comando e
+ * inicia as estruturas de dados e processo de compilação.
+ *
+ * *************************************************************************/
+
 #ifndef _LC_H
 #define _LC_H
 

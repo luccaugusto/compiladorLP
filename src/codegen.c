@@ -1,4 +1,24 @@
-/* Geração de código */
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo codegen:
+ * Este arquivo contém funções responsáveis pela geração de código.
+ * Existem funções que gerenciam variáveis de contadores de memória 
+ * e rótulos e funções que de fato geram código assembly.
+ *
+ * *************************************************************************/
+
+/* Geração de código 
+ * As funções que geram código de fato escrevem esse código em buffer, e
+ * somente quando buffer atinge MAX_BUF_SIZE ocorre uma escrita em arquivo.
+ */
+
 #ifndef _CODEGEN
 #define _CODEGEN
 
@@ -30,6 +50,23 @@
 	zera_temp(void)
 	{
 		TP = 0x0;
+	}
+
+	/* inicia o buffer */
+	void
+	iniciar_codegen(void)
+	{ 
+		/* DEBUGGER E PILHA */
+		DEBUGGEN("iniciar_codegen");
+
+		buffer = (char *)malloc(sizeof(char) * MAX_BUF_SIZE);
+		aux = (char *)malloc(sizeof(char) * MAX_AUX_SIZE);
+
+		/* Pilha */
+		CONCAT_BUF("SSEG SEGMENT STACK\t\t\t\t\t\t\t\t\t\t\t;inicio seg. pilha\n");
+		CONCAT_BUF("\tbyte %d DUP(?)\t\t\t\t\t\t\t\t\t\t;dimensiona pilha\n",CD);
+		CONCAT_BUF("SSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. pilha\n");
+
 	}
 
 	/* operacoes aritmeticas, ADD, SUB, IMUL e IDIV
@@ -134,22 +171,6 @@
 		CONCAT_BUF("\tINT 21h\n");
 	}
 
-	/* inicia o buffer */
-	void
-	iniciar_codegen(void)
-	{ 
-		/* DEBUGGER E PILHA */
-		DEBUGGEN("iniciar_codegen");
-
-		buffer = (char *)malloc(sizeof(char) * MAX_BUF_SIZE);
-		aux = (char *)malloc(sizeof(char) * MAX_AUX_SIZE);
-
-		/* Pilha */
-		CONCAT_BUF("SSEG SEGMENT STACK\t\t\t\t\t\t\t\t\t\t\t;inicio seg. pilha\n");
-		CONCAT_BUF("\tbyte %d DUP(?)\t\t\t\t\t\t\t\t\t\t;dimensiona pilha\n",CD);
-		CONCAT_BUF("SSEG ENDS\t\t\t\t\t\t\t\t\t\t\t\t\t;fim seg. pilha\n");
-
-	}
 
 	/* concatena garantindo que o ultimo caractere eh o \n */
 	void

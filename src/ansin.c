@@ -1,3 +1,22 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a disciplina de compiladores 2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo ansin:
+ * Implementação do analisador sintático. Quase toda função representa um
+ * simbolo da gramatica, com algumas funções auxiliares. Durante a análise
+ * sintática, ações semânticas e de geração de código são executadas.
+ * (ver semac.c e codegen.c)
+ * Portanto é a partir deste arquivo que a lógica principal do programa
+ * acontece.
+ *
+ * *************************************************************************/
+
 /* Analisador sintático
  * retorna 1 caso sucesso,
  *         0 caso erro,

@@ -1,3 +1,16 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo types:
+ * Definições de tipos e estruturas utilizados pelo compilador.
+ *
+ * *************************************************************************/
 /* Definicoes de tipos e estruturas utilizadas */
 
 #ifndef _TYPES

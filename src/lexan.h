@@ -1,3 +1,19 @@
+/* **************************************************************************
+ * Compilador desenvolvido para a diciplina de compiladores-2020-2 PUC minas
+ * Este programa segue o estilo de código definido em: 
+ * https://suckless.org/coding_style/
+ *
+ * Alunos: Laura Nunes - 587484
+ * 		   Lucca Augusto - 587488
+ * 		   Richard Mariano - 598894
+ *
+ * Arquivo lexan:
+ * Implementacao do automato do analisador léxico. Lê cada lexema e realiza
+ * ações necessárias correspondentes.
+ * Ao encontrar EOF marca a variável global lex como 0.
+ * Em caso de erro aborta o programa com o código devido.
+ * *************************************************************************/
+
 #ifndef _LEXAN_H
 #define _LEXAN_H
 
