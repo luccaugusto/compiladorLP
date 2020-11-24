@@ -1,2 +1,2 @@
 11
-tamanho do vetor excede o máximo permitido.
+tamanho do vetor excede o maximo permitido.
