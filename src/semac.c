@@ -8,12 +8,14 @@
 	#include "types.h"
 	#include "ansin.h"
 	
-	void def_tipo(Tipo tipo)
+	void
+	def_tipo(Tipo tipo)
 	{
 		reg_lex.tipo = tipo;
 	}
 	
-	void defClasse(Classe classe)
+	void
+	defClasse(Classe classe)
 	{
 		reg_lex.classe = classe;
 	}
@@ -23,7 +25,8 @@
 	 * diferente de 0 é verdadeiro.
 	 * caracteres não são válidos
 	 */
-	Tipo to_logico(Tipo tipo)
+	Tipo
+	to_logico(Tipo tipo)
 	{
 		Tipo t = tipo;
 		if (tipo == TP_Integer) t = TP_Logico;
@@ -31,7 +34,8 @@
 	}
 	
 	/* verifica se o tamanho dos arrays eh valido */
-	void verifica_tam(int tam)
+	void
+	verifica_tam(int tam)
 	{
 		/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
 		if (reg_lex.tipo == TP_Char && tam > 4000) erro_sintatico(ER_SIN_TAMVET);
@@ -49,7 +53,8 @@
 	/* Verificacao de tipo
 	 * verifica se tipo A == tipo B
 	 */
-	void verifica_tipo(Tipo A, Tipo B)
+	void
+	verifica_tipo(Tipo A, Tipo B)
 	{
 	
 		if ( A != B) {
@@ -63,7 +68,8 @@
 	 * caso a classe ja esteja definida, significa que a variavel
 	 * ou constante ja foi declarada
 	 */
-	void verifica_classe(char* lex, Tipo tipo)
+	void
+	verifica_classe(char* lex, Tipo tipo)
 	{
 		reg_lex.endereco = pesquisar_registro(lex);
 	
@@ -79,14 +85,16 @@
 	 * verifica se o identificador ja foi declarado
 	 * ou se é constante
 	 */
-	void verifica_declaracao(char *identificador)
+	void
+	verifica_declaracao(char *identificador)
 	{
 		if (pesquisar_registro(identificador)->simbolo.classe == 0)
 			erro_sintatico(ER_SIN_NDEC);
 	}
 
 	/* verifica se o identificador eh constante */
-	void verifica_const(char *identificador)
+	void
+	verifica_const(char *identificador)
 	{
 		if (pesquisar_registro(identificador)->simbolo.classe == CL_Const)
 			erro_sintatico(ER_SIN_C_INC);
@@ -96,7 +104,8 @@
 	 * operacoes sobre vetores so podem acontecer posicao a posicao
 	 * operacoes na forma vet1 = vet2 nao sao permitidas
 	 */
-	void verifica_atr_vetor(void)
+	void
+	verifica_atr_vetor(void)
 	{
 		/* ATENCAO:
 		 * Este erro poderia ter sido deixado para tempo de execucao

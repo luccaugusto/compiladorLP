@@ -20,13 +20,15 @@
 	char* lexAux;
 	
 	/* atribui posicao de acesso ao vetor no registro lexico */
-	void atr_pos(int pos)
+	void 
+	atr_pos(int pos)
 	{
 		reg_lex.pos = pos;
 	}
 	
 	/* atribui tipo à constante na tabela de simbolos */
-	void atr_tipo()
+	void
+	atr_tipo()
 	{
 		reg_lex.endereco->simbolo.tipo = reg_lex.tipo;
 	}
@@ -43,7 +45,8 @@
 	 * Quando só existe uma opção de Token
 	 * casa_token DEVE ser utilizada.
 	 */
-	int casa_token(Tokens esperado)
+	int
+	casa_token(Tokens esperado)
 	{
 		int retorno = 1;
 	
@@ -59,7 +62,8 @@
 	/* Trata um Erro Sintático
 	 * e aborta o programa
 	 */
-	void erro_sintatico(int tipo)
+	void
+	erro_sintatico(int tipo)
 	{
 	
 		erro = tipo;
@@ -95,7 +99,8 @@
 	/* Consime o primeiro token e chama 
 	 * o simbolo inicial
 	 */
-	void iniciar_ansin(void)
+	void
+	iniciar_ansin(void)
 	{
 		/* consome o primeiro token */
 		lexan();
@@ -113,7 +118,8 @@
 	 * Var variavel();
 	 * Const constante();
 	 */
-	void declaracao(void)
+	void
+	declaracao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("declaracao");
@@ -162,7 +168,8 @@
 	/* Bloco de comandos
 	 * For, If, ID= , ;, readln();, write();, writeln();
 	 */
-	void bloco_comandos()
+	void
+	bloco_comandos()
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("bloco_comandos");
@@ -237,7 +244,8 @@
 	}
 	
 	/* EOF */
-	void fim_de_arquivo(void)
+	void
+	fim_de_arquivo(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("fim_de_arquivo");
@@ -265,7 +273,8 @@
 	 ***********************************************/
 	
 	/* Const id = literal; */
-	void constante(void)
+	void
+	constante(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("constante");
@@ -313,9 +322,9 @@
 		del(pilha);
 	}
 	
-	/* var char|integer lista_ids();
-	*/
-	void variavel(void)
+	/* var char|integer lista_ids(); */
+	void
+	variavel(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("variavel");
@@ -358,7 +367,8 @@
 	 * retorna 1 caso outra declaracao de tipos
 	 * foi encontrada, 0 caso contrario
 	 */
-	int lista_ids(Tipo ultimoTipo)
+	int
+	lista_ids(Tipo ultimoTipo)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("lista_ids");
@@ -527,7 +537,8 @@
 	/* Atribuicao
 	 * ID=expressao();
 	 */
-	void atribuicao(void)
+	void
+	atribuicao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("atribuicao");
@@ -581,7 +592,8 @@
 	/* Repeticao
 	 * ID = literal to literal repeticao1();
 	 */
-	void repeticao(void)
+	void
+	repeticao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("repeticao");
@@ -676,7 +688,8 @@
 	 * ou
 	 * comando unico
 	 */
-	void comandos2(void)
+	void
+	comandos2(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("comandos2");
@@ -735,7 +748,8 @@
 	/* Teste
 	 * expressao() then comandos2() teste1()
 	 */
-	void teste(void)
+	void
+	teste(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("teste");
@@ -768,7 +782,8 @@
 	 * ou fim do if
 	 * bloco_comandos()
 	 */
-	void teste1(rot falso, rot fim)
+	void
+	teste1(rot falso, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("teste1");
@@ -787,7 +802,8 @@
 	/* Comando de leitura
 	 * readln(id)
 	 */
-	void leitura(void)
+	void
+	leitura(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("leitura");
@@ -837,7 +853,8 @@
 	/* Comando nulo
 	 * ;
 	 */
-	void nulo(void)
+	void
+	nulo(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("nulo");
@@ -849,7 +866,8 @@
 	/* Comando de escrita
 	 * write(id|const)
 	 */
-	void escrita(int ln)
+	void
+	escrita(int ln)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("escrita");
@@ -867,7 +885,8 @@
 	 * X -> Xs [ O Xs ]
 	 * O  -> = | <> | < | > | >= | <=
 	 */
-	struct Fator *expressao(void)
+	struct Fator *
+	expressao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao");
@@ -931,7 +950,8 @@
 	/* Expressao simples
 	 * Xs -> [-] T {( + | - | ‘or’) T}
 	 */
-	struct Fator *expressao_s(void)
+	struct Fator *
+	expressao_s(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao_s");
@@ -1008,7 +1028,8 @@
 		return ret;
 	}
 
-	void acaoFilhoTermo2(struct Fator *atual, Tipo gerado)
+	void
+	acaoFilhoTermo2(struct Fator *atual, Tipo gerado)
 	{
 			/* codegen */
 			guarda_op(atual);
@@ -1030,7 +1051,8 @@
 	/* Termo
 	 * T  -> F {( * | / | % | ‘and’ ) F}
 	 */
-	struct Fator *termo(void)
+	struct Fator *
+	termo(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("termo");
@@ -1061,7 +1083,8 @@
 	/* Fator
 	 * F  -> ‘(‘ X ‘)’ | literal | id ['[' X ']']
 	 */
-	struct Fator *fator(void)
+	struct Fator *
+	fator(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("fator");
@@ -1133,7 +1156,8 @@
 
 	
 	/* lista de expressoes */
-	void expressao2(int ln)
+	void
+	expressao2(int ln)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("expressao2");

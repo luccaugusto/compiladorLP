@@ -46,7 +46,8 @@ struct Celula *tabela_simbolos[TAM_TBL];
 /*
  * pára o programa e reporta o erro
  */
-void abortar(void)
+void
+abortar(void)
 {
 #ifdef DEBUG_SIN
 	print_pilha(pilha);
@@ -63,36 +64,38 @@ void abortar(void)
 			printf("%d\n%s [%c].\n", linha+1, erro_msg, letra);
 			break;
 
-		case ER_SIN:            /* Fallthrough */
-		case ER_LEX_N_ID:       /* Fallthrough */
-		case ER_SIN_NDEC:       /* Fallthrough */
-		case ER_SIN_JADEC:      /* Fallthrough */
+		case ER_SIN:            /* FALLTHROUGH */
+		case ER_LEX_N_ID:       /* FALLTHROUGH */
+		case ER_SIN_NDEC:       /* FALLTHROUGH */
+		case ER_SIN_JADEC:      /* FALLTHROUGH */
 		case ER_SIN_C_INC:
 			printf("%d\n%s [%s].\n", linha+1, erro_msg, remove_branco(removeComentario(lexema_lido)));
 			break;
 
-		case ER_LEX_INVD:        /* Fallthrough */
-		case ER_LEX_EOF:         /* Fallthrough */
-		case ER_SIN_EOF:         /* Fallthrough */
-		case ER_SIN_TAMVET:      /* Fallthrough */
+		case ER_LEX_INVD:        /* FALLTHROUGH */
+		case ER_LEX_EOF:         /* FALLTHROUGH */
+		case ER_SIN_EOF:         /* FALLTHROUGH */
+		case ER_SIN_TAMVET:      /* FALLTHROUGH */
 		case ER_SIN_T_INC:
 			printf("%d\n%s.\n", linha+1, erro_msg);
 			break;
 	}
-	exit(erro);
+	exit(-erro);
 }
 
 /* escreve o que estiver no buffer em prog_asm e
  * reporta linhas compiladas
  */
-void sucesso(void)
+void
+sucesso(void)
 {
 	flush();
 	printf("%d linhas compiladas.\n", linha-1);
 }
 
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	char c;
 

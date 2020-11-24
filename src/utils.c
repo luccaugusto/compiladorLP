@@ -25,7 +25,8 @@
 	/* ************************** *
 	              HASH
 	 * ************************** */
-	unsigned int hash(unsigned char *str, int mod)
+	unsigned int
+	hash(unsigned char *str, int mod)
 	{
 	    unsigned int hash = 5381;
 	    int c;
@@ -41,7 +42,8 @@
 	/* ************************** *
 	           REGEX LIKE 
 	 * ************************** */
-	int eh_digito(char l)
+	int
+	eh_digito(char l)
 	{
 		/* valores de 0-9 em ascii */
 		int retorno = 0;
@@ -50,7 +52,8 @@
 		return retorno;
 	}
 	
-	int eh_letra(char l)
+	int
+	eh_letra(char l)
 	{
 		/* valores de a-z em ascii */
 		int retorno = 0;
@@ -59,7 +62,8 @@
 		return retorno;
 	}
 	
-	int eh_branco(char l)
+	int
+	eh_branco(char l)
 	{
 		/* valores de tab, line feed, <CR>, espaço em ascii */
 		int retorno = 0;
@@ -68,7 +72,8 @@
 		return retorno;
 	}
 	
-	Tokens identifica_token(char *lex)
+	Tokens
+	identifica_token(char *lex)
 	{
 		Tokens retorno = Identificador;
 	
@@ -115,7 +120,8 @@
 	 * ************************** */
 
 	/* remove brancos que nao estejam entre strings */
-	char *remove_branco(char *str)
+	char *
+	remove_branco(char *str)
 	{
 		char *ret;
 		int t = strlen(str);
@@ -142,7 +148,8 @@
 	}
 
 	/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
-	char *remove_aspas(char *str)
+	char *
+	remove_aspas(char *str)
 	{
 		char *retorno;
 		int tamstr = strlen(str);
@@ -156,7 +163,8 @@
 	}
 	
 	/* remove o ultimo caractere de str */
-	char *encurtar(char *str)
+	char *
+	encurtar(char *str)
 	{
 		char *retorno;
 		int tamstr = strlen(str);
@@ -177,7 +185,8 @@
 		return retorno;
 	}
 	
-	char *concatenar(char *inicio, char *fim)
+	char *
+	concatenar(char *inicio, char *fim)
 	{
 		char *retorno;
 		int tamInicio = strlen(inicio);
@@ -199,7 +208,8 @@
 	}
 	
 	/* Converte maiusculas para minusculas */
-	char minusculo(char l)
+	char
+	minusculo(char l)
 	{
 		if (l >= 65 && l <=90)
 			l += 32; 
@@ -207,7 +217,8 @@
 	}
 	
 	/* transforma uma string de numeros em um inteiro */
-	int str2int(char *str)
+	int
+	str2int(char *str)
 	{
 		int l = strlen(str);
 		int val = 1; /* valor da casa (unidade, dezena, centena) */
@@ -226,7 +237,8 @@
 	}
 	
 	/* remove comentarios do lexema_lido */
-	char *removeComentario(char *str)
+	char *
+	removeComentario(char *str)
 	{
 		char *ret;
 		int t = strlen(str);
@@ -272,7 +284,8 @@
 	/* ************************** *
 	   LEITURA DE ARQUIVO 
 	 * ************************** */
-	char lex_get_char(void)
+	char
+	lex_get_char(void)
 	{
 		int c = fgetc(prog_fonte);
 		char *l = (char *) &c;

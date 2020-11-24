@@ -12,18 +12,21 @@
 	rot RT = 1;         /* contador de rotulos                 */
 
 	/* declara novo temporario */
-	int novo_temp(int t)
+	int
+	novo_temp(int t)
 	{
 		TP += t;
 		return (TP-t);
 	}
 
-	int novo_rot(void)
+	int
+	novo_rot(void)
 	{
 		return RT++;
 	}
 
-	void zera_temp(void)
+	void
+	zera_temp(void)
 	{
 		TP = 0x0;
 	}
@@ -32,7 +35,8 @@
 	 * recebe a operacao op, o registrador destino RD, o registrador origem RO
 	 * o registrador resultado RR e o pai
 	 */
-	void aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai)
+	void
+	aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai)
 	{
 		pai->endereco = novo_temp(TAM_INT);
 
@@ -51,7 +55,8 @@
 	}
 
 	/* comparacoes nao string */
-	void comp(char *op, struct Fator *pai)
+	void
+	comp(char *op, struct Fator *pai)
 	{
 		rot verdadeiro = novo_rot();
 		rot falso = novo_rot();
@@ -72,7 +77,8 @@
 		CONCAT_BUF("MOV DS:[%d], AX\t\t\t\t\t\t\t\t;guarda no endereco o resultado da expressao\n", pai->endereco);
 	}
 
-	void comp_char(struct Fator *pai)
+	void
+	comp_char(struct Fator *pai)
 	{
 		rot inicio = novo_rot();
 		rot verdadeiro = novo_rot();
@@ -116,7 +122,8 @@
 	}
 
 	/* move cursor para linha de baixo */
-	void prox_linha(void)
+	void
+	prox_linha(void)
 	{
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================gera quebra de linha===================\n");
 		CONCAT_BUF("\tMOV AH, 02h\n");
@@ -127,7 +134,8 @@
 	}
 
 	/* inicia o buffer */
-	void iniciar_codegen(void)
+	void
+	iniciar_codegen(void)
 	{ 
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("iniciar_codegen");
@@ -143,7 +151,8 @@
 	}
 
 	/* concatena garantindo que o ultimo caractere eh o \n */
-	void buf_concatenar(void)
+	void
+	buf_concatenar(void)
 	{
 
 		int buf_size = strlen(buffer);
@@ -165,7 +174,8 @@
 	/* escreve buffer no arquivo prog_asm 
 	 * e em seguida limpa buffer
 	 */
-	void flush(void)
+	void
+	flush(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("flush");
@@ -177,7 +187,8 @@
 	}
 
 	/* inicia o bloco de declaracoes asm */
-	void init_declaracao(void)
+	void
+	init_declaracao(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("init_declaracao");
@@ -190,7 +201,8 @@
 	/* finaliza o bloco de declaracoes asm 
 	 * e inicia o bloco de comandos asm
 	 */
-	void fim_dec_init_com(void)
+	void
+	fim_dec_init_com(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fim_dec_init_com");
@@ -204,7 +216,8 @@
 
 	}
 
-	void fim_comandos(void)
+	void
+	fim_comandos(void)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fim_comandos");
@@ -217,7 +230,8 @@
 	}
 
 	/* gera codigo para acesso a array */
-	void acesso_array(struct Fator *pai, struct Fator *filho)
+	void
+	acesso_array(struct Fator *pai, struct Fator *filho)
 	{
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================acesso a array===================\n");
 		CONCAT_BUF("\tMOV AX, %d \t\t\t\t\t\t;endereco base\n", pai->endereco);
@@ -229,7 +243,8 @@
 	/* gera o asm da declaracao de uma variavel ou constante 
 	 * e retorna o endereco que foi alocado 
 	 */
-	void gen_declaracao(Tipo t, Classe c, int tam, char *val, int negativo)
+	void
+	gen_declaracao(Tipo t, Classe c, int tam, char *val, int negativo)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_declaracao");
@@ -299,7 +314,8 @@
 		CD+=n_bytes;
 	}
 
-	void atribuicao_string(int end1, int end2, int fimStr, int tamMax)
+	void
+	atribuicao_string(int end1, int end2, int fimStr, int tamMax)
 	{
 		rot inicio = novo_rot();
 		rot fim = novo_rot();
@@ -323,7 +339,8 @@
 	
 	}
 
-	void gen_atribuicao(struct Fator *pai, struct Fator *fator)
+	void
+	gen_atribuicao(struct Fator *pai, struct Fator *fator)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_atribuicao");
@@ -344,7 +361,8 @@
 	 * gera a declaracao e o fim
 	 * for ID=EXP TO EXP
 	 */
-	void gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim)
+	void
+	gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_repeticao");
@@ -360,7 +378,8 @@
 	/* fim do loop de repeticao 
 	 * incrementa e desvia
 	 */
-	void gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,char *step)
+	void
+	gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,char *step)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_fim_repeticao");
@@ -374,7 +393,8 @@
 	}
 
 	/* gera o inicio do comando de teste */
-	void gen_teste(struct Fator *filho, rot falso, rot fim)
+	void
+	gen_teste(struct Fator *filho, rot falso, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_teste");
@@ -386,7 +406,8 @@
 	}
 
 	/* gera a parte do else, que pode ser vazia */
-	void gen_else_teste(rot falso, rot fim)
+	void
+	gen_else_teste(rot falso, rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_else_teste");
@@ -397,7 +418,8 @@
 	}
 
 	/* gera o rotulo de fim do teste */
-	void gen_fim_teste(rot fim)
+	void
+	gen_fim_teste(rot fim)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_fim_teste");
@@ -405,7 +427,8 @@
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t;fim do teste\n", fim);
 	}
 
-	void gen_entrada(struct Fator *pai)
+	void
+	gen_entrada(struct Fator *pai)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_entrada");
@@ -495,7 +518,8 @@
 	}
 
 	/* geracao de codigo para saida de texto */
-	void gen_saida(struct Fator *pai, int ln)
+	void
+	gen_saida(struct Fator *pai, int ln)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_saida");
@@ -554,7 +578,8 @@
 			prox_linha();
 	}
 
-	void fator_gera_literal(struct Fator *fator, char *val)
+	void
+	fator_gera_literal(struct Fator *fator, char *val)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_literal");
@@ -582,7 +607,8 @@
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim gera literal===================\n");
 	}
 
-	void fator_gera_id(struct Fator *fator, char *id)
+	void
+	fator_gera_id(struct Fator *fator, char *id)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_id");
@@ -594,7 +620,8 @@
 		fator->tamanho = registro->simbolo.tamanho;
 	}
 
-	void fator_gera_array(struct Fator *fator, struct Fator *expr, char *id)
+	void
+	fator_gera_array(struct Fator *fator, struct Fator *expr, char *id)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_array");
@@ -621,7 +648,8 @@
 		CONCAT_BUF("\tMOV DS:[%d], BX \t\t\t\t\t\t;move o que estiver no endereco real para o temporario \n", fator->endereco);
 	}
 
-	void fator_gera_exp(struct Fator *fator, struct Fator *expr)
+	void
+	fator_gera_exp(struct Fator *fator, struct Fator *expr)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_exp");
@@ -631,7 +659,8 @@
 		fator->tipo = expr->tipo;
 	}
 
-	void fator_gera_not(struct Fator *pai, struct Fator *filho)
+	void
+	fator_gera_not(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_not");
@@ -648,7 +677,8 @@
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim nega expressao===================\n");
 	}
 
-	void fator_gera_menos(struct Fator *pai, struct Fator *filho)
+	void
+	fator_gera_menos(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_menos");
@@ -663,7 +693,8 @@
 	}
 
 	/* repassa dados do filho para o pai */
-	void atualiza_pai(struct Fator *pai, struct Fator *filho)
+	void
+	atualiza_pai(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("atualiza_pai");
@@ -674,7 +705,8 @@
 	}
 
 	/* salva o operador */
-	void guarda_op(struct Fator *pai)
+	void
+	guarda_op(struct Fator *pai)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("guarda_op");
@@ -683,7 +715,8 @@
 	}
 
 	/* operacoes entre termos */
-	void gen_op_termos(struct Fator *pai, struct Fator *filho)
+	void
+	gen_op_termos(struct Fator *pai, struct Fator *filho)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_op_termos");
@@ -698,7 +731,7 @@
 		char *RR = "AX"; /* registrador origem          */
 
 		switch (pai->op) {
-			case And:  /* fallthrough */
+			case And:  /* FALLTHROUGH */
 						CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== And===================\n");
 			case Vezes:
 						op = "IMUL";
@@ -715,7 +748,7 @@
 						aritmeticos(op,RD,RO,RR,pai);
 						break;
 
-			case Or:    /* fallthrough */
+			case Or:    /* FALLTHROUGH */
 						CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== Or===================\n");
 			case Mais: 
 						op = "ADD";

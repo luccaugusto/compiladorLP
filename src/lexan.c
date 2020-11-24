@@ -9,7 +9,8 @@
 	 */
 	
 	
-	void lexan(void)
+	void
+	lexan(void)
 	{
 		int estado = 0;
 		int pos_atual = ftell(prog_fonte);

@@ -26,8 +26,7 @@
 
 	/* definicao de funcoes */
 	/* inicia a pilha com um elemento apenas */
-	struct pilha_d *init_pilha(void)
-	{
+	struct pilha_d *init_pilha(void) {
 		struct pilha_d *pilha = (struct pilha_d *) malloc(sizeof(struct pilha_d));
 		pilha->elementos = (struct elemento *) malloc(sizeof(struct elemento));
 		pilha->tam = 1;
@@ -35,7 +34,8 @@
 	}
 	
 	/* insere na pilha */
-	void push(char *str, struct pilha_d *pilha)
+	void
+	push(char *str, struct pilha_d *pilha)
 	{
 		struct elemento elem;
 		elem.str = str;
@@ -51,8 +51,7 @@
 	}
 	
 	/* remove um elemento da pilha e retorna ele */
-	struct elemento *pop(struct pilha_d *pilha)
-	{
+	struct elemento *pop(struct pilha_d *pilha) {
 		struct elemento *retorno = NULL;
 		/* nada a fazer se a pilha estiver vazia */
 		if (pilha != NULL) {
@@ -76,7 +75,8 @@
 	}
 	
 	/* remove um elemento da pilha e NAO retorna ele */
-	void del(struct pilha_d *pilha)
+	void
+	del(struct pilha_d *pilha)
 	{
 		/* nada a fazer se a pilha estiver vazia */
 		if (pilha != NULL && pilha->tam > 0) {
@@ -90,14 +90,16 @@
 	
 	}
 	
-	void deleta_pilha(struct pilha_d *pilha)
+	void
+	deleta_pilha(struct pilha_d *pilha)
 	{
 		free(pilha->elementos);
 		free(pilha);
 	}
 	
 	/* exibe a pilha na tela */
-	void print_pilha(struct pilha_d *pilha)
+	void
+	print_pilha(struct pilha_d *pilha)
 	{
 		printf("=-------=-------=\n");
 		if (pilha != NULL && pilha->elementos != NULL) {

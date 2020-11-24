@@ -15,7 +15,8 @@
 	void testesTabelaSimbolos(void);
 	
 	/* testa a inserção de um registro na tabela */
-	void teste_insercao(void)
+	void
+	teste_insercao(void)
 	{
 		printf("Testando inserção simples......");
 		char *lex = "teste";
@@ -27,7 +28,8 @@
 	}
 	
 	/* testa a inserção de um registro que cause uma colisão na tabela */
-	void teste_colisao(void)
+	void
+	teste_colisao(void)
 	{
 		printf("Testando inserção com colisão..");
 		char *lex = "teste2";
@@ -42,7 +44,8 @@
 	/* testa a busca por um registro que está no início da lista, ou seja,
 	 * sem colisões.
 	 */
-	void teste_busca_simples(void)
+	void
+	teste_busca_simples(void)
 	{
 		printf("Testando busca simples.........");
 		char *lex = "teste3";
@@ -57,7 +60,8 @@
 	/* testa a busca por um registro que está no meio da lista, ou seja,
 	 * quando houveram colisões.
 	 */
-	void teste_busca_colisao(void)
+	void
+	teste_busca_colisao(void)
 	{
 		printf("Testando busca em colisão......");
 		/* strings que colidem e são diferentes */
@@ -77,7 +81,8 @@
 	
 	/* testa a busca por um registro que não está na lista
 	 */
-	void teste_busca_vazia(void)
+	void
+	teste_busca_vazia(void)
 	{
 		printf("Testando busca vazia...........");
 		/* strings que colidem e são diferentes */
@@ -90,7 +95,8 @@
 	}
 	
 	/* roda todos os testes da tabela de simbolos */
-	void testesTabelaSimbolos(void)
+	void
+	testesTabelaSimbolos(void)
 	{
 		teste_insercao();
 		teste_colisao();
@@ -103,7 +109,8 @@
 	/* testa o analisador lexico lendo o arquivo todo
 	 * e printando todos os lexemas encontrados
 	 */
-	void teste_lexan(void)
+	void
+	teste_lexan(void)
 	{
 		while(lex){
 			lexan();

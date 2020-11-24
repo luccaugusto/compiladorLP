@@ -1,14 +1,6 @@
 #ifndef _ANSIN_H
 #define _ANSIN_H
 
-	#define ER_SIN -20
-	#define ER_SIN_EOF -21
-	#define ER_SIN_NDEC -22
-	#define ER_SIN_JADEC -23
-	#define ER_SIN_TAMVET -24
-	#define ER_SIN_C_INC -25
-	#define ER_SIN_T_INC -26
-	
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	
@@ -20,6 +12,17 @@
 	#endif
 	
 	#include "types.h"
+
+	/* ERROS */
+	enum {
+		ER_SIN = 20,
+		ER_SIN_EOF,
+		ER_SIN_NDEC,
+		ER_SIN_JADEC,
+		ER_SIN_TAMVET,
+		ER_SIN_C_INC,
+		ER_SIN_T_INC
+	};
 	
 	extern int erro;
 	extern int estado_sin;

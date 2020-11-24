@@ -21,12 +21,14 @@
 	extern struct Celula *tabela_simbolos[TAM_TBL];
 	
 	/* retorna o tipo do identificador */
-	Tipo busca_tipo(char *identificador)
+	Tipo
+	busca_tipo(char *identificador)
 	{
 		return pesquisar_registro(identificador)->simbolo.tipo;
 	}
 	
-	void adicionar_reservados(void)
+	void
+	adicionar_reservados(void)
 	{
 		adicionar_registro("const",Const);
 		adicionar_registro("var",Var);
@@ -66,7 +68,8 @@
 		adicionar_registro("do",Do);
 	}
 	
-	struct Celula *adicionar_registro(char *lexema, Tokens token)
+	struct Celula
+	*adicionar_registro(char *lexema, Tokens token)
 	{
 		unsigned int pos = hash(lexema,TAM_TBL);
 		struct Celula *cel = (struct Celula *) malloc(sizeof(struct Celula));
@@ -87,7 +90,8 @@
 		return cel;
 	}
 	
-	struct Celula *pesquisar_registro(char *procurado)
+	struct Celula
+	*pesquisar_registro(char *procurado)
 	{
 		int encontrado = 0;
 		unsigned int pos = hash(procurado,TAM_TBL);
@@ -106,7 +110,8 @@
 	}
 	
 	/* printa a tabela de simbolos */
-	void mostrar_tabela_simbolos(void)
+	void
+	mostrar_tabela_simbolos(void)
 	{
 		printf("=============TABELA DE SÍMBOLOS=============\n");
 		for (int i=0; i<TAM_TBL; ++i) {
@@ -122,7 +127,8 @@
 		}
 	}
 	
-	void iniciar_tabela(void)
+	void
+	iniciar_tabela(void)
 	{
 	    adicionar_reservados();
 	}
@@ -130,7 +136,8 @@
 	/* limpa a lista encadeada recursivamente.
 	 * Utilizado somente para fins de testes
 	 */
-	void limpar_lista(struct Celula *cel)
+	void
+	limpar_lista(struct Celula *cel)
 	{
 		if (cel != NULL) {
 			limpar_lista(cel->prox);
@@ -141,7 +148,8 @@
 	/* limpa a tabela de símbolos
 	 * usado para fins de testes
 	 */
-	void limpar_tabela(void)
+	void
+	limpar_tabela(void)
 	{
 		for (int i=0; i<TAM_TBL; ++i) {
 			if (tabela_simbolos[i] != NULL) {
