@@ -5,7 +5,6 @@
 	#define SUCESSO 0
 	
 	/* VARIÁVEIS GLOBAIS */
-	
 	/* parametros da linha de comando */
 	extern FILE *prog_fonte;
 	extern FILE *prog_asm;
@@ -24,11 +23,6 @@
 	extern struct registro_lex reg_lex; 
 	extern struct Celula *tabela_simbolos[TAM_TBL];
 
-	extern int MD; /* memoria de dados */
-
-	extern int rotulo; /* rotulos do asm */
-	extern int temporario; /* temporarios do asm */
-	
 	/*DECLARAÇÕES DE FUNÇÕES*/
 	/* Fluxo de execução geral */
 	void abortar(void);

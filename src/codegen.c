@@ -2,9 +2,11 @@
 #ifndef _CODEGEN
 #define _CODEGEN
 
+	/* HEADERS */
 	#include "codegen.h"
 	#include "LC.h"
 
+	/* VARIAVEIS GLOBAIS */
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
 	int CD = 0x4000;    /* contator de dados em hexadecimal    */

@@ -1,13 +1,13 @@
 #ifndef _CODEGEN_H
 #define _CODEGEN_H
 
+	/* MACROS */
 	//define DEBUG_GEN
 	#ifdef DEBUG_GEN
 		#define DEBUGGEN(s) printf("GEN: %s\n",s); push(s,pilha);
 	#else
 		#define DEBUGGEN(s)
 	#endif
-
 	#define TAM_INT 2
 	#define TAM_CHA 1
 	#define A_SEG_PUB CONCAT_BUF("dseg SEGMENT PUBLIC\n");
@@ -17,6 +17,7 @@
 	#define MAX_AUX_SIZE 256
 	#define OFFSET 0x4100
 
+	/* DECLARACAO DE FUNCOES */
 	/* Geração de código */
 	int novo_temp(int t);
 	int novo_rot(void);

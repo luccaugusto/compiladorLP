@@ -1,9 +1,11 @@
 /* Definicao das funcoes utilitárias do projeto */
 #ifndef _UTILS
 #define _UTILS
+	/* HEADERS */
 	#include "types.h"
 	#include "lexan.h"
 
+	/* DECLARACAO DE FUNCOES */
 	char lex_get_char(void);
 	int str2int(char *srt);
 	int eh_letra(char l);
@@ -18,10 +20,12 @@
 	char *concatenar(char *inicio, char *fim);
 	unsigned int hash(unsigned char *str, int mod);
 	
+	/* VARIAVEIS GLOBAIS */
 	extern FILE *prog_fonte;
 	extern char *lexema_lido;
 
 	
+	/* DEFINICAO DE FUNCOES */
 	/* ************************** *
 	              HASH
 	 * ************************** */

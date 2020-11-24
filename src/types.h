@@ -3,11 +3,13 @@
 #ifndef _TYPES
 #define _TYPES
 
+	/* MACROS */
 	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
                                         s->endereco = novo_temp(2); \
                                         s->tipo = reg_lex.tipo; \
                                         s->op = 0
 
+	/* TIPOS */
 	typedef int rot;
 
 	typedef enum {

@@ -5,8 +5,11 @@
 #ifndef _SEMAC
 #define _SEMAC
 
+	/* HEADERS */
 	#include "types.h"
 	#include "ansin.h"
+
+	/* DEFINICAO DE FUNCOES */
 	
 	void
 	def_tipo(Tipo tipo)

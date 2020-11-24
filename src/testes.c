@@ -2,9 +2,13 @@
 #ifndef _TESTES
 #define _TESTES
 
+	/* HEADERS */
+	#include <stdio.h>
+
 	#include "ts.c"
 	#include "lexan.c"
 	
+	/* DECLARACAO DE FUNCOES */
 	/* testes */
 	void teste_lexan(void);
 	void teste_colisao(void);
@@ -14,6 +18,7 @@
 	void teste_busca_colisao(void);
 	void testesTabelaSimbolos(void);
 	
+	/* DEFINICAO DE FUNCOES */
 	/* testa a inserção de um registro na tabela */
 	void
 	teste_insercao(void)

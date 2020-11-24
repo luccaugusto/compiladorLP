@@ -13,10 +13,12 @@
 #ifndef _ANSIN
 #define _ANSIN
 
+	/* HEADERS */
 	#include "ansin.h"
 	#include "semac.c"
 	#include "codegen.c"
 	
+	/* VARIAVEIS GLOBAIS */
 	char* lexAux;
 	
 	/* atribui posicao de acesso ao vetor no registro lexico */

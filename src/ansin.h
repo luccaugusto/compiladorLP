@@ -1,18 +1,21 @@
 #ifndef _ANSIN_H
 #define _ANSIN_H
 
+	/* HEADERS */
+	#include "types.h"
+
+	/* MACROS */
+	//define DEBUG_SIN
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
-	
-	//define DEBUG_SIN
 	#ifdef DEBUG_SIN
 		#define DEBUGSIN(s) printf("SIN: %s\n",s); push(s,pilha);
 	#else
 		#define DEBUGSIN(s)
 	#endif
 	
-	#include "types.h"
 
+	/* TIPOS */
 	/* ERROS */
 	enum {
 		ER_SIN = 20,
@@ -24,13 +27,7 @@
 		ER_SIN_T_INC
 	};
 	
-	extern int erro;
-	extern int estado_sin;
-	extern int lex;
-	extern int lido;
-	extern char* lexAux;
-	extern struct pilha_d *pilha;
-	
+	/* DECLARACOES DE FUNCOES */
 	void atr_pos(int pos);
 	void atr_tipo();
 	int casa_token(Tokens esperado);
@@ -56,5 +53,13 @@
 	struct Fator *termo(void);
 	struct Fator *fator(void);
 	void expressao2(int ln);
+
+	/* VARIAVEIS GLOBAIS */
+	extern int erro;
+	extern int estado_sin;
+	extern int lex;
+	extern int lido;
+	extern char* lexAux;
+	extern struct pilha_d *pilha;
 
 #endif

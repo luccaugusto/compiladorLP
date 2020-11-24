@@ -1,11 +1,15 @@
 #ifndef _PILHA
 #define _PILHA
+
+	/* HEADERS */
+	#include <stdio.h>
+
 	/*
 	 * Implementacao de uma pilha das chamadas dos métodos.
 	 * Atualmente utilizada para Debugar o analisador sintatico
 	 */
 	
-	/* Tipos */
+	/* TIPOS */
 	struct elemento {
 		char *str; /* nome do metodo na pilha */
 	};
@@ -15,7 +19,7 @@
 		int tam;
 	};
 	
-	/* declaracao de funcoes */
+	/* DECLARACAO DE FUNCOES */
 	void del(struct pilha_d *pilha);
 	struct pilha_d *init_pilha(void);
 	void print_pilha(struct pilha_d *pilha);
@@ -23,8 +27,7 @@
 	void push(char *, struct pilha_d *pilha);
 	struct elemento *pop(struct pilha_d *pilha);
 	
-
-	/* definicao de funcoes */
+	/* DEFINICAO DE FUNCOES */
 	/* inicia a pilha com um elemento apenas */
 	struct pilha_d *init_pilha(void) {
 		struct pilha_d *pilha = (struct pilha_d *) malloc(sizeof(struct pilha_d));

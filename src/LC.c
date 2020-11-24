@@ -6,7 +6,7 @@
  * 		   Richard Mariano - 598894
  */
 
-
+/* HEADERS */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -21,12 +21,13 @@
 #include "ansin.c"
 
 
+
+/* VARIAVEIS GLOBAIS */
 FILE *prog_fonte;
 char *fonte_nome;
 FILE *prog_asm;
 char *asm_nome;
 
-/* VARIAVEIS GLOBAIS */
 int lex = 1;
 int erro = 0;
 int lido = 0;
@@ -43,9 +44,7 @@ struct Celula *tabela_simbolos[TAM_TBL];
 
 /* DEFINIÇÃO DE FUNÇÕES */
 
-/*
- * pára o programa e reporta o erro
- */
+/* pára o programa e reporta o erro */
 void
 abortar(void)
 {

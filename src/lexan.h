@@ -33,6 +33,7 @@
 		#define DEBUGLEX(...)
 	#endif
 
+	/* TIPOS */
 	/* ERROS */
 	enum {
 		ACEITACAO_LEX = 13,
@@ -42,11 +43,12 @@
 		ER_LEX_N_ID
 	};
 	
+	/* VARIAVEIS GLOBAIS */
 	extern struct registro_lex reg_lex;
 	extern FILE *prog_fonte;
 	extern int erro;
 	extern int lex;
 	
-	/* Analisador léxico */
+	/* DECLARACAO DE FUNCOES */
 	void lexan(void);
 #endif
