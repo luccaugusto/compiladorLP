@@ -401,14 +401,26 @@
 	 * incrementa e desvia
 	 */
 	void
-	gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,char *step)
+	gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim, struct Fator *step)
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_fim_repeticao");
 
+		int end;
+		char *val_step = "1";
+
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim da repeticao===================\n");
 		CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t;move o valor de ID para cx \n",pai->endereco);
-		CONCAT_BUF("\tADD CX, %s \t\t\t\t\t\t\t\t\t;soma o step\n", step);
+
+		/* se nao for o step padrao 
+		 * coloca o valor da exp em BX
+		 */
+		if (step != NULL) {
+			CONCAT_BUF("\tMOV BX, DS:[%d]\n",step->endereco);
+			val_step = "BX";
+		}
+
+		CONCAT_BUF("\tADD CX, %s \t\t\t\t\t\t\t\t\t;soma o step\n", val_step);
 		CONCAT_BUF("\tMOV DS:[%d], CX \t\t\t\t\t\t;guarda o valor de id \n", pai->endereco);
 		CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;volta para o inicio\n", inicio);
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);

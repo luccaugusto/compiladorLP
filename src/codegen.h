@@ -53,7 +53,7 @@
 	void atribuicao_string(int end1, int end2, int fimStr, int tamMax);
 	void gen_atribuicao(struct Fator *pai, struct Fator *fator);
 	void gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim);
-	void gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,char *step);
+	void gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim,struct Fator *step);
 	void gen_teste(struct Fator *filho, rot falso, rot fim);
 	void gen_else_teste(rot falso, rot fim);
 	void gen_fim_teste(rot fim);

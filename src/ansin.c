@@ -613,7 +613,7 @@
 	} 
 	
 	/* Repeticao
-	 * ID = literal to literal repeticao1();
+	 * ID = exp to exp [step exp] do comandos2() 
 	 */
 	void
 	repeticao(void)
@@ -623,10 +623,10 @@
 	
 		Tipo t = reg_lex.endereco->simbolo.tipo;
 		Tipo t2;
-		char *step = "1";
 		NOVO_FATOR(pai);
 		NOVO_FATOR(filho);
 		NOVO_FATOR(filho2);
+		NOVO_FATOR(f_aux);
 	
 		lexAux = reg_lex.lexema;
 
@@ -639,6 +639,7 @@
 		pai->tipo = t;
 		zera_temp();
 
+		/* id = exp */
 		casa_token(Identificador);
 
 		/* acao semantica */
@@ -650,16 +651,16 @@
 		if (reg_lex.token == A_Colchete) {
 			lexan();
 
-			NOVO_FATOR(aux);
-			aux = expressao();
+			f_aux = expressao();
 	
 			/* acao semantica */
-			verifica_tipo(aux->tipo,TP_Integer);
+			verifica_tipo(f_aux->tipo,TP_Integer);
 
 			/* codegen */
-			acesso_array(pai, aux);
+			acesso_array(pai, f_aux);
 	
 			casa_token(F_Colchete);
+			free(f_aux);
 		}
 	
 		/* ja leu ( id|id[i] ) e pode fechar o comando */
@@ -669,10 +670,11 @@
 
 		/* codegen */
 		gen_atribuicao(pai, filho);
-	
 		/* acao semantica */
 		verifica_tipo(filho->tipo,TP_Integer);
-	
+
+		/* id = exp */
+		/* to exp */
 		casa_token(To);
 
 		filho2 = expressao();
@@ -681,26 +683,25 @@
 		rot inicio = novo_rot();
 		rot fim = novo_rot();
 		gen_repeticao(pai,filho2,inicio,fim);
-	
+		/* to exp */
+
+		/* [step exp] */
 		if (reg_lex.token == Step) {
 			lexan();
 
 			/* guarda o step */
-			t = reg_lex.tipo;
-			step = reg_lex.lexema;
+			f_aux = expressao();
 
-			casa_token(Literal);
-	
 			/* acao semantica */
-			verifica_tipo(t, TP_Integer);
-	
+			verifica_tipo(f_aux->tipo, TP_Integer);
 		}
+		/* [step exp] */
 	
 		casa_token(Do);
 		comandos2();
 
 		/* codegen */
-		gen_fim_repeticao(pai, inicio, fim, step);
+		gen_fim_repeticao(pai, inicio, fim, f_aux);
 	
 		del(pilha);
 	}

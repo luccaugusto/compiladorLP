@@ -1250,15 +1250,14 @@ void verificaAtrVetor(void)
 	 * atribuicao de strings 
 	 * a string deve ter tamanho menor que o tamanho do vetor -1
 	 * pois ainda deve ser acrescentado o $ para encerrar a string
-	 */
 	if (enderecoLex->simbolo.tipo == TP_Char) {
 		if (enderecoLex->simbolo.tamanho < tamanhoLex+1)
 			erroSintatico(ER_SIN_TAMVET);
 
 	} 
 
-	/* atribuicoes a vetores nao string */
-	else if (enderecoLex->simbolo.tamanho > 1 && posLex == -1) {
+	else */ 
+	if (enderecoLex->simbolo.tamanho > 1 && posLex == -1) {
 		erroSintatico(ER_SIN_T_INC);
 	}
 }
