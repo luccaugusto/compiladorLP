@@ -1143,6 +1143,10 @@
 
 			lexAux = removeComentario(lexema_lido);
 			ret->tipo = reg_lex.tipo;
+			if (reg_lex.tipo == TP_Char)
+				ret->tamanho = strlen(remove_aspas(lexAux));
+			else
+				ret->tamanho = 1;
 
 			/* codegen */
 			fator_gera_literal(ret,lexAux);

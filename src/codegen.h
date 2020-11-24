@@ -31,6 +31,8 @@
 	#define CONCAT_BUF(...) sprintf(aux, __VA_ARGS__); buf_concatenar();
 	#define MAX_BUF_SIZE 1024
 	#define MAX_AUX_SIZE 256
+	#define CD_INICIAL 0x4000
+	#define TP_INICIAL OFFSET
 	#define OFFSET 0x4100
 
 	/* DECLARACAO DE FUNCOES */

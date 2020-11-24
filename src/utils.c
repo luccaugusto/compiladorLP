@@ -164,16 +164,26 @@
 		return (char *)realloc(ret,strlen(ret));
 	}
 
-	/* remove os caracteres na primeira e ultima posicao, ou seja, aspas */
+	/* remove as aspas e espacos fora delas */
 	char *
 	remove_aspas(char *str)
 	{
 		char *retorno;
 		int tamstr = strlen(str);
+		int dentro = 0;
+		int c = 0; /* contador do retorno */
 		retorno = (char *) malloc(tamstr-2);
 
-		for (int i=0; i<tamstr-2; ++i) {
-			retorno[i] = str[i+1];
+		for (int i=0; i<tamstr; ++i) {
+
+ 			/* toogle */
+			if (str[i] == '"' || str[i] == '\'') {
+				dentro = !dentro;
+				continue;
+			}
+
+			if (dentro)
+				retorno[c++] = str[i];
 		}
 
 		return retorno;

@@ -28,8 +28,8 @@
 	/* VARIAVEIS GLOBAIS */
 	char *buffer;       /* buffer de criacao do codigo asm     */
 	char *aux;          /* buffer auxiliar para criacao do asm */
-	int CD = 0x4000;    /* contator de dados em hexadecimal    */
-	int TP = OFFSET;    /* contador de temporários             */
+	int CD = CD_INICIAL;/* contator de dados em hexadecimal    */
+	int TP = TP_INICIAL;/* contador de temporários             */
 	rot RT = 1;         /* contador de rotulos                 */
 
 	/* declara novo temporario */
@@ -49,7 +49,7 @@
 	void
 	zera_temp(void)
 	{
-		TP = 0x0;
+		TP = TP_INICIAL;
 	}
 
 	/* inicia o buffer */
@@ -348,17 +348,21 @@
 	{
 		rot inicio = novo_rot();
 		rot fim = novo_rot();
+
+		/* trata tamanho invalido */ 
+		tamMax = tamMax == 0 ? 255 : tamMax;
 	
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================atribuicao de strings===================\n");
-		CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t;endereco da string para bx\n", end1);
+		CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t\t;endereco da string para bx\n", end1);
 		CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t\t\t;endereco do pai para concatenar\n", end2);
 	
 		CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;inicio do loop\n", inicio);
+		CONCAT_BUF("\tMOV CH, 0 \t\t\t\t\t\t\t\t;0 no registrador alto\n");
 		CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t\t;joga caractere em CL\n");
 		CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t\t;transfere pro endereco a string\n");
-		CONCAT_BUF("\tCMP CL, %d \t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
+		CONCAT_BUF("\tCMP CL, %d \t\t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
 		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
-		CONCAT_BUF("\tCMP BX, %d \t\t\t\t\t\t\t\t;verifica se atingiu o tamanho maximo\n", tamMax);
+		CONCAT_BUF("\tCMP BX, %d \t\t\t\t\t\t\t\t\t;verifica se atingiu o tamanho maximo\n", tamMax);
 		CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
 		CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t\t;avanca posicao a receber o proximo caractere\n");
 		CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;proximo caractere\n");
@@ -476,15 +480,16 @@
 
 		/* buffer para entrada do teclado, tam max = 255 */
 		int buffer = novo_temp(pai->tamanho+3);
-		int tam = (pai->tamanho == 0) ? 255 : pai->tamanho;
+		/* trata tamanho e 1 no caso de inteiros */
+		int tam = pai->tamanho <= 1 ? 255 : pai->tamanho;
 		rot inicio = novo_rot();
 		rot meio = novo_rot();
 		rot fim = novo_rot();
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
-		CONCAT_BUF("\tMOV DX, %d \t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
-		CONCAT_BUF("\tMOV AL, %d \t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
-		CONCAT_BUF("\tMOV DS:[%d], AL \t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+		CONCAT_BUF("\tMOV DX, %d \t\t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
+		CONCAT_BUF("\tMOV AL, %d \t\t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
+		CONCAT_BUF("\tMOV DS:[%d], AL \t\t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
 		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t\t\t;interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
 
@@ -495,7 +500,7 @@
 
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
 
-			CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
+			CONCAT_BUF("\tMOV CX, DS:[%d] \t\t\t\t\t\t\t\t;numero de caracteres lidos fica na segunda posicao do buffer\n", buffer+1);
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t\t\t\t;contador de posicoes\n");
 			CONCAT_BUF("\tMOV BX, %d \t\t\t\t\t\t\t\t;contador de posicao no end pai\n", pai->endereco);
 
@@ -503,19 +508,6 @@
 
 			atribuicao_string(buffer+2,pai->endereco, 0x0A, tam);
 			
-			//CONCAT_BUF("R%d:\n",inicio); /* inicio do loop */
-			//CONCAT_BUF("\tCMP DX, CX \t\t\t\t\t\t\t\t\t;compara o contador de caracteres lidos com quantas posicoes ja foram transferidas\n");
-			//CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;se for igual, ja leu tudo, vai pro fim\n",fim);
-			//CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t\t\t;move para DI o endereco base a partir da 3 posicao \n", buffer+2);
-			//CONCAT_BUF("\tADD DI, DX \t\t\t\t\t\t\t\t\t;soma offset ao endereco base \n");
-			//CONCAT_BUF("\tMOV DI, DS:[DI] \t\t\t\t\t\t\t;move o caractere para DI\n");
-			//CONCAT_BUF("\tMOV DS:[BX], DI \t\t\t\t\t\t\t;move DI para o endereco do pai\n");
-			//CONCAT_BUF("\tADD DX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no offset\n");
-			//CONCAT_BUF("\tADD BX, 1 \t\t\t\t\t\t\t\t\t;soma 1 no indice do endereco\n");
-			//CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t\t\t;pula para o inicio\n", inicio);
-			//CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t\t\t;fim do loop\n", fim);
-			//CONCAT_BUF("\tMOV CX, 24h\n");
-			//CONCAT_BUF("\tMOV DS:[BX], CX \t\t\t\t\t\t\t;coloca $ no final \n");
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
 		}
 
@@ -524,11 +516,11 @@
 			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== inicio entrada de inteiros===================\n");
 			CONCAT_BUF("\tMOV DI, %d \t\t\t\t\t\t;posição do string\n",buffer+2);
 			CONCAT_BUF("\tMOV AX, 0 \t\t\t\t\t\t;acumulador\n");
-			CONCAT_BUF("\tMOV BX, 10 \t\t\t\t\t\t;base decimal\n");
+			CONCAT_BUF("\tMOV CX, 10 \t\t\t\t\t\t;base decimal\n");
 			CONCAT_BUF("\tMOV DX, 1 \t\t\t\t\t\t;valor sinal +\n");
 			CONCAT_BUF("\tMOV BH, 0\n");
 			CONCAT_BUF("\tMOV BL, DS:[DI] \t\t\t\t\t\t;caractere\n");
-			CONCAT_BUF("\tCMP CX, 2Dh \t\t\t\t\t\t\t\t;verifica sinal\n");
+			CONCAT_BUF("\tCMP BX, 2Dh \t\t\t\t\t\t\t\t;verifica sinal\n");
 			CONCAT_BUF("\tJNE R%d \t\t\t\t\t\t\t\t;se não negativo jmp inicio\n", inicio);
 			CONCAT_BUF("\tMOV DX, -1 \t\t\t\t\t\t;valor sinal -\n");
 			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t;incrementa base\n");
@@ -537,18 +529,18 @@
 			CONCAT_BUF("\tPUSH DX \t\t\t\t\t\t\t\t;empilha sinal\n");
 			CONCAT_BUF("\tMOV DX, 0 \t\t\t\t\t\t;reg. multiplicação\n");
 			CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t;meio\n",meio);
-			CONCAT_BUF("\tCMP CX, 24h \t\t\t\t\t\t\t\t;verifica fim string\n");
+			CONCAT_BUF("\tCMP BX, 24h \t\t\t\t\t\t\t\t;verifica fim string\n");
 			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t;salta fim se fim string\n",fim);
-			CONCAT_BUF("\tIMUL BX \t\t\t\t\t\t\t\t;mult. 10\n");
-			CONCAT_BUF("\tADD CX, -48 \t\t\t\t\t\t\t\t;converte caractere\n");
+			CONCAT_BUF("\tIMUL CX \t\t\t\t\t\t\t\t;mult. 10\n");
+			CONCAT_BUF("\tADD BX, -48 \t\t\t\t\t\t\t\t;converte caractere\n");
 			CONCAT_BUF("\tADD AX, CX \t\t\t\t\t\t\t\t;soma valor caractere\n");
 			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t;incrementa base\n");
 			CONCAT_BUF("\tMOV BH, 0\n");
 			CONCAT_BUF("\tMOV BL, DS:[DI] \t\t\t\t\t\t;próximo caractere\n");
 			CONCAT_BUF("\tJMP R%d \t\t\t\t\t\t\t\t;jmp meio\n",meio);
 			CONCAT_BUF("R%d: \t\t\t\t\t\t\t\t;fim\n", fim);
-			CONCAT_BUF("\tPOP BX \t\t\t\t\t\t\t\t;desempilha sinal\n");
-			CONCAT_BUF("\tIMUL BX \t\t\t\t\t\t\t\t;mult. sinal\n");
+			CONCAT_BUF("\tPOP CX \t\t\t\t\t\t\t\t;desempilha sinal\n");
+			CONCAT_BUF("\tIMUL CX \t\t\t\t\t\t\t\t;mult. sinal\n");
 
  			CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere resultado para o pai===================\n");
 			CONCAT_BUF("\tMOV BX, %d\n", pai->endereco);
@@ -598,7 +590,7 @@
 			CONCAT_BUF("R%d:\n",fim);
 			CONCAT_BUF("\tPOP DX \t\t\t\t\t\t\t\t\t\t;desempilha valor\n");
 			CONCAT_BUF("\tADD DX, 30h \t\t\t\t\t\t\t\t;transforma em caractere\n");
-			CONCAT_BUF("\tMOV DS:[DI],DL \t\t\t\t\t\t\t\t;escreve caractere\n");
+			CONCAT_BUF("\tMOV DS:[DI], DL \t\t\t\t\t\t\t\t;escreve caractere\n");
 			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t\t;incrementa base\n");
 			CONCAT_BUF("\tADD CX, -1 \t\t\t\t\t\t\t\t\t;decrementa contador\n");
 			CONCAT_BUF("\tCMP CX, 0 \t\t\t\t\t\t\t\t\t;verifica pilha vazia\n");
@@ -625,7 +617,6 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("fator_gera_literal");
 
-		
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================gera literal===================\n");
 		/* string */
 		if (fator->tipo == TP_Char) {
@@ -634,8 +625,6 @@
 			F_SEG_PUB
 			
 			fator->endereco = CD;
-			fator->tamanho = reg_lex.tamanho;
-
 			CD += (fator->tamanho+1) * TAM_CHA;
 
 		/* nao string */
