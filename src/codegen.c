@@ -478,12 +478,14 @@
 		/* DEBUGGER E PILHA */
 		DEBUGGEN("gen_entrada");
 
-		/* trata tamanho e 1 no caso de inteiros */
-		int tam = pai->tamanho <= 1 ? 255 : pai->tamanho;
+		int tam;
 
-		/* ajusta o tamanho com as 2 posicoes que o sistema usa
-		 * e de acordo com o tamanho do tipo */
-		tam = 3 + (pai->tipo == TP_Integer ? (tam)*TAM_INT : (tam)*TAM_CHA);
+		/* trata tamanhos 0 
+		 * e inteiros sempre tem tamanho 255 */
+		if (pai->tipo == TP_Char)
+			tam = (pai->tamanho < 1 ? 255 : (pai->tamanho + 3));
+		else
+			tam = 255;
 
 		/* buffer para entrada do teclado, tam max = 255 */
 		int buffer = novo_temp(tam);
@@ -493,8 +495,8 @@
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================inicio do comando de entrada===================\n");
 		CONCAT_BUF("\tMOV DX, %d \t\t\t\t\t\t\t\t\t;buffer para receber a string\n", buffer);
-		CONCAT_BUF("\tMOV AL, %d \t\t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
-		CONCAT_BUF("\tMOV DS:[%d], AL \t\t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
+		CONCAT_BUF("\tMOV AX, %d \t\t\t\t\t\t\t\t\t;tamanho do buffer \n", tam);
+		CONCAT_BUF("\tMOV DS:[%d], AX \t\t\t\t\t\t\t\t;move tamanho do buffer para a primeira posicao do buffer\n",buffer);
 		CONCAT_BUF("\tMOV AH, 0Ah \t\t\t\t\t\t\t\t;interrupcao para leitura do teclado\n");
 		CONCAT_BUF("\tINT 21h\n");
 
