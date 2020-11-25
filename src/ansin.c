@@ -170,8 +170,8 @@
 			{
 				case Identificador:
 					/* acao semantica */
-					verifica_declaracao(reg_lex.lexema);
-					verifica_const(reg_lex.lexema);
+					eh_id_ja_declarado(reg_lex.lexema);
+					eh_const(reg_lex.lexema);
 
 					estado_sin = N_ACEITACAO_SIN;
 					lexan();
@@ -274,13 +274,13 @@
 		int negativo = 0;
 	
 		/* suporte acao semantica */
-		defClasse(CL_Const);
+		def_classe(CL_Const);
 	
 		estado_sin = N_ACEITACAO_SIN;
 		casa_token(Identificador);
 	
 		/* acao semantica */
-		verifica_classe(lexAux, t);
+		eh_id_nao_declarado(lexAux, t);
 	
 		casa_token(Igual);
 	
@@ -318,7 +318,7 @@
 		int eh_variavel = 1;
 	
 		/* suporte acao semantica */
-		defClasse(CL_Var);
+		def_classe(CL_Var);
 
 		do {
 			estado_sin = N_ACEITACAO_SIN;
@@ -363,12 +363,12 @@
 	
 		Tipo t;
 		int negativo = 0;
-		int id = 1; /* controle de lexema indica lista de ids */
+		int eh_id = 1;
 		int ret = 1;
 	
 		do {
 			/* acao semantica */
-			verifica_classe(reg_lex.lexema, ultimoTipo);
+			eh_id_nao_declarado(reg_lex.lexema, ultimoTipo);
 
 			casa_token(Identificador);
 			if (reg_lex.token == Virgula){
@@ -401,7 +401,7 @@
 
 				/* Lista de declaracoes tipo Var integer c; char d; 
 				 * ou fim do comando */
-				id = 0;
+				eh_id = 0;
 				ret = (reg_lex.token == Integer ||
 						reg_lex.token == Char) ?  1 : 0;
 
@@ -420,7 +420,7 @@
 				casa_token(Literal);
 
 				/* acao semantica */
-				verifica_tipo(reg_lex.endereco->simbolo.tipo, t);
+				tipos_validos(reg_lex.endereco->simbolo.tipo, t);
 
 				/* codegen */
 				gen_declaracao(
@@ -438,7 +438,7 @@
 				} else {
 					casa_token(PtVirgula);
 
-					id = 0;
+					eh_id = 0;
 					/* Lista de declaracoes tipo Var integer c; char d; */
 					ret = (reg_lex.token == Integer ||
 							reg_lex.token == Char) ?  1 : 0;
@@ -451,7 +451,7 @@
 				casa_token(Literal);
 
 				/* acao semantica */
-				verifica_tam(str2int(lexAux));
+				tamanho_valido(str2int(lexAux));
 
 				casa_token(F_Colchete);
 
@@ -473,24 +473,18 @@
 					/* terminou de ler o comando */
 					casa_token(PtVirgula);
 
-					id = 0;
+					eh_id = 0;
 					/* Lista de declaracoes tipo Var integer c; char d; */
 					ret = (reg_lex.token == Integer ||
 							reg_lex.token == Char) ?  1 : 0;
 					
 				}
 			}
-		} while (id);
+		} while (eh_id);
 
 		del(pilha);
 		return ret;
 	}
-	
-	/***********************************************
-	 *
-	 *  Procedimentos de Bloco de comandos
-	 *
-	 ***********************************************/
 	
 	
 	/* Atribuicao
@@ -506,13 +500,9 @@
 		NOVO_FATOR(expr);  /* fator da expressao do lado direito */
 		int tipoId = reg_lex.endereco->simbolo.tipo;
 		pai->tipo = tipoId;
+		int eh_array;
 
-		/* codegen
-		 * salva no pai o endereco de id
-		 * para caso leia outro id na expressao de atribuicao
-		 *
-		 * zera os temporarios
-		 */
+		/* codegen */
 		pai->endereco = reg_lex.endereco->simbolo.memoria;
 		zera_temp();
 	
@@ -524,22 +514,20 @@
 
 			aux = expressao();
 			/* acao semantica */
-			verifica_tipo(aux->tipo, TP_Integer);
+			tipos_validos(aux->tipo, TP_Integer);
 	
-			/* marca como array */
-			atr_pos(1);
+			atr_pos(1); eh_array = 1;
 			casa_token(F_Colchete);
 			fator_gera_array(pai, aux, reg_lex.endereco->simbolo.lexema);
 		}
 
 		casa_token(Igual);
-	
-	
 		expr = expressao();
 
 		/* acao semantica */
-		verifica_tipo(expr->tipo, tipoId);
-		verifica_atr_vetor();
+		tipos_validos(expr->tipo, tipoId);
+		if (eh_array)
+			atr_vetor_valida();
 
 		/* codegen */
 		gen_atribuicao(pai,expr);
@@ -566,22 +554,17 @@
 	
 		lexAux = reg_lex.lexema;
 
-		/* codegen
-		 * salva o endereco do id no pai
-		 * para caso leia outro id na expressao de atribuicao
-		 * e zera temporarios
-		 */
+		/* codegen */
 		pai->endereco = reg_lex.endereco->simbolo.memoria;
 		pai->tipo = t;
 		zera_temp();
 
-		/* id = exp */
 		casa_token(Identificador);
 
 		/* acao semantica */
-		verifica_declaracao(lexAux);
-		verifica_const(lexAux);
-		verifica_tipo(t,TP_Integer);
+		eh_id_ja_declarado(lexAux);
+		eh_const(lexAux);
+		tipos_validos(t,TP_Integer);
 	
 		/* lendo array: id[i] */
 		if (reg_lex.token == A_Colchete) {
@@ -590,7 +573,7 @@
 			f_aux = expressao();
 	
 			/* acao semantica */
-			verifica_tipo(f_aux->tipo,TP_Integer);
+			tipos_validos(f_aux->tipo,TP_Integer);
 
 			/* codegen */
 			acesso_array(pai, f_aux);
@@ -600,7 +583,6 @@
 			f_aux = NULL;
 		}
 	
-		/* ja leu ( id|id[i] ) e pode fechar o comando */
 		casa_token(Igual);
 	
 		filho = expressao();
@@ -608,10 +590,8 @@
 		/* codegen */
 		gen_atribuicao(pai, filho);
 		/* acao semantica */
-		verifica_tipo(filho->tipo,TP_Integer);
+		tipos_validos(filho->tipo,TP_Integer);
 
-		/* id = exp */
-		/* to exp */
 		casa_token(To);
 
 		filho2 = expressao();
@@ -620,9 +600,7 @@
 		rot inicio = novo_rot();
 		rot fim = novo_rot();
 		gen_repeticao(pai,filho2,inicio,fim);
-		/* to exp */
 
-		/* [step exp] */
 		if (reg_lex.token == Step) {
 			lexan();
 
@@ -630,9 +608,8 @@
 			f_aux = expressao();
 
 			/* acao semantica */
-			verifica_tipo(f_aux->tipo, TP_Integer);
+			tipos_validos(f_aux->tipo, TP_Integer);
 		}
-		/* [step exp] */
 	
 		casa_token(Do);
 		comandos2();
@@ -644,7 +621,7 @@
 	}
 	
 	
-	/* R1 na gramatica
+	/* 
 	 * { bloco_comandos() }
 	 * ou
 	 * comando unico
@@ -725,12 +702,11 @@
 		expr = expressao();
 	
 		/* acao semantica */
-		verifica_tipo(expr->tipo, TP_Logico);
+		tipos_validos(expr->tipo, TP_Logico);
 
 		/* codegen */
 		gen_teste(expr, falso, fim);
 	
-		/* then foi lido antes de retornar de expressao() */
 		casa_token(Then);
 	
 		comandos2();
@@ -782,15 +758,15 @@
 
 		casa_token(Identificador);
 
-		/* retorna lexema_lido para que em caso de erro a mensagem
+		/* salva lexema_lido para que em caso de erro a mensagem
 		 * mostre o lexema do identificador, e nao o que vier 
 		 * depois dele.
 		 */
 		lexema_lido = l_aux;
 
 		/* acao semantica */
-		verifica_const(lexId);
-		verifica_declaracao(lexId);
+		eh_const(lexId);
+		eh_id_ja_declarado(lexId);
 
 		/* codegen */
 		pai->endereco = registro->simbolo.memoria;
@@ -805,7 +781,7 @@
 			casa_token(F_Colchete);
 
 			/* acao semantica */
-			verifica_tipo(expr->tipo, TP_Integer);
+			tipos_validos(expr->tipo, TP_Integer);
 			fator_gera_array(pai, expr, lexId);
 		}
 	
@@ -843,7 +819,7 @@
 	
 		zera_temp();
 		casa_token(A_Parenteses);
-		expressao2(ln);
+		lista_expressoes(ln);
 		casa_token(F_Parenteses);
 		casa_token(PtVirgula);
 		del(pilha);
@@ -880,16 +856,15 @@
 			filho2 = expressao_s();
 
 			/* acao semantica */
-			verifica_tipo(ret->tipo, filho2->tipo);
+			tipos_validos(ret->tipo, filho2->tipo);
 
 			/* codegen */
 			gen_op_termos(ret,filho2);
 
 			ret->tipo = TP_Logico;
-		}
 
 		/* operacoes tipo int x int -> logico */
-		else if (reg_lex.token == Menor || reg_lex.token == Maior ||
+		} else if (reg_lex.token == Menor || reg_lex.token == Maior ||
 				reg_lex.token == MaiorIgual || reg_lex.token == MenorIgual) 
 		{
 
@@ -902,8 +877,8 @@
 			filho2 = expressao_s();
 
 			/* acao semantica */
-			verifica_tipo(ret->tipo,TP_Integer);
-			verifica_tipo(filho2->tipo,TP_Integer);
+			tipos_validos(ret->tipo,TP_Integer);
+			tipos_validos(filho2->tipo,TP_Integer);
 
 			/* codegen */
 			gen_op_termos(ret,filho2);
@@ -944,10 +919,10 @@
 		atualiza_pai(ret,filho);
 		if (menos) {
 			/* acao semantica */
-			verifica_tipo(filho->tipo, TP_Integer);
+			tipos_validos(filho->tipo, TP_Integer);
 			fator_gera_menos(ret,filho);
 		} else if (not) {
-			verifica_tipo(to_logico(filho->tipo), TP_Logico);
+			tipos_validos(to_logico(filho->tipo), TP_Logico);
 			fator_gera_not(ret,filho);
 		}
 
@@ -964,17 +939,16 @@
 			filho2 = termo();
 
 			/* acao semantica */
-			verifica_tipo(ret->tipo, TP_Integer);
-			verifica_tipo(filho2->tipo, TP_Integer);
+			tipos_validos(ret->tipo, TP_Integer);
+			tipos_validos(filho2->tipo, TP_Integer);
 
 			/* codegen */
 			gen_op_termos(ret,filho2);
 
 			ret->tipo = TP_Integer;
-		}
-		
+
 		/* operacoes logico x logico -> logico */
-		else if (reg_lex.token == Or) {
+		} else if (reg_lex.token == Or) {
 
 			/* codegen */
 			guarda_op(ret);
@@ -984,8 +958,8 @@
 			filho2 = termo();
 			
 			/* acao semantica */
-			verifica_tipo(to_logico(ret->tipo), TP_Logico);
-			verifica_tipo(to_logico(filho2->tipo), TP_Logico);
+			tipos_validos(to_logico(ret->tipo), TP_Logico);
+			tipos_validos(to_logico(filho2->tipo), TP_Logico);
 
 			/* codegen */
 			gen_op_termos(ret,filho2);
@@ -998,7 +972,7 @@
 	}
 
 	void
-	acaoFilhoTermo2(struct Fator *atual, Tipo gerado)
+	fator_op_fator(struct Fator *atual, Tipo esperado)
 	{
 			/* codegen */
 			guarda_op(atual);
@@ -1009,8 +983,8 @@
 			filho2 = fator();
 
 			/* acao semantica */
-			verifica_tipo(atual->tipo, gerado);
-			verifica_tipo(filho2->tipo,  gerado);
+			tipos_validos(atual->tipo, esperado);
+			tipos_validos(filho2->tipo,  esperado);
 
 			/* codegen */
 			gen_op_termos(atual,filho2);
@@ -1038,11 +1012,11 @@
 		if (reg_lex.token == Vezes ||
 				 reg_lex.token == Barra || reg_lex.token == Porcento )
 		{
-			acaoFilhoTermo2(atual, TP_Integer);
+			fator_op_fator(atual, TP_Integer);
 		}
 		/* operacoes logico x logico -> logico */
 		else if (reg_lex.token == And) {
-			acaoFilhoTermo2(atual, TP_Logico);
+			fator_op_fator(atual, TP_Logico);
 		}
 
 		del(pilha);
@@ -1060,7 +1034,7 @@
 
 		NOVO_FATOR(ret);
 
-		int array = 0;
+		int eh_array = 0;
 		char *lexId;
 
 		if (reg_lex.token == A_Parenteses) {
@@ -1079,6 +1053,7 @@
 
 			lexAux = removeComentario(lexema_lido);
 			ret->tipo = reg_lex.tipo;
+
 			if (reg_lex.tipo == TP_Char)
 				ret->tamanho = strlen(remove_aspas(lexAux));
 			else
@@ -1094,7 +1069,7 @@
 			lexId = reg_lex.lexema;
 
 			/* acao semantica */
-			verifica_declaracao(lexId);
+			eh_id_ja_declarado(lexId);
 
 			lexan();
 
@@ -1106,16 +1081,15 @@
 				aux = expressao();
 
 				/* acao semantica */
-				verifica_tipo(aux->tipo, TP_Integer);
+				tipos_validos(aux->tipo, TP_Integer);
 
-				/* marca como array */
-				atr_pos(1); array = 1;
+				atr_pos(1); eh_array = 1;
 
 				casa_token(F_Colchete);
 			}
 
 			/* codegen */
-			if (array)
+			if (eh_array)
 				fator_gera_array(ret,aux,lexId);
 			else
 				fator_gera_id(ret,lexId);
@@ -1130,22 +1104,20 @@
 	
 	/* lista de expressoes */
 	void
-	expressao2(int ln)
+	lista_expressoes(int ln)
 	{
 		/* DEBUGGER E PILHA */
-		DEBUGSIN("expressao2");
+		DEBUGSIN("lista_expressoes");
 		NOVO_FATOR(expr);
 	
 		expr = expressao();
 		gen_saida(expr, 0);
 
 		while (reg_lex.token == Virgula) {
-
 			lexan();
 
 			expr = expressao();
 			gen_saida(expr, 0);
-
 		}
 
 		/* codegen */

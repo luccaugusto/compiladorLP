@@ -67,7 +67,7 @@
 	void acaoFilhoTermo2(struct Fator *atual, Tipo gerado);
 	struct Fator *termo(void);
 	struct Fator *fator(void);
-	void expressao2(int ln);
+	void lista_expressoes(int ln);
 
 	/* VARIAVEIS GLOBAIS */
 	extern int erro;

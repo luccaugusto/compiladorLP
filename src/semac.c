@@ -31,7 +31,7 @@
 	}
 	
 	void
-	defClasse(Classe classe)
+	def_classe(Classe classe)
 	{
 		reg_lex.classe = classe;
 	}
@@ -51,7 +51,7 @@
 	
 	/* verifica se o tamanho dos arrays eh valido */
 	void
-	verifica_tam(int tam)
+	tamanho_valido(int tam)
 	{
 		/* tipo char ocupa 1 byte portanto o array pode ter 4k posicoes */
 		if (reg_lex.tipo == TP_Char && tam > 4000) erro_sintatico(ER_SIN_TAMVET);
@@ -70,7 +70,7 @@
 	 * verifica se tipo A == tipo B
 	 */
 	void
-	verifica_tipo(Tipo A, Tipo B)
+	tipos_validos(Tipo A, Tipo B)
 	{
 	
 		if ( A != B) {
@@ -79,13 +79,8 @@
 		
 	}
 	
-	/* Verificacao de classe
-	 * atualiza na tabela de simbolos o tipo e a classe do elemento,
-	 * caso a classe ja esteja definida, significa que a variavel
-	 * ou constante ja foi declarada
-	 */
 	void
-	verifica_classe(char* lex, Tipo tipo)
+	eh_id_nao_declarado(char* lex, Tipo tipo)
 	{
 		reg_lex.endereco = pesquisar_registro(lex);
 	
@@ -97,12 +92,8 @@
 		}
 	}
 	
-	/* Verificacao de declaracao
-	 * verifica se o identificador ja foi declarado
-	 * ou se é constante
-	 */
 	void
-	verifica_declaracao(char *identificador)
+	eh_id_ja_declarado(char *identificador)
 	{
 		if (pesquisar_registro(identificador)->simbolo.classe == 0)
 			erro_sintatico(ER_SIN_NDEC);
@@ -110,21 +101,18 @@
 
 	/* verifica se o identificador eh constante */
 	void
-	verifica_const(char *identificador)
+	eh_const(char *identificador)
 	{
 		if (pesquisar_registro(identificador)->simbolo.classe == CL_Const)
 			erro_sintatico(ER_SIN_C_INC);
 	}
 	
-	/* Verificacao de atribuicao a vetor 
-	 * operacoes sobre vetores so podem acontecer posicao a posicao
-	 * operacoes na forma vet1 = vet2 nao sao permitidas
-	 */
+	/* operacoes sobre vetores so podem acontecer posicao a posicao */
 	void
-	verifica_atr_vetor(void)
+	atr_vetor_valida(void)
 	{
 		/* ATENCAO:
-		 * Este erro poderia ter sido deixado para tempo de execucao
+		 * Erro em tempo de execucao?
 		 *
 		 * atribuicao de strings 
 		 * a string deve ter tamanho menor que o tamanho do vetor -1
