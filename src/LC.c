@@ -13,6 +13,10 @@
  *
  * *************************************************************************/
 
+/* TODO: renomear lex para algo mais intuitovo
+ * 	renomear funcoes de verificacao para algo mais intuitivo
+ * */
+
 /* HEADERS */
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +41,6 @@ char *asm_nome;
 
 int lex = 1;
 int erro = 0;
-int lido = 0;
 int linha = 0; /*linha do arquivo*/
 int estado_sin = 0; /* estado de aceitacao ou nao do analisador sintatico */
 

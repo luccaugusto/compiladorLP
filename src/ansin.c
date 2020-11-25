@@ -57,11 +57,6 @@
 	 * Caso não seja o token esperado, aborta a
 	 * execução chamando erro_sintatico()
 	 *
-	 * essa função tem seu uso limitado pois
-	 * alguns estados aceitam mais de um Token
-	 * como por exemplo: Var char|integer.
-	 * Nesses casos casa_token nao pode ser
-	 * utilizada.
 	 * Quando só existe uma opção de Token
 	 * casa_token DEVE ser utilizada.
 	 */
@@ -79,13 +74,9 @@
 		return retorno;
 	}
 	
-	/* Trata um Erro Sintático
-	 * e aborta o programa
-	 */
 	void
 	erro_sintatico(int tipo)
 	{
-	
 		erro = tipo;
 		switch (tipo)
 		{
@@ -112,23 +103,17 @@
 				break;
 		}
 	
-		/* Aborta a compilação */
 		abortar();
 	}
 	
-	/* Consime o primeiro token e chama 
-	 * o simbolo inicial
-	 */
 	void
 	iniciar_ansin(void)
 	{
-		/* consome o primeiro token */
 		lexan();
 	
 		/* codegen: inicia bloco de declaracoes */
 		init_declaracao();
 	
-		/* inicia pelo primeiro simbolo da gramatica */
 		declaracao();
 		bloco_comandos();
 		fim_de_arquivo();
@@ -148,13 +133,11 @@
 			/* var ou const */
 			if (reg_lex.token == Var) {
 
-				lido=0;
 				lexan();
 				variavel();
 
 			} else if (reg_lex.token == Const) {
 
-				lido=0;
 				lexan();
 				constante();
 
@@ -162,23 +145,8 @@
 
 		} while (reg_lex.token == Var || reg_lex.token == Const);
 
-		/* else */
-		/* existem casos especificos onde o
-		 * token do bloco de comandos ja foi lido
-		 * e portanto nao precisa ser lido aqui,
-		 * conferir lista_ids para ver a lista desses
-		 * casos 
-		 *
-		 * se ainda nao leu, le
-		 * se ja leu, utiliza o lexema lido
-		 * e marca que nao leu
-		 * */
-		if (!lido) lexan();
-		else lido = 0;
-
 		/* codegen: finaliza bloco de declaracoes e 
-		 * inicializa bloco do programa 
-		 */
+		 * inicializa bloco do programa */
 		fim_dec_init_com();
 
 		del(pilha);
@@ -194,8 +162,7 @@
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("bloco_comandos");
 
-		/* controla se o lexema lido inicia comando */
-		int ehComando = 1;
+		int eh_comando = 1;
 	
 		do {
 
@@ -254,10 +221,10 @@
 					break;
 
 				default:
-					ehComando = 0;
+					eh_comando = 0;
 			}
 
-		} while (ehComando);
+		} while (eh_comando);
 
 		del(pilha);
 
@@ -271,11 +238,11 @@
 		DEBUGSIN("fim_de_arquivo");
 	
 	
-		/* se lex nao for 0 ainda n leu o EOF */
-		/* leu fim de arquivo mas nao em estado de aceitacao */
+		/* se lex nao for 0 ainda nao leu o EOF */
 		if (lex)
 			erro_sintatico(ER_SIN);
 	
+		/* leu fim de arquivo mas nao em estado de aceitacao */
 		if (estado_sin != ACEITACAO_SIN)
 			erro_sintatico(ER_SIN_EOF);
 	
@@ -338,7 +305,7 @@
 				negativo
 				);
 	
-		casa_token(PtVirgula); lido = 1;
+		casa_token(PtVirgula);
 		del(pilha);
 	}
 	
@@ -348,7 +315,7 @@
 	{
 		/* DEBUGGER E PILHA */
 		DEBUGSIN("variavel");
-		int ehVariavel = 1;
+		int eh_variavel = 1;
 	
 		/* suporte acao semantica */
 		defClasse(CL_Var);
@@ -362,14 +329,15 @@
 				else reg_lex.tipo = TP_Integer;
 
 				lexan();
-				ehVariavel = lista_ids(reg_lex.tipo);
+				eh_variavel = lista_ids(reg_lex.tipo);
 			} else {
 				erro_sintatico(ER_SIN);
 			}
 
-		} while (ehVariavel);
+		} while (eh_variavel);
 
 		estado_sin = ACEITACAO_SIN;
+
 		del(pilha);
 	}
 	
@@ -432,27 +400,15 @@
 				lexan();
 
 				/* Lista de declaracoes tipo Var integer c; char d; 
-				 * ou fim do comando
-				 */
+				 * ou fim do comando */
 				id = 0;
-				if (reg_lex.token == Integer || reg_lex.token == Char) {
-					ret = 1;
-				} else {
-					/* fim do comando e marca lido como 1
-					 * pois leu um lexema que nao
-					 * foi utilizado aqui, portanto
-					 * o proximo metodo nao precisa ler
-					 * este lexema
-					 * */
-					ret = 0;
-					lido = 1;
-				}
+				ret = (reg_lex.token == Integer ||
+						reg_lex.token == Char) ?  1 : 0;
 
 			} else if (reg_lex.token == Igual) {
 				/* lendo id=literal */
 				lexan();
 
-				/* literal negativo */
 				if (reg_lex.token == Menos) {
 					negativo = 1;
 					lexan();
@@ -480,23 +436,12 @@
 					lexan();
 
 				} else {
-					/* terminou de ler o comando */
 					casa_token(PtVirgula);
 
 					id = 0;
 					/* Lista de declaracoes tipo Var integer c; char d; */
-					if (reg_lex.token == Integer || reg_lex.token == Char) {
-						ret = 1;
-					} else {
-						/* fim do comando e marca lido como 1
-						 * pois leu um lexema que nao
-						 * foi utilizado aqui, portanto
-						 * o proximo metodo nao precisa ler
-						 * este lexema
-						 * */
-						lido = 1;
-						ret = 0;
-					}
+					ret = (reg_lex.token == Integer ||
+							reg_lex.token == Char) ?  1 : 0;
 				}
 			} else {
 				/* lendo id[literal] */
@@ -530,18 +475,9 @@
 
 					id = 0;
 					/* Lista de declaracoes tipo Var integer c; char d; */
-					if (reg_lex.token == Integer || reg_lex.token == Char) {
-						ret = 1;
-					} else {
-						/* fim do comando e marca lido como 1
-						 * pois leu um lexema que nao
-						 * foi utilizado aqui, portanto
-						 * o proximo metodo nao precisa ler
-						 * este lexema
-						 * */
-						ret = 0;
-						lido = 1;
-					}
+					ret = (reg_lex.token == Integer ||
+							reg_lex.token == Char) ?  1 : 0;
+					
 				}
 			}
 		} while (id);
