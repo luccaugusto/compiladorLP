@@ -543,7 +543,7 @@
 			CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;salta fim se fim string\n",fim);
 			CONCAT_BUF("\tIMUL CX \t\t\t\t\t\t\t\t\t;mult. 10\n");
 			CONCAT_BUF("\tADD BX, -48 \t\t\t\t\t\t\t\t;converte caractere\n");
-			CONCAT_BUF("\tADD AX, CX \t\t\t\t\t\t\t\t\t;soma valor caractere\n");
+			CONCAT_BUF("\tADD AX, BX \t\t\t\t\t\t\t\t\t;soma valor caractere\n");
 			CONCAT_BUF("\tADD DI, 1 \t\t\t\t\t\t\t\t\t;incrementa base\n");
 			CONCAT_BUF("\tMOV BH, 0\n");
 			CONCAT_BUF("\tMOV BL, DS:[DI] \t\t\t\t\t\t\t;próximo caractere\n");
