@@ -18,10 +18,10 @@ make && (
 		echo "$T:"
 		if [ "$VERSION" == "src" ]
 		then
-			./LC.out -f "$TEST_DIR/testes/$teste" -o prog.asm > s.txt
+			./LC -f "$TEST_DIR/testes/$teste" -o prog.asm > s.txt
 			diff -wB s.txt "$TEST_DIR/saidas/saida-"$T".txt" && echo PASSOU && C=$((C+1))
 		else
-			./LC-mono.out < "$TEST_DIR/testes/$teste" > s.txt
+			./LC-mono < "$TEST_DIR/testes/$teste" > s.txt
 			diff -wB s.txt "$TEST_DIR/saidas/saida-"$T".txt" && echo PASSOU && C=$((C+1))
 		fi
 	done
