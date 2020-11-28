@@ -138,6 +138,7 @@ main(int argc, char *argv[])
 
 
 	pilha = init_pilha();
+	testesTabelaSimbolos();
 
 	iniciar_codegen();
 	iniciar_tabela();

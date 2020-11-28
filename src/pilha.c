@@ -14,7 +14,6 @@
 
 /* HEADERS */
 /* Include comentado pois essa biblioteca 
- * ja foi incluida em LC.c
  * #include <stdio.h>
  */
 

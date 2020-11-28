@@ -13,7 +13,7 @@
  * *************************************************************************/
 /* Testes automatizados do compilador */
 /* HEADERS */
-#include <stdio.h>
+#include <assert.h>
 
 #include "ts.h"
 #include "lexan.h"
@@ -33,27 +33,21 @@ void testesTabelaSimbolos(void);
 void
 teste_insercao(void)
 {
-	printf("Testando inserção simples......");
+	DEBUGTS("Testando inserção simples......");
 	char *lex = "teste";
 	struct Celula *inserido = adicionar_registro(lex, Identificador);
-	if (inserido == NULL)
-		printf("ERRO: Inserção falhou\n");
-	else
-		printf("OK\n");
+	assert(inserido != NULL);
 }
 
 /* testa a inserção de um registro que cause uma colisão na tabela */
 void
 teste_colisao(void)
 {
-	printf("Testando inserção com colisão..");
+	DEBUGTS("Testando inserção com colisão..");
 	char *lex = "teste2";
 	struct Celula *inserido = adicionar_registro(lex, Identificador);
 	struct Celula *colisao = adicionar_registro(lex, Identificador);
-	if (inserido->prox != colisao)
-		printf("ERRO: Colisão falhou\n");
-	else
-		printf("OK\n");
+	assert(inserido->prox == colisao);
 }
 
 /* testa a busca por um registro que está no início da lista, ou seja,
@@ -62,14 +56,11 @@ teste_colisao(void)
 void
 teste_busca_simples(void)
 {
-	printf("Testando busca simples.........");
+	DEBUGTS("Testando busca simples.........");
 	char *lex = "teste3";
 	struct Celula *inserido = adicionar_registro(lex, Identificador);
 	struct Celula *encontrado = pesquisar_registro(lex);
-	if (encontrado != inserido)
-		printf("ERRO: Busca simples falhou\n");
-	else
-		printf("OK\n");
+	assert(encontrado == inserido);
 }
 
 /* testa a busca por um registro que está no meio da lista, ou seja,
@@ -78,7 +69,7 @@ teste_busca_simples(void)
 void
 teste_busca_colisao(void)
 {
-	printf("Testando busca em colisão......");
+	DEBUGTS("Testando busca em colisão......");
 	/* strings que colidem e são diferentes */
 	char *lex = "not";
 	char *lex2 = "%";
@@ -86,12 +77,7 @@ teste_busca_colisao(void)
 	adicionar_registro(lex, Identificador);
 	struct Celula *inserido = adicionar_registro(lex2, Identificador);
 	struct Celula *encontrado = pesquisar_registro(lex2);
-	if (encontrado != inserido)
-		printf("ERRO: Busca em colisão falhou.\n \
-					  ponteiro inserido: %p\n \
-				      ponteiro encontrado: %p\n", inserido, encontrado);
-	else
-		printf("OK\n");
+	assert(encontrado == inserido);
 }
 
 /* testa a busca por um registro que não está na lista
@@ -99,14 +85,11 @@ teste_busca_colisao(void)
 void
 teste_busca_vazia(void)
 {
-	printf("Testando busca vazia...........");
+	DEBUGTS("Testando busca vazia...........");
 	/* strings que colidem e são diferentes */
 	char *lex = "esse lexema não está na tabela";
 	struct Celula *encontrado = pesquisar_registro(lex);
-	if (encontrado != NULL)
-		printf("ERRO: Busca em colisão falhou.\n");
-	else
-		printf("OK\n");
+	assert(encontrado == NULL);
 }
 
 /* roda todos os testes da tabela de simbolos */
@@ -127,8 +110,10 @@ testesTabelaSimbolos(void)
 void
 teste_lexan(void)
 {
+	char *x;
 	while(lex){
 		lexan();
-		printf("atual: %s\n",reg_lex.lexema);
+		sprintf(x,"atual: %s\n",reg_lex.lexema);
+		DEBUGTS(x);
 	}
 }

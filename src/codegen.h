@@ -18,7 +18,7 @@
 #define _CODEGEN_H
 
 	/* MACROS */
-	//define DEBUG_GEN
+	/*#define DEBUG_GEN*/
 	#ifdef DEBUG_GEN
 		#define DEBUGGEN(s) printf("GEN: %s\n",s); push(s,pilha);
 	#else

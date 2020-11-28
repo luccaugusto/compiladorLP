@@ -18,9 +18,13 @@
  * *************************************************************************/
 #ifndef _ANSIN_H
 #define _ANSIN_H
+	
+	/* HEADERS
+	 * #include "types.h"
+	 */
 
 	/* MACROS */
-	//define DEBUG_SIN
+	/*#define DEBUG_SIN*/
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	#ifdef DEBUG_SIN
@@ -70,11 +74,14 @@
 	void lista_expressoes(int ln);
 
 	/* VARIAVEIS GLOBAIS */
-	extern int erro;
-	extern int estado_sin;
 	extern int lex;
+	extern int erro;
 	extern int lido;
-	extern char* lexAux;
+	extern int estado_sin;
+	extern char *lexAux;
+	extern char *erro_msg;
+	extern char *lexema_lido;
 	extern struct pilha_d *pilha;
+	extern struct registro_lex reg_lex;
 
 #endif

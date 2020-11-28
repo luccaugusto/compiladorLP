@@ -18,7 +18,13 @@
 
 	/* MACROS */
 	#define TAM_TBL 254
-	//define DEBUG_TS 0
+	/*//define DEBUG_TS 0*/
+	#ifdef DEBUG_TS
+		#define DEBUGTS(s) printf("TS: %s\n",s); push(s,pilha);
+	#else
+		#define DEBUGTS(s)
+	#endif
+
 
 	/* DECLARACAO DE FUNCOES */
 	/* Tabela de símbolos */
