@@ -10,7 +10,7 @@
  * Arquivo lexan:
  * Implementacao do automato do analisador léxico. Lê cada lexema e realiza
  * ações necessárias correspondentes.
- * Ao encontrar EOF marca a variável global lex como 0.
+ * Ao encontrar EOF marca a variável global not_eof como 0.
  * Em caso de erro aborta o programa com o código devido.
  * *************************************************************************/
 
@@ -406,7 +406,7 @@ lexan(void)
 	}
 
 	/* leu EOF */
-	if (letra == -1) lex = 0;
+	if (letra == -1) not_eof = 0;
 
 	DEBUGLEX("LEX: lexema:%s token:%d tipo:%d tam: %d\n",reg_lex.lexema,reg_lex.token,reg_lex.tipo,reg_lex.tamanho);
 }

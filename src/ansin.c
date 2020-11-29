@@ -65,7 +65,7 @@ casa_token(Tokens esperado)
 	int retorno = 1;
 
 	if (esperado != reg_lex.token){
-		if (lex) erro_sintatico(ER_SIN);
+		if (not_eof) erro_sintatico(ER_SIN);
 		else erro_sintatico(ER_SIN_EOF);
 	}
 
@@ -237,8 +237,8 @@ fim_de_arquivo(void)
 	DEBUGSIN("fim_de_arquivo");
 
 
-	/* se lex nao for 0 ainda nao leu o EOF */
-	if (lex)
+	/* se not_eof nao for 0 ainda nao leu o EOF */
+	if (not_eof)
 		erro_sintatico(ER_SIN);
 
 	/* leu fim de arquivo mas nao em estado de aceitacao */
@@ -674,7 +674,7 @@ comandos2(void)
 			break;
 
 		default:
-			if (lex) erro_sintatico(ER_SIN);
+			if (not_eof) erro_sintatico(ER_SIN);
 			else erro_sintatico(ER_SIN_EOF);
 	}
 

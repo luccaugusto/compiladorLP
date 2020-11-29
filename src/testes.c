@@ -111,7 +111,7 @@ void
 teste_lexan(void)
 {
 	char *x;
-	while(lex){
+	while(not_eof){
 		lexan();
 		sprintf(x,"atual: %s\n",reg_lex.lexema);
 		DEBUGTS(x);

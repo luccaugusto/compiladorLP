@@ -10,7 +10,7 @@
  * Arquivo lexan:
  * Implementacao do automato do analisador léxico. Lê cada lexema e realiza
  * ações necessárias correspondentes.
- * Ao encontrar EOF marca a variável global lex como 0.
+ * Ao encontrar EOF marca a variável global not_eof como 0.
  * Em caso de erro aborta o programa com o código devido.
  * *************************************************************************/
 
@@ -42,7 +42,7 @@
 			letra != '\''   &&\
 			letra != '.'    \
 	
-	/*#define DEBUG_LEX*/
+	/*/*#define DEBUG_LEX*/*/
 	#ifdef DEBUG_LEX
 		#define DEBUGLEX(...) printf(__VA_ARGS__);
 	#else
@@ -63,7 +63,7 @@
 	extern struct registro_lex reg_lex;
 	extern FILE *prog_fonte;
 	extern int erro;
-	extern int lex;
+	extern int not_eof;
 	
 	/* DECLARACAO DE FUNCOES */
 	void lexan(void);

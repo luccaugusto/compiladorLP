@@ -24,7 +24,7 @@
 	extern FILE *prog_fonte;
 	extern FILE *prog_asm;
 	
-	extern int lex;
+	extern int not_eof;
 	extern int erro;
 	extern int lido;
 	extern int linha; /*linha do arquivo*/

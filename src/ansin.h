@@ -24,7 +24,7 @@
 	 */
 
 	/* MACROS */
-	/*#define DEBUG_SIN*/
+	/*/*#define DEBUG_SIN*/*/
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	#ifdef DEBUG_SIN
@@ -74,7 +74,7 @@
 	void lista_expressoes(int ln);
 
 	/* VARIAVEIS GLOBAIS */
-	extern int lex;
+	extern int not_eof;
 	extern int erro;
 	extern int lido;
 	extern int estado_sin;
