@@ -26,7 +26,7 @@ $(PROJ_NAME):
 	$(CC) -o $@ $< $(LCCFLAGS)
 
 clean:
-	rm -f $(PROJ_NAME) $(PROJ_NAME)-mono 8086/prog.asm prog.asm
+	rm -f $(PROJ_NAME) $(PROJ_NAME)-mono 8086/*.asm *.asm
 
 mono:
 	$(CPP) -o $(PROJ_NAME)-mono monolitico/LC.cpp
@@ -34,6 +34,14 @@ mono:
 run:
 	./$(PROJ_NAME) -f examples/fonte.l -o prog.asm
 	cp prog.asm 8086/prog.asm
+	./$(PROJ_NAME) -f examples/GC1.l -o GC1.asm
+	cp GC1.asm 8086/GC1.asm
+	./$(PROJ_NAME) -f examples/GC2.l -o GC2.asm
+	cp GC2.asm 8086/GC2.asm
+	./$(PROJ_NAME) -f examples/GC3.l -o GC3.asm
+	cp GC3.asm 8086/GC3.asm
+	./$(PROJ_NAME) -f examples/GC4.l -o GC4.asm
+	cp GC4.asm 8086/GC4.asm
 
 runm:
 	./$(PROJ_NAME)-mono < examples/fonte.l

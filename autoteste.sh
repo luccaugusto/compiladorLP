@@ -6,7 +6,6 @@ C=0
 TOTAL=0
 [ "$1" == 'm' ] && VERSION="mono"
 
-make no_debug &&
 make && (
 
 	for teste in $(ls $TEST_DIR/testes)

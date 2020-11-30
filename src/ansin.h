@@ -24,7 +24,7 @@
 	 */
 
 	/* MACROS */
-	/*/*#define DEBUG_SIN*/*/
+	/*#define DEBUG_SIN*/
 	#define N_ACEITACAO_SIN -31
 	#define ACEITACAO_SIN 32
 	#ifdef DEBUG_SIN

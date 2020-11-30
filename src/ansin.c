@@ -1063,7 +1063,7 @@ fator(void)
 		lexan();
 
 	/* fator -> id */
-	} else if (reg_lex.token == Identificador) {
+	} else {
 		lexId = reg_lex.lexema;
 
 		/* acao semantica */

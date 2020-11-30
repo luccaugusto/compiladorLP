@@ -42,7 +42,7 @@
 			letra != '\''   &&\
 			letra != '.'    \
 	
-	/*/*#define DEBUG_LEX*/*/
+	/*#define DEBUG_LEX*/
 	#ifdef DEBUG_LEX
 		#define DEBUGLEX(...) printf(__VA_ARGS__);
 	#else
