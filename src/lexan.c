@@ -32,11 +32,6 @@ lexan(void)
 
 	while (estado != ACEITACAO_LEX && !erro && (letra = minusculo(lex_get_char())) != -1) { 
 
-		/* \n é contabilizado sempre */
-		if (letra == '\n') {
-			linha++;
-		} 
-
 		if (estado == 0) {
 			if (eh_branco(letra)) {
 				continue;

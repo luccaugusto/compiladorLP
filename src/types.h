@@ -17,7 +17,7 @@
 #define _TYPES
 
 	/* MACROS */
-	#define NOVO_FATOR(s) struct Fator *s = (struct Fator *)malloc(sizeof(struct Fator)); \
+	#define NOVO_FATOR(s) struct Expr *s = (struct Expr *)malloc(sizeof(struct Expr)); \
                                         s->endereco = novo_temp(2); \
                                         s->tipo = reg_lex.tipo; \
                                         s->op = 0
@@ -109,11 +109,11 @@
 		struct Celula *endereco;     /* endereco na tabela de simbolos do identificador atual      */
 	};
 	
-	/* Fator
-	 * um fator contém informações
+	/* Expr
+	 * contém informações
 	 * sobre o que a expressão gera
 	 */
-	struct Fator {
+	struct Expr {
 		int endereco;        /* endereco do valor gerado pela expressao */
 		int tamanho;         /* tamanho do valor gerado pela expressao  */
 		Tokens op;           /* operacao realizada pela expressao       */

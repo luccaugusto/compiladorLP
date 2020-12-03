@@ -66,11 +66,11 @@
 	void leitura(void);
 	void nulo(void);
 	void escrita(int ln);
-	struct Fator *expressao(void);
-	struct Fator *expressao_s(void);
-	void acaoFilhoTermo2(struct Fator *atual, Tipo gerado);
-	struct Fator *termo(void);
-	struct Fator *fator(void);
+	struct Expr *expressao(void);
+	struct Expr *expressao_s(void);
+	void acaoFilhoTermo2(struct Expr *atual, Tipo gerado);
+	struct Expr *termo(void);
+	struct Expr *fator(void);
 	void lista_expressoes(int ln);
 
 	/* VARIAVEIS GLOBAIS */

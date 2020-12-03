@@ -419,7 +419,7 @@ lista_ids(Tipo ultimoTipo)
 			casa_token(Literal);
 
 			/* acao semantica */
-			tipos_validos(reg_lex.endereco->simbolo.tipo, t);
+			tipos_compativeis(reg_lex.endereco->simbolo.tipo, t);
 
 			/* codegen */
 			gen_declaracao(
@@ -513,7 +513,7 @@ atribuicao(void)
 
 		aux = expressao();
 		/* acao semantica */
-		tipos_validos(aux->tipo, TP_Integer);
+		tipos_compativeis(aux->tipo, TP_Integer);
 
 		atr_pos(1); eh_array = 1;
 		casa_token(F_Colchete);
@@ -524,7 +524,7 @@ atribuicao(void)
 	expr = expressao();
 
 	/* acao semantica */
-	tipos_validos(expr->tipo, tipoId);
+	tipos_compativeis(expr->tipo, tipoId);
 	if (eh_array)
 		atr_vetor_valida();
 
@@ -546,9 +546,9 @@ repeticao(void)
 
 	Tipo t = reg_lex.endereco->simbolo.tipo;
 	NOVO_FATOR(pai);
-	struct Fator *filho = NULL;
-	struct Fator *filho2 = NULL;
-	struct Fator *f_aux = NULL;
+	struct Expr *filho = NULL;
+	struct Expr *filho2 = NULL;
+	struct Expr *f_aux = NULL;
 
 	lexAux = reg_lex.lexema;
 
@@ -562,7 +562,7 @@ repeticao(void)
 	/* acao semantica */
 	eh_id_ja_declarado(lexAux);
 	eh_const(lexAux);
-	tipos_validos(t,TP_Integer);
+	tipos_compativeis(t,TP_Integer);
 
 	/* lendo array: id[i] */
 	if (reg_lex.token == A_Colchete) {
@@ -571,7 +571,7 @@ repeticao(void)
 		f_aux = expressao();
 
 		/* acao semantica */
-		tipos_validos(f_aux->tipo,TP_Integer);
+		tipos_compativeis(f_aux->tipo,TP_Integer);
 
 		/* codegen */
 		acesso_array(pai, f_aux);
@@ -588,7 +588,7 @@ repeticao(void)
 	/* codegen */
 	gen_atribuicao(pai, filho);
 	/* acao semantica */
-	tipos_validos(filho->tipo,TP_Integer);
+	tipos_compativeis(filho->tipo,TP_Integer);
 
 	casa_token(To);
 
@@ -606,7 +606,7 @@ repeticao(void)
 		f_aux = expressao();
 
 		/* acao semantica */
-		tipos_validos(f_aux->tipo, TP_Integer);
+		tipos_compativeis(f_aux->tipo, TP_Integer);
 	}
 
 	casa_token(Do);
@@ -700,7 +700,7 @@ teste(void)
 	expr = expressao();
 
 	/* acao semantica */
-	tipos_validos(expr->tipo, TP_Logico);
+	tipos_compativeis(expr->tipo, TP_Logico);
 
 	/* codegen */
 	gen_teste(expr, falso, fim);
@@ -779,7 +779,7 @@ leitura(void)
 		casa_token(F_Colchete);
 
 		/* acao semantica */
-		tipos_validos(expr->tipo, TP_Integer);
+		tipos_compativeis(expr->tipo, TP_Integer);
 		fator_gera_array(pai, expr, lexId);
 	}
 
@@ -823,12 +823,32 @@ escrita(int ln)
 	del(pilha);
 }
 
+void
+fator_op_fator(struct Expr *atual, Tipo esperado)
+{
+		/* codegen */
+		guarda_op(atual);
+
+		lexan();
+
+		NOVO_FATOR(filho2);
+		filho2 = fator();
+
+		/* acao semantica */
+		tipos_compativeis(atual->tipo, esperado);
+		tipos_compativeis(filho2->tipo,  esperado);
+
+		/* codegen */
+		gen_op_termos(atual,filho2);
+
+}
+
 /* le uma expressao e retorna o tipo final
  * Expressão
  * X -> Xs [ O Xs ]
  * O  -> = | <> | < | > | >= | <=
  */
-struct Fator *
+struct Expr *
 expressao(void)
 {
 	/* DEBUGGER E PILHA */
@@ -854,7 +874,7 @@ expressao(void)
 		filho2 = expressao_s();
 
 		/* acao semantica */
-		tipos_validos(ret->tipo, filho2->tipo);
+		tipos_compativeis(ret->tipo, filho2->tipo);
 
 		/* codegen */
 		gen_op_termos(ret,filho2);
@@ -875,8 +895,8 @@ expressao(void)
 		filho2 = expressao_s();
 
 		/* acao semantica */
-		tipos_validos(ret->tipo,TP_Integer);
-		tipos_validos(filho2->tipo,TP_Integer);
+		tipos_compativeis(ret->tipo,TP_Integer);
+		tipos_compativeis(filho2->tipo,TP_Integer);
 
 		/* codegen */
 		gen_op_termos(ret,filho2);
@@ -892,7 +912,7 @@ expressao(void)
 /* Expressao simples
  * Xs -> [-] T {( + | - | ‘or’) T}
  */
-struct Fator *
+struct Expr *
 expressao_s(void)
 {
 	/* DEBUGGER E PILHA */
@@ -917,82 +937,66 @@ expressao_s(void)
 	atualiza_pai(ret,filho);
 	if (menos) {
 		/* acao semantica */
-		tipos_validos(filho->tipo, TP_Integer);
+		tipos_compativeis(filho->tipo, TP_Integer);
 		fator_gera_menos(ret,filho);
 	} else if (not) {
-		tipos_validos(to_logico(filho->tipo), TP_Logico);
+		tipos_compativeis(to_logico(filho->tipo), TP_Logico);
 		fator_gera_not(ret,filho);
 	}
 
+	do {
+		/* operacoes int x int -> int */
+		if (reg_lex.token == Mais || reg_lex.token == Menos) {
 
-	/* operacoes int x int -> int */
-	if (reg_lex.token == Mais || reg_lex.token == Menos) {
+			/* codegen */
+			guarda_op(ret);
 
-		/* codegen */
-		guarda_op(ret);
+			lexan();
 
-		lexan();
+			NOVO_FATOR(filho2);
+			filho2 = termo();
 
-		NOVO_FATOR(filho2);
-		filho2 = termo();
+			/* acao semantica */
+			tipos_compativeis(ret->tipo, TP_Integer);
+			tipos_compativeis(filho2->tipo, TP_Integer);
 
-		/* acao semantica */
-		tipos_validos(ret->tipo, TP_Integer);
-		tipos_validos(filho2->tipo, TP_Integer);
+			/* codegen */
+			gen_op_termos(ret,filho2);
 
-		/* codegen */
-		gen_op_termos(ret,filho2);
+			ret->tipo = TP_Integer;
 
-		ret->tipo = TP_Integer;
+			/* operacoes logico x logico -> logico */
+		} else if (reg_lex.token == Or) {
 
-	/* operacoes logico x logico -> logico */
-	} else if (reg_lex.token == Or) {
+			/* codegen */
+			guarda_op(ret);
+			lexan();
 
-		/* codegen */
-		guarda_op(ret);
-		lexan();
+			NOVO_FATOR(filho2);
+			filho2 = termo();
 
-		NOVO_FATOR(filho2);
-		filho2 = termo();
-		
-		/* acao semantica */
-		tipos_validos(to_logico(ret->tipo), TP_Logico);
-		tipos_validos(to_logico(filho2->tipo), TP_Logico);
+			/* acao semantica */
+			tipos_compativeis(to_logico(ret->tipo), TP_Logico);
+			tipos_compativeis(to_logico(filho2->tipo), TP_Logico);
 
-		/* codegen */
-		gen_op_termos(ret,filho2);
+			/* codegen */
+			gen_op_termos(ret,filho2);
 
-		ret->tipo = TP_Logico;
-	}
+			ret->tipo = TP_Logico;
+		}
+
+	} while(reg_lex.token == Mais || 
+			reg_lex.token == Menos || reg_lex.token == Or);
 
 	del(pilha);
 	return ret;
 }
 
-void
-fator_op_fator(struct Fator *atual, Tipo esperado)
-{
-		/* codegen */
-		guarda_op(atual);
-
-		lexan();
-
-		NOVO_FATOR(filho2);
-		filho2 = fator();
-
-		/* acao semantica */
-		tipos_validos(atual->tipo, esperado);
-		tipos_validos(filho2->tipo,  esperado);
-
-		/* codegen */
-		gen_op_termos(atual,filho2);
-
-}
 
 /* Termo
  * T  -> F {( * | / | % | ‘and’ ) F}
  */
-struct Fator *
+struct Expr *
 termo(void)
 {
 	/* DEBUGGER E PILHA */
@@ -1006,16 +1010,19 @@ termo(void)
 	/* codegen */
 	atualiza_pai(atual,filho);
 
-	/* operacoes int x int -> int */
-	if (reg_lex.token == Vezes ||
-			 reg_lex.token == Barra || reg_lex.token == Porcento )
-	{
-		fator_op_fator(atual, TP_Integer);
-	}
-	/* operacoes logico x logico -> logico */
-	else if (reg_lex.token == And) {
-		fator_op_fator(atual, TP_Logico);
-	}
+	do {
+		/* operacoes int x int -> int */
+		if (reg_lex.token == Vezes ||
+				reg_lex.token == Barra || reg_lex.token == Porcento )
+		{
+			fator_op_fator(atual, TP_Integer);
+		}
+		/* operacoes logico x logico -> logico */
+		else if (reg_lex.token == And) {
+			fator_op_fator(atual, TP_Logico);
+		}
+	} while (reg_lex.token == Vezes || reg_lex.token == Barra ||
+			reg_lex.token == Porcento || reg_lex.token == And);
 
 	del(pilha);
 	return atual;
@@ -1024,7 +1031,7 @@ termo(void)
 /* Fator
  * F  -> ‘(‘ X ‘)’ | literal | id ['[' X ']']
  */
-struct Fator *
+struct Expr *
 fator(void)
 {
 	/* DEBUGGER E PILHA */
@@ -1066,10 +1073,11 @@ fator(void)
 	} else {
 		lexId = reg_lex.lexema;
 
+		casa_token(Identificador);
+
 		/* acao semantica */
 		eh_id_ja_declarado(lexId);
 
-		lexan();
 
 		NOVO_FATOR(aux);
 		/* lendo array: id[expressao()] */
@@ -1079,7 +1087,7 @@ fator(void)
 			aux = expressao();
 
 			/* acao semantica */
-			tipos_validos(aux->tipo, TP_Integer);
+			tipos_compativeis(aux->tipo, TP_Integer);
 
 			atr_pos(1); eh_array = 1;
 

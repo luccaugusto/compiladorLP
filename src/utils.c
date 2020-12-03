@@ -170,16 +170,27 @@ remove_aspas(char *str)
 	int tamstr = strlen(str);
 	int dentro = 0;
 	int c = 0; /* contador do retorno */
+	int tipo = '"';
 	retorno = (char *) malloc(tamstr-2);
 
-	for (int i=0; i<tamstr; ++i) {
+	int i=0;
+	/* encontra o caractere de aspas usado */
+	for (; i<tamstr; ++i) {
+		if (str[i] == '"') {
+			tipo = '"';
+			break;
+		}
+		if (str[i] == '\'') {
+			tipo = '\'';
+			break;
+		}
+	}
 
-		/* toogle */
-		if (str[i] == '"' || str[i] == '\'') {
+	for (; i<tamstr; ++i) {
+		if (str[i] == tipo) {
 			dentro = !dentro;
 			continue;
 		}
-
 		if (dentro)
 			retorno[c++] = str[i];
 	}
@@ -313,6 +324,8 @@ char
 lex_get_char(void)
 {
 	int c = fgetc(prog_fonte);
+	if (c == '\n') linha++;
+
 	char *l = (char *) &c;
 	lexema_lido = concatenar(lexema_lido,l);
 	return (char) c;

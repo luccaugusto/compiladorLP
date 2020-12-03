@@ -1,6 +1,6 @@
 /* Exemplo de Programa na linguagem L */
 
-Var integer n,i,j,valor;
+Var integer n=10,i,j,valor;
 
 /* Programa Principal */
 

@@ -21,7 +21,7 @@ void def_tipo(Tipo tipo);
 void def_classe(Classe classe);
 Tipo to_logico(Tipo tipo);
 void tamanho_valido(int tam);
-void tipos_validos(Tipo A, Tipo B);
+void tipos_compativeis(Tipo A, Tipo B);
 void eh_id_nao_declarado(char* lex, Tipo tipo);
 void eh_id_ja_declarado(char *identificador);
 void eh_const(char *identificador);

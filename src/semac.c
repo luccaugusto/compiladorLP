@@ -68,7 +68,7 @@ tamanho_valido(int tam)
  * verifica se tipo A == tipo B
  */
 void
-tipos_validos(Tipo A, Tipo B)
+tipos_compativeis(Tipo A, Tipo B)
 {
 
 	if ( A != B) {

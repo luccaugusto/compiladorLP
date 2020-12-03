@@ -71,7 +71,7 @@ iniciar_codegen(void)
  * o registrador resultado RR e o pai
  */
 void
-aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai)
+aritmeticos(char* op, char *RD, char *RO, char *RR, struct Expr *pai)
 {
 	pai->endereco = novo_temp(TAM_INT);
 
@@ -91,7 +91,7 @@ aritmeticos(char* op, char *RD, char *RO, char *RR, struct Fator *pai)
 
 /* comparacoes nao string */
 void
-comp(char *op, struct Fator *pai)
+comp(char *op, struct Expr *pai)
 {
 	rot verdadeiro = novo_rot();
 	rot falso = novo_rot();
@@ -113,12 +113,12 @@ comp(char *op, struct Fator *pai)
 }
 
 void
-comp_char(struct Fator *pai)
+comp_char(struct Expr *pai)
 {
 	rot inicio = novo_rot();
 	rot verdadeiro = novo_rot();
 	rot falso = novo_rot();
-	rot fimStr = novo_rot();
+	rot fim_str = novo_rot();
 	rot iguais = novo_rot();
 
 	CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================inicio de comparacao de string===================\n");
@@ -133,7 +133,7 @@ comp_char(struct Fator *pai)
 	CONCAT_BUF("\tCMP CH, CL\t\t\t\t\t\t\t\t;compara as strings\n");
 	CONCAT_BUF("\tJE R%d\t\t\t\t\t\t\t\t;jmp verdadeiro\n", verdadeiro);
 	CONCAT_BUF("\tMOV AX, 0\n");
-	CONCAT_BUF("\tJMP R%d\t\t\t\t\t\t\t\t;strings diferentes\n",fimStr);
+	CONCAT_BUF("\tJMP R%d\t\t\t\t\t\t\t\t;strings diferentes\n",fim_str);
 	CONCAT_BUF("R%d:\t\t\t\t\t\t\t\t;caracteres iguais\n",verdadeiro);
 	CONCAT_BUF("\tCMP CH, 24h\t\t\t\t\t\t\t\t;verifica se chegou no final da primeira string\n");
 	CONCAT_BUF("\tJE R%d\t\t\t\t\t\t\t\t;iguais\n",iguais);
@@ -148,7 +148,7 @@ comp_char(struct Fator *pai)
 	CONCAT_BUF("R%d:\t\t\t\t\t\t\t\t;strings iguais\n",iguais);
 	CONCAT_BUF("\tMOV AX, 1\n");
 
-	CONCAT_BUF("R%d:\t\t\t\t\t\t\t\t;fim de string\n", fimStr);
+	CONCAT_BUF("R%d:\t\t\t\t\t\t\t\t;fim de string\n", fim_str);
 
 	pai->endereco = novo_temp(TAM_INT);
 	pai->tipo = TP_Logico;
@@ -257,7 +257,7 @@ fim_comandos(void)
 
 /* gera codigo para acesso a array */
 void
-acesso_array(struct Fator *pai, struct Fator *filho)
+acesso_array(struct Expr *pai, struct Expr *filho)
 {
 	CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;================acesso a array===================\n");
 	CONCAT_BUF("\tMOV AX, %d \t\t\t\t\t\t;endereco base\n", pai->endereco);
@@ -341,7 +341,7 @@ gen_declaracao(Tipo t, Classe c, int tam, char *val, int negativo)
 }
 
 void
-atribuicao_string(int end1, int end2, int fimStr, int tamMax)
+atribuicao_string(int end1, int end2, int tamMax)
 {
 	rot inicio = novo_rot();
 	rot fim = novo_rot();
@@ -357,7 +357,7 @@ atribuicao_string(int end1, int end2, int fimStr, int tamMax)
 	CONCAT_BUF("\tMOV CH, 0 \t\t\t\t\t\t\t\t;0 no registrador alto\n");
 	CONCAT_BUF("\tMOV CL, DS:[BX] \t\t\t\t\t\t\t;joga caractere em CL\n");
 	CONCAT_BUF("\tMOV DS:[DI], CL \t\t\t\t\t\t\t;transfere pro endereco a string\n");
-	CONCAT_BUF("\tCMP CL, %d \t\t\t\t\t\t\t\t\t;verifica se chegou no fim\n", fimStr);
+	CONCAT_BUF("\tCMP CL, 24h \t\t\t\t\t\t\t\t\t;verifica se chegou no fim\n");
 	CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
 	CONCAT_BUF("\tCMP BX, %d \t\t\t\t\t\t\t\t\t;verifica se atingiu o tamanho maximo\n", tamMax);
 	CONCAT_BUF("\tJE R%d \t\t\t\t\t\t\t\t\t\t;fim da str\n", fim);
@@ -370,7 +370,7 @@ atribuicao_string(int end1, int end2, int fimStr, int tamMax)
 }
 
 void
-gen_atribuicao(struct Fator *pai, struct Fator *fator)
+gen_atribuicao(struct Expr *pai, struct Expr *fator)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_atribuicao");
@@ -383,7 +383,7 @@ gen_atribuicao(struct Fator *pai, struct Fator *fator)
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim atribuicao de inteiros e logicos===================\n");
 	} else {
 		/* string, move caractere por caractere */
-		atribuicao_string(fator->endereco, pai->endereco, 0x24, (pai->tamanho == 0 ? 255 : pai->tamanho));
+		atribuicao_string(fator->endereco, pai->endereco, (pai->tamanho == 0 ? 255 : pai->tamanho));
 	}
 }
 
@@ -392,7 +392,7 @@ gen_atribuicao(struct Fator *pai, struct Fator *fator)
  * for ID=EXP TO EXP
  */
 void
-gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim)
+gen_repeticao(struct Expr *pai, struct Expr *filho, rot inicio, rot fim)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_repeticao");
@@ -409,7 +409,7 @@ gen_repeticao(struct Fator *pai, struct Fator *filho, rot inicio, rot fim)
  * incrementa e desvia
  */
 void
-gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim, struct Fator *step)
+gen_fim_repeticao(struct Expr *pai, rot inicio, rot fim, struct Expr *step)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_fim_repeticao");
@@ -436,7 +436,7 @@ gen_fim_repeticao(struct Fator *pai, rot inicio, rot fim, struct Fator *step)
 
 /* gera o inicio do comando de teste */
 void
-gen_teste(struct Fator *filho, rot falso, rot fim)
+gen_teste(struct Expr *filho, rot falso, rot fim)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_teste");
@@ -470,7 +470,7 @@ gen_fim_teste(rot fim)
 }
 
 void
-gen_entrada(struct Fator *pai)
+gen_entrada(struct Expr *pai)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_entrada");
@@ -513,7 +513,8 @@ gen_entrada(struct Fator *pai)
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================entrada de strings===================\n");
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;=================== transfere para o endereco do pai o conteudo lido===================\n");
 
-		atribuicao_string(buffer+2, pai->endereco, 0x0A, tam-3);
+		atribuicao_string(buffer+2, pai->endereco, tam-3);
+		CONCAT_BUF("\n");
 
 		CONCAT_BUF("\t\t\t\t\t\t\t\t\t\t\t\t;===================fim entrada de strings===================\n");
 	}
@@ -559,7 +560,7 @@ gen_entrada(struct Fator *pai)
 
 /* geracao de codigo para saida de texto */
 void
-gen_saida(struct Fator *pai, int ln)
+gen_saida(struct Expr *pai, int ln)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_saida");
@@ -619,7 +620,7 @@ gen_saida(struct Fator *pai, int ln)
 }
 
 void
-fator_gera_literal(struct Fator *fator, char *val)
+fator_gera_literal(struct Expr *fator, char *val)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_literal");
@@ -645,7 +646,7 @@ fator_gera_literal(struct Fator *fator, char *val)
 }
 
 void
-fator_gera_id(struct Fator *fator, char *id)
+fator_gera_id(struct Expr *fator, char *id)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_id");
@@ -658,7 +659,7 @@ fator_gera_id(struct Fator *fator, char *id)
 }
 
 void
-fator_gera_array(struct Fator *fator, struct Fator *expr, char *id)
+fator_gera_array(struct Expr *fator, struct Expr *expr, char *id)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_array");
@@ -686,7 +687,7 @@ fator_gera_array(struct Fator *fator, struct Fator *expr, char *id)
 }
 
 void
-fator_gera_exp(struct Fator *fator, struct Fator *expr)
+fator_gera_exp(struct Expr *fator, struct Expr *expr)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_exp");
@@ -697,7 +698,7 @@ fator_gera_exp(struct Fator *fator, struct Fator *expr)
 }
 
 void
-fator_gera_not(struct Fator *pai, struct Fator *filho)
+fator_gera_not(struct Expr *pai, struct Expr *filho)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_not");
@@ -715,7 +716,7 @@ fator_gera_not(struct Fator *pai, struct Fator *filho)
 }
 
 void
-fator_gera_menos(struct Fator *pai, struct Fator *filho)
+fator_gera_menos(struct Expr *pai, struct Expr *filho)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("fator_gera_menos");
@@ -731,7 +732,7 @@ fator_gera_menos(struct Fator *pai, struct Fator *filho)
 
 /* repassa dados do filho para o pai */
 void
-atualiza_pai(struct Fator *pai, struct Fator *filho)
+atualiza_pai(struct Expr *pai, struct Expr *filho)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("atualiza_pai");
@@ -743,7 +744,7 @@ atualiza_pai(struct Fator *pai, struct Fator *filho)
 
 /* salva o operador */
 void
-guarda_op(struct Fator *pai)
+guarda_op(struct Expr *pai)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("guarda_op");
@@ -753,7 +754,7 @@ guarda_op(struct Fator *pai)
 
 /* operacoes entre termos */
 void
-gen_op_termos(struct Fator *pai, struct Fator *filho)
+gen_op_termos(struct Expr *pai, struct Expr *filho)
 {
 	/* DEBUGGER E PILHA */
 	DEBUGGEN("gen_op_termos");
